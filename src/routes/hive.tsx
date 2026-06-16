@@ -236,8 +236,13 @@ function HivePage() {
                 {m.pending && (
                   <>
                     <IntentPreview msg={m} />
+                    <IdempotencyIndicator idempotencyKey={m.pending.idempotencyKey} status={m.idemStatus ?? "ready"} />
                     <div className="flex gap-2">
-                      <Button onClick={() => handleConfirm(m.id, m.pending!.requiresPin)} disabled={busy} className="gradient-brand text-white border-0">
+                      <Button
+                        onClick={() => handleConfirm(m.id, m.pending!.requiresPin)}
+                        disabled={busy || m.idemStatus === "duplicate"}
+                        className="gradient-brand text-white border-0"
+                      >
                         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="mr-2 h-3.5 w-3.5" /> Confirm</>}
                       </Button>
                       <Button variant="ghost" onClick={() => setMessages((all) => all.map((x) => x.id === m.id && x.role === "hive" ? { ...x, pending: undefined, text: "Cancelled." } : x))}>
@@ -245,6 +250,9 @@ function HivePage() {
                       </Button>
                     </div>
                   </>
+                )}
+                {!m.pending && m.idemStatus === "posted" && (
+                  <IdempotencyIndicator idempotencyKey={"completed"} status="posted" />
                 )}
               </div>
             </div>
