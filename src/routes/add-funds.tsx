@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, toMinor, type Currency, formatMoney } from "@/lib/money";
-import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
+import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
+import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 
 export const Route = createFileRoute("/add-funds")({
   head: () => ({ meta: [{ title: "Add funds — Smart Pay Engine" }] }),
@@ -31,6 +32,7 @@ function AddFundsPage() {
   const [busy, setBusy] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
+  const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
 
   const amountMinor = toMinor(amount || 0);
   const checking = accounts?.find((a) => a.currency === currency && a.type === "checking");
@@ -39,6 +41,7 @@ function AddFundsPage() {
   const resetKey = () => {
     setIdempotencyKey(crypto.randomUUID());
     setIdemStatus("ready");
+    setAudit(null);
   };
 
   const submit = async () => {
@@ -46,7 +49,9 @@ function AddFundsPage() {
     setBusy(true);
     setIdemStatus("submitting");
     try {
-      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+      const result = await auditIdempotencyKey(idempotencyKey);
+      setAudit(result);
+      if (result.used) {
         setIdemStatus("duplicate");
         toast.error("Duplicate request blocked — this deposit was already submitted.");
         return;
@@ -109,6 +114,7 @@ function AddFundsPage() {
           ))}
         </div>
         <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+        <IdempotencyAudit audit={audit} />
         <Button
           onClick={submit}
           disabled={amountMinor <= 0 || busy || idemStatus === "duplicate" || idemStatus === "posted"}

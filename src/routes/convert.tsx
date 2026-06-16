@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
+import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowDown, ArrowLeft, ArrowRightLeft, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
+import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 
 export const Route = createFileRoute("/convert")({
   head: () => ({ meta: [{ title: "Convert currency — Smart Pay Engine" }] }),
@@ -36,6 +37,7 @@ function ConvertPage() {
   const [step, setStep] = useState<"form" | "review">("form");
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
+  const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
   const [pinOpen, setPinOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -60,7 +62,9 @@ function ConvertPage() {
     setBusy(true);
     setIdemStatus("submitting");
     try {
-      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+      const result = await auditIdempotencyKey(idempotencyKey);
+      setAudit(result);
+      if (result.used) {
         setIdemStatus("duplicate");
         toast.error("Duplicate request blocked — this conversion was already submitted.");
         return;
@@ -138,7 +142,7 @@ function ConvertPage() {
           <Button
             className="w-full gradient-brand text-white border-0"
             disabled={amountMinor <= 0 || from === to || insufficient}
-            onClick={() => { setIdempotencyKey(crypto.randomUUID()); setIdemStatus("ready"); setStep("review"); }}
+            onClick={() => { setIdempotencyKey(crypto.randomUUID()); setIdemStatus("ready"); setAudit(null); setStep("review"); }}
           >
             {from === to ? "Pick different currencies" : insufficient ? "Insufficient balance" : "Review"}
           </Button>
@@ -159,6 +163,7 @@ function ConvertPage() {
             totalCurrency={to}
           />
           <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+          <IdempotencyAudit audit={audit} />
           <Button
             onClick={() => setPinOpen(true)}
             disabled={busy || idemStatus === "duplicate" || idemStatus === "posted"}
