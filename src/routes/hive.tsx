@@ -65,7 +65,8 @@ function HivePage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const buildPending = (intent: HiveIntent): { msg: Omit<Message, "id" | "role">; payee?: Payee | null } => {
+  type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
+  const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
     if (intent.kind === "send") {
       const matches = (payees ?? []).filter((p) => p.name.toLowerCase().includes(intent.payeeQuery.toLowerCase()));
       const exactCurrency = matches.find((m) => m.currency === intent.currency);
