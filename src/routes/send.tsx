@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getTransferFee, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { postTransaction } from "@/lib/ledger";
+import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Send, ArrowLeft, Loader2 } from "lucide-react";
+import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 
 export const Route = createFileRoute("/send")({
   head: () => ({
@@ -40,6 +41,7 @@ function SendPage() {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
   const [pinOpen, setPinOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -57,7 +59,13 @@ function SendPage() {
   const handleExecute = async () => {
     if (!payee || !checking || !funding) return;
     setSubmitting(true);
+    setIdemStatus("submitting");
     try {
+      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+        setIdemStatus("duplicate");
+        toast.error("Duplicate request blocked — this transfer was already submitted.");
+        return;
+      }
       await postTransaction({
         idempotencyKey,
         type: "transfer",
@@ -76,11 +84,13 @@ function SendPage() {
           { account_id: funding.id, direction: "credit", amount_minor: totalMinor },
         ],
       });
+      setIdemStatus("posted");
       toast.success(`Sent ${formatMoney(amountMinor, currency)} to ${payee.name}`);
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       navigate({ to: "/transactions" });
     } catch (e) {
+      setIdemStatus("ready");
       toast.error((e as Error).message);
     } finally {
       setSubmitting(false);
@@ -152,7 +162,12 @@ function SendPage() {
             totalMinor={totalMinor}
             totalCurrency={currency}
           />
-          <Button onClick={() => setPinOpen(true)} disabled={submitting} className="w-full gradient-brand text-white border-0 h-12 text-base">
+          <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+          <Button
+            onClick={() => setPinOpen(true)}
+            disabled={submitting || idemStatus === "duplicate" || idemStatus === "posted"}
+            className="w-full gradient-brand text-white border-0 h-12 text-base"
+          >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /> Confirm & send</>}
           </Button>
           <p className="text-center text-xs text-muted-foreground">Sandbox — no real money will be moved.</p>
