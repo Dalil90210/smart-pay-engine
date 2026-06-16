@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getTransferFee, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
+import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Send, ArrowLeft, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
+import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 
 export const Route = createFileRoute("/send")({
   head: () => ({
@@ -42,6 +43,7 @@ function SendPage() {
   const [note, setNote] = useState("");
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
+  const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
   const [pinOpen, setPinOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,7 +63,9 @@ function SendPage() {
     setSubmitting(true);
     setIdemStatus("submitting");
     try {
-      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+      const result = await auditIdempotencyKey(idempotencyKey);
+      setAudit(result);
+      if (result.used) {
         setIdemStatus("duplicate");
         toast.error("Duplicate request blocked — this transfer was already submitted.");
         return;
@@ -163,6 +167,7 @@ function SendPage() {
             totalCurrency={currency}
           />
           <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+          <IdempotencyAudit audit={audit} />
           <Button
             onClick={() => setPinOpen(true)}
             disabled={submitting || idemStatus === "duplicate" || idemStatus === "posted"}

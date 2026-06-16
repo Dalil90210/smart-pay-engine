@@ -38,6 +38,41 @@ export async function isIdempotencyKeyUsed(key: string): Promise<boolean> {
   return !!data;
 }
 
+export type IdempotencyMatch = {
+  id: string;
+  type: string;
+  state: string;
+  created_at: string;
+};
+
+export type IdempotencyAuditResult = {
+  key: string;
+  checkedAt: string;
+  used: boolean;
+  match: IdempotencyMatch | null;
+};
+
+/**
+ * Audit-flavored idempotency check: returns the matched transaction (if any)
+ * along with timing so UI can show the last duplicate-check result.
+ */
+export async function auditIdempotencyKey(key: string): Promise<IdempotencyAuditResult> {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id, type, state, created_at")
+    .eq("idempotency_key", key)
+    .maybeSingle();
+  if (error) throw error;
+  return {
+    key,
+    checkedAt: new Date().toISOString(),
+    used: !!data,
+    match: data
+      ? { id: data.id, type: String(data.type), state: String(data.state), created_at: data.created_at }
+      : null,
+  };
+}
+
 export async function verifyPin(pin: string) {
   const { data, error } = await supabase.rpc("verify_pin", { p_pin: pin });
   if (error) throw error;

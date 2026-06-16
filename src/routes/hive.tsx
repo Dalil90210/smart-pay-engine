@@ -10,11 +10,12 @@ import { useAccounts, useBalances } from "@/hooks/useAccounts";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, getTransferFee, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
+import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Sparkles, Send, ArrowUp, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
+import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 
 export const Route = createFileRoute("/hive")({
   head: () => ({ meta: [{ title: "Hive assistant — Smart Pay Engine" }] }),
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/hive")({
 
 type Message =
   | { id: string; role: "user"; text: string }
-  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus };
+  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus; audit?: IdempotencyAuditResult | null };
 
 type PendingAction = {
   kind: "send" | "convert" | "deposit";
@@ -166,6 +167,12 @@ function HivePage() {
     );
   };
 
+  const setAudit = (msgId: string, audit: IdempotencyAuditResult | null) => {
+    setMessages((all) =>
+      all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, audit } : m)),
+    );
+  };
+
   const execute = async (msgId: string) => {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
@@ -173,7 +180,9 @@ function HivePage() {
     setBusy(true);
     setIdemStatus(msgId, "submitting");
     try {
-      if (await isIdempotencyKeyUsed(p.idempotencyKey)) {
+      const result = await auditIdempotencyKey(p.idempotencyKey);
+      setAudit(msgId, result);
+      if (result.used) {
         setIdemStatus(msgId, "duplicate");
         toast.error("Duplicate request blocked — this action was already submitted.");
         return;
@@ -237,6 +246,7 @@ function HivePage() {
                   <>
                     <IntentPreview msg={m} />
                     <IdempotencyIndicator idempotencyKey={m.pending.idempotencyKey} status={m.idemStatus ?? "ready"} />
+                    <IdempotencyAudit audit={m.audit ?? null} />
                     <div className="flex gap-2">
                       <Button
                         onClick={() => handleConfirm(m.id, m.pending!.requiresPin)}
