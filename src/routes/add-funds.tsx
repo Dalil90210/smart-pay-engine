@@ -29,17 +29,30 @@ function AddFundsPage() {
   const [currency, setCurrency] = useState<Currency>("USD");
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
 
   const amountMinor = toMinor(amount || 0);
   const checking = accounts?.find((a) => a.currency === currency && a.type === "checking");
   const funding = accounts?.find((a) => a.currency === currency && a.type === "funding");
 
+  const resetKey = () => {
+    setIdempotencyKey(crypto.randomUUID());
+    setIdemStatus("ready");
+  };
+
   const submit = async () => {
     if (!checking || !funding || amountMinor <= 0) return;
     setBusy(true);
+    setIdemStatus("submitting");
     try {
+      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+        setIdemStatus("duplicate");
+        toast.error("Duplicate request blocked — this deposit was already submitted.");
+        return;
+      }
       await postTransaction({
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey,
         type: "deposit",
         metadata: { description: "Sandbox deposit", amount_minor: amountMinor },
         entries: [
@@ -47,11 +60,13 @@ function AddFundsPage() {
           { account_id: checking.id, direction: "credit", amount_minor: amountMinor },
         ],
       });
+      setIdemStatus("posted");
       toast.success(`Added ${formatMoney(amountMinor, currency)} (sandbox)`);
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       navigate({ to: "/" });
     } catch (e) {
+      setIdemStatus("ready");
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
