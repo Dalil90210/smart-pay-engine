@@ -293,6 +293,12 @@ function HivePage() {
         </Button>
       </div>
 
+      {auditHistory.length > 0 && (
+        <div className="mt-3">
+          <IdempotencyAuditHistory history={auditHistory} onClear={clearAuditHistory} />
+        </div>
+      )}
+
       <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Hive" />
     </div>
   );
