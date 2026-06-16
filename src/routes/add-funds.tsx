@@ -108,9 +108,19 @@ function AddFundsPage() {
             </Button>
           ))}
         </div>
-        <Button onClick={submit} disabled={amountMinor <= 0 || busy} className="w-full gradient-brand text-white border-0">
+        <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+        <Button
+          onClick={submit}
+          disabled={amountMinor <= 0 || busy || idemStatus === "duplicate" || idemStatus === "posted"}
+          className="w-full gradient-brand text-white border-0"
+        >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="mr-2 h-4 w-4" /> Add {amountMinor > 0 ? formatMoney(amountMinor, currency) : "funds"}</>}
         </Button>
+        {idemStatus === "duplicate" && (
+          <button type="button" onClick={resetKey} className="mx-auto block text-xs text-primary hover:underline">
+            Generate a new idempotency key
+          </button>
+        )}
         <p className="text-center text-xs text-muted-foreground">Sandbox deposit — credits your wallet from a virtual funding source. No PIN required for deposits.</p>
       </Card>
     </div>
