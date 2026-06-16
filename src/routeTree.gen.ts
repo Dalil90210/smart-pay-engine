@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
+import { Route as HiveRouteImport } from './routes/hive'
 import { Route as ConvertRouteImport } from './routes/convert'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AddFundsRouteImport } from './routes/add-funds'
@@ -30,6 +31,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SendRoute = SendRouteImport.update({
   id: '/send',
   path: '/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HiveRoute = HiveRouteImport.update({
+  id: '/hive',
+  path: '/hive',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConvertRoute = ConvertRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/hive': typeof HiveRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/hive': typeof HiveRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/hive': typeof HiveRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/auth'
     | '/convert'
+    | '/hive'
     | '/send'
     | '/settings'
     | '/transactions'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/auth'
     | '/convert'
+    | '/hive'
     | '/send'
     | '/settings'
     | '/transactions'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/auth'
     | '/convert'
+    | '/hive'
     | '/send'
     | '/settings'
     | '/transactions'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AddFundsRoute: typeof AddFundsRoute
   AuthRoute: typeof AuthRoute
   ConvertRoute: typeof ConvertRoute
+  HiveRoute: typeof HiveRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/send'
       fullPath: '/send'
       preLoaderRoute: typeof SendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hive': {
+      id: '/hive'
+      path: '/hive'
+      fullPath: '/hive'
+      preLoaderRoute: typeof HiveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/convert': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddFundsRoute: AddFundsRoute,
   AuthRoute: AuthRoute,
   ConvertRoute: ConvertRoute,
+  HiveRoute: HiveRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
