@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getTransferFee, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
+import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Send, ArrowLeft, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
+import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
+import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/send")({
   head: () => ({
@@ -44,6 +46,7 @@ function SendPage() {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
   const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
+  const { history, runCheck, clear: clearHistory } = useIdempotencyAuditHistory();
   const [pinOpen, setPinOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -63,7 +66,7 @@ function SendPage() {
     setSubmitting(true);
     setIdemStatus("submitting");
     try {
-      const result = await auditIdempotencyKey(idempotencyKey);
+      const result = await runCheck(idempotencyKey);
       setAudit(result);
       if (result.used) {
         setIdemStatus("duplicate");
