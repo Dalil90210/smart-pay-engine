@@ -251,9 +251,6 @@ function HivePage() {
                     </div>
                   </>
                 )}
-                {!m.pending && m.idemStatus === "posted" && (
-                  <IdempotencyIndicator idempotencyKey={"completed"} status="posted" />
-                )}
               </div>
             </div>
           ),
