@@ -158,7 +158,12 @@ function ConvertPage() {
             totalMinor={quote.toMinor}
             totalCurrency={to}
           />
-          <Button onClick={() => setPinOpen(true)} disabled={busy} className="w-full gradient-brand text-white border-0 h-12 text-base">
+          <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+          <Button
+            onClick={() => setPinOpen(true)}
+            disabled={busy || idemStatus === "duplicate" || idemStatus === "posted"}
+            className="w-full gradient-brand text-white border-0 h-12 text-base"
+          >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ArrowRightLeft className="mr-2 h-4 w-4" /> Confirm & convert</>}
           </Button>
         </div>
