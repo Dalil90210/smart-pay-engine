@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, toMinor, type Currency, formatMoney } from "@/lib/money";
-import { postTransaction } from "@/lib/ledger";
+import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
+import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 
 export const Route = createFileRoute("/add-funds")({
   head: () => ({ meta: [{ title: "Add funds — Smart Pay Engine" }] }),
