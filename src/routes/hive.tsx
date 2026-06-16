@@ -10,12 +10,14 @@ import { useAccounts, useBalances } from "@/hooks/useAccounts";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, getTransferFee, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
+import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Sparkles, Send, ArrowUp, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
+import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
+import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/hive")({
   head: () => ({ meta: [{ title: "Hive assistant — Smart Pay Engine" }] }),
@@ -61,6 +63,7 @@ function HivePage() {
   const [pinOpen, setPinOpen] = useState(false);
   const [activeMsgId, setActiveMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { history: auditHistory, runCheck, clear: clearAuditHistory } = useIdempotencyAuditHistory();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -180,7 +183,7 @@ function HivePage() {
     setBusy(true);
     setIdemStatus(msgId, "submitting");
     try {
-      const result = await auditIdempotencyKey(p.idempotencyKey);
+      const result = await runCheck(p.idempotencyKey);
       setAudit(msgId, result);
       if (result.used) {
         setIdemStatus(msgId, "duplicate");
