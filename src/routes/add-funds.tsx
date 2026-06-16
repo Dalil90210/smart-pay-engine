@@ -118,6 +118,7 @@ function AddFundsPage() {
         </div>
         <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
         <IdempotencyAudit audit={audit} />
+        <IdempotencyAuditHistory history={history} onClear={clearHistory} />
         <Button
           onClick={submit}
           disabled={amountMinor <= 0 || busy || idemStatus === "duplicate" || idemStatus === "posted"}

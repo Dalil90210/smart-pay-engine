@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
+import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowDown, ArrowLeft, ArrowRightLeft, Loader2 } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
+import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
+import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/convert")({
   head: () => ({ meta: [{ title: "Convert currency — Smart Pay Engine" }] }),
@@ -38,6 +40,7 @@ function ConvertPage() {
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
   const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
+  const { history, runCheck, clear: clearHistory } = useIdempotencyAuditHistory();
   const [pinOpen, setPinOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -62,7 +65,7 @@ function ConvertPage() {
     setBusy(true);
     setIdemStatus("submitting");
     try {
-      const result = await auditIdempotencyKey(idempotencyKey);
+      const result = await runCheck(idempotencyKey);
       setAudit(result);
       if (result.used) {
         setIdemStatus("duplicate");
@@ -164,6 +167,7 @@ function ConvertPage() {
           />
           <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
           <IdempotencyAudit audit={audit} />
+          <IdempotencyAuditHistory history={history} onClear={clearHistory} />
           <Button
             onClick={() => setPinOpen(true)}
             disabled={busy || idemStatus === "duplicate" || idemStatus === "posted"}
