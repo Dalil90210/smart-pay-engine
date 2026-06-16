@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SendRouteImport } from './routes/send'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AddFundsRouteImport } from './routes/add-funds'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SendRoute = SendRouteImport.update({
+  id: '/send',
+  path: '/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AddFundsRoute = AddFundsRouteImport.update({
+  id: '/add-funds',
+  path: '/add-funds',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -25,37 +37,59 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
+  '/send': typeof SendRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
+  '/send': typeof SendRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
+  '/send': typeof SendRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth'
+  fullPaths: '/' | '/add-funds' | '/auth' | '/send'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth'
-  id: '__root__' | '/' | '/auth'
+  to: '/' | '/add-funds' | '/auth' | '/send'
+  id: '__root__' | '/' | '/add-funds' | '/auth' | '/send'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddFundsRoute: typeof AddFundsRoute
   AuthRoute: typeof AuthRoute
+  SendRoute: typeof SendRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/send': {
+      id: '/send'
+      path: '/send'
+      fullPath: '/send'
+      preLoaderRoute: typeof SendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/add-funds': {
+      id: '/add-funds'
+      path: '/add-funds'
+      fullPath: '/add-funds'
+      preLoaderRoute: typeof AddFundsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -70,7 +104,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddFundsRoute: AddFundsRoute,
   AuthRoute: AuthRoute,
+  SendRoute: SendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
