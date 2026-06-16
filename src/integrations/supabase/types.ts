@@ -14,16 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          id: string
+          type: Database["public"]["Enums"]["account_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          id?: string
+          type: Database["public"]["Enums"]["account_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          id?: string
+          type?: Database["public"]["Enums"]["account_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ledger_entries: {
+        Row: {
+          account_id: string
+          amount_minor: number
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          direction: Database["public"]["Enums"]["entry_direction"]
+          id: string
+          transaction_id: string
+        }
+        Insert: {
+          account_id: string
+          amount_minor: number
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          direction: Database["public"]["Enums"]["entry_direction"]
+          id?: string
+          transaction_id: string
+        }
+        Update: {
+          account_id?: string
+          amount_minor?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          direction?: Database["public"]["Enums"]["entry_direction"]
+          id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payees: {
+        Row: {
+          account_ref: string
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          account_ref: string
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          account_ref?: string
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          pin_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          pin_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          pin_hash?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          state: Database["public"]["Enums"]["tx_state"]
+          type: Database["public"]["Enums"]["tx_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          state?: Database["public"]["Enums"]["tx_state"]
+          type: Database["public"]["Enums"]["tx_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          state?: Database["public"]["Enums"]["tx_state"]
+          type?: Database["public"]["Enums"]["tx_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      account_balances: {
+        Row: {
+          account_id: string | null
+          balance_minor: number | null
+          currency: Database["public"]["Enums"]["currency_code"] | null
+          type: Database["public"]["Enums"]["account_type"] | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      post_transaction: {
+        Args: {
+          p_entries: Json
+          p_idempotency_key: string
+          p_metadata: Json
+          p_type: Database["public"]["Enums"]["tx_type"]
+        }
+        Returns: string
+      }
+      set_pin: { Args: { p_pin: string }; Returns: undefined }
+      verify_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_type: "checking" | "funding" | "fx_suspense"
+      currency_code: "USD" | "EUR" | "GBP"
+      entry_direction: "debit" | "credit"
+      tx_state: "initiated" | "confirmed" | "completed" | "failed"
+      tx_type: "deposit" | "withdrawal" | "transfer" | "fx"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +326,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: ["checking", "funding", "fx_suspense"],
+      currency_code: ["USD", "EUR", "GBP"],
+      entry_direction: ["debit", "credit"],
+      tx_state: ["initiated", "confirmed", "completed", "failed"],
+      tx_type: ["deposit", "withdrawal", "transfer", "fx"],
+    },
   },
 } as const
