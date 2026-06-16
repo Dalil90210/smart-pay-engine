@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, toMinor, type Currency, formatMoney } from "@/lib/money";
-import { auditIdempotencyKey, postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
+import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
+import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
+import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/add-funds")({
   head: () => ({ meta: [{ title: "Add funds — Smart Pay Engine" }] }),
@@ -33,6 +35,7 @@ function AddFundsPage() {
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
   const [audit, setAudit] = useState<IdempotencyAuditResult | null>(null);
+  const { history, runCheck, clear: clearHistory } = useIdempotencyAuditHistory();
 
   const amountMinor = toMinor(amount || 0);
   const checking = accounts?.find((a) => a.currency === currency && a.type === "checking");
@@ -49,7 +52,7 @@ function AddFundsPage() {
     setBusy(true);
     setIdemStatus("submitting");
     try {
-      const result = await auditIdempotencyKey(idempotencyKey);
+      const result = await runCheck(idempotencyKey);
       setAudit(result);
       if (result.used) {
         setIdemStatus("duplicate");

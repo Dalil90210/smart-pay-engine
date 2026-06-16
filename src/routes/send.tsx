@@ -171,6 +171,7 @@ function SendPage() {
           />
           <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
           <IdempotencyAudit audit={audit} />
+          <IdempotencyAuditHistory history={history} onClear={clearHistory} />
           <Button
             onClick={() => setPinOpen(true)}
             disabled={submitting || idemStatus === "duplicate" || idemStatus === "posted"}
