@@ -23,6 +23,21 @@ export async function postTransaction(args: {
   return data as string;
 }
 
+/**
+ * Check whether a transaction with this idempotency key has already been recorded.
+ * Used by money-moving screens to surface a "duplicate blocked" indicator before
+ * re-submitting the same request.
+ */
+export async function isIdempotencyKeyUsed(key: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id")
+    .eq("idempotency_key", key)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
 export async function verifyPin(pin: string) {
   const { data, error } = await supabase.rpc("verify_pin", { p_pin: pin });
   if (error) throw error;
