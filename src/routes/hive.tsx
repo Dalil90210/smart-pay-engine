@@ -10,10 +10,11 @@ import { useAccounts, useBalances } from "@/hooks/useAccounts";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, getTransferFee, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { postTransaction } from "@/lib/ledger";
+import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Sparkles, Send, ArrowUp, Loader2 } from "lucide-react";
+import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 
 export const Route = createFileRoute("/hive")({
   head: () => ({ meta: [{ title: "Hive assistant — Smart Pay Engine" }] }),
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/hive")({
 
 type Message =
   | { id: string; role: "user"; text: string }
-  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
+  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus };
 
 type PendingAction = {
   kind: "send" | "convert" | "deposit";
@@ -159,12 +160,24 @@ function HivePage() {
     setInput("");
   };
 
+  const setIdemStatus = (msgId: string, status: IdempotencyStatus) => {
+    setMessages((all) =>
+      all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, idemStatus: status } : m)),
+    );
+  };
+
   const execute = async (msgId: string) => {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
     const p = msg.pending;
     setBusy(true);
+    setIdemStatus(msgId, "submitting");
     try {
+      if (await isIdempotencyKeyUsed(p.idempotencyKey)) {
+        setIdemStatus(msgId, "duplicate");
+        toast.error("Duplicate request blocked — this action was already submitted.");
+        return;
+      }
       await postTransaction({
         idempotencyKey: p.idempotencyKey,
         type: p.kind === "send" ? "transfer" : p.kind === "convert" ? "fx" : "deposit",
@@ -174,11 +187,12 @@ function HivePage() {
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       setMessages((all) => [
-        ...all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, pending: undefined } : m)),
+        ...all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, pending: undefined, idemStatus: "posted" as IdempotencyStatus } : m)),
         { id: crypto.randomUUID(), role: "hive", text: `✓ ${p.successMessage}` },
       ]);
       toast.success(p.successMessage);
     } catch (e) {
+      setIdemStatus(msgId, "ready");
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
@@ -222,8 +236,13 @@ function HivePage() {
                 {m.pending && (
                   <>
                     <IntentPreview msg={m} />
+                    <IdempotencyIndicator idempotencyKey={m.pending.idempotencyKey} status={m.idemStatus ?? "ready"} />
                     <div className="flex gap-2">
-                      <Button onClick={() => handleConfirm(m.id, m.pending!.requiresPin)} disabled={busy} className="gradient-brand text-white border-0">
+                      <Button
+                        onClick={() => handleConfirm(m.id, m.pending!.requiresPin)}
+                        disabled={busy || m.idemStatus === "duplicate"}
+                        className="gradient-brand text-white border-0"
+                      >
                         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="mr-2 h-3.5 w-3.5" /> Confirm</>}
                       </Button>
                       <Button variant="ghost" onClick={() => setMessages((all) => all.map((x) => x.id === m.id && x.role === "hive" ? { ...x, pending: undefined, text: "Cancelled." } : x))}>

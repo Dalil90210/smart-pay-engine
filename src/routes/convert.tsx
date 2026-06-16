@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { postTransaction } from "@/lib/ledger";
+import { isIdempotencyKeyUsed, postTransaction } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowDown, ArrowLeft, ArrowRightLeft, Loader2 } from "lucide-react";
+import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 
 export const Route = createFileRoute("/convert")({
   head: () => ({ meta: [{ title: "Convert currency — Smart Pay Engine" }] }),
@@ -34,6 +35,7 @@ function ConvertPage() {
   const [amount, setAmount] = useState("");
   const [step, setStep] = useState<"form" | "review">("form");
   const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
+  const [idemStatus, setIdemStatus] = useState<IdempotencyStatus>("ready");
   const [pinOpen, setPinOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -56,7 +58,13 @@ function ConvertPage() {
   const execute = async () => {
     if (!fromChecking || !toChecking || !fromFx || !toFx) return;
     setBusy(true);
+    setIdemStatus("submitting");
     try {
+      if (await isIdempotencyKeyUsed(idempotencyKey)) {
+        setIdemStatus("duplicate");
+        toast.error("Duplicate request blocked — this conversion was already submitted.");
+        return;
+      }
       await postTransaction({
         idempotencyKey,
         type: "fx",
@@ -80,11 +88,13 @@ function ConvertPage() {
           { account_id: toChecking.id, direction: "credit", amount_minor: quote.toMinor },
         ],
       });
+      setIdemStatus("posted");
       toast.success(`Converted ${formatMoney(quote.fromMinor, from)} → ${formatMoney(quote.toMinor, to)}`);
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       navigate({ to: "/" });
     } catch (e) {
+      setIdemStatus("ready");
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
@@ -128,7 +138,7 @@ function ConvertPage() {
           <Button
             className="w-full gradient-brand text-white border-0"
             disabled={amountMinor <= 0 || from === to || insufficient}
-            onClick={() => { setIdempotencyKey(crypto.randomUUID()); setStep("review"); }}
+            onClick={() => { setIdempotencyKey(crypto.randomUUID()); setIdemStatus("ready"); setStep("review"); }}
           >
             {from === to ? "Pick different currencies" : insufficient ? "Insufficient balance" : "Review"}
           </Button>
@@ -148,7 +158,12 @@ function ConvertPage() {
             totalMinor={quote.toMinor}
             totalCurrency={to}
           />
-          <Button onClick={() => setPinOpen(true)} disabled={busy} className="w-full gradient-brand text-white border-0 h-12 text-base">
+          <IdempotencyIndicator idempotencyKey={idempotencyKey} status={idemStatus} />
+          <Button
+            onClick={() => setPinOpen(true)}
+            disabled={busy || idemStatus === "duplicate" || idemStatus === "posted"}
+            className="w-full gradient-brand text-white border-0 h-12 text-base"
+          >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ArrowRightLeft className="mr-2 h-4 w-4" /> Confirm & convert</>}
           </Button>
         </div>
