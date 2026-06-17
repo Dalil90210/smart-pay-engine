@@ -6,7 +6,8 @@ import { SandboxBadge } from "./SandboxBadge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import logoUrl from "@/assets/spe-logo.png";
+import logoAsset from "@/assets/spe-logo.jpg.asset.json";
+const logoUrl = logoAsset.url;
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
