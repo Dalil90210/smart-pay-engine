@@ -12,6 +12,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import logoAsset from "@/assets/spe-logo.jpg.asset.json";
+const logoUrl = logoAsset.url;
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -88,9 +90,8 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl gradient-brand font-bold text-white">
-            S
-          </div>
+          <img src={logoUrl} alt="Smart Pay Engine" width={56} height={56} className="mx-auto mb-3 h-14 w-14 rounded-2xl object-contain" />
+
           <h1 className="font-display text-2xl font-bold">Smart Pay Engine</h1>
           <p className="mt-1 text-sm text-muted-foreground">Multi-currency payments, reimagined.</p>
           <div className="mt-3 flex justify-center">
