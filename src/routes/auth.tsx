@@ -12,7 +12,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import logoAsset from "@/assets/spe-logo.jpg.asset.json";
+import logoAsset from "@/assets/spe-logo.png.asset.json";
 const logoUrl = logoAsset.url;
 
 export const Route = createFileRoute("/auth")({
