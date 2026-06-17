@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
+import faviconIco from "@/assets/favicon.ico.asset.json";
+import faviconPng from "@/assets/favicon-512.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -88,6 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
     ],
     links: [
+      { rel: "icon", type: "image/x-icon", href: faviconIco.url },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: faviconPng.url },
+      { rel: "apple-touch-icon", sizes: "180x180", href: faviconPng.url },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
