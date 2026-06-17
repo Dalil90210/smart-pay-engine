@@ -54,8 +54,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   active
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                    ? it.accent
+                      ? "gradient-brand text-white shadow-md"
+                      : "bg-accent text-accent-foreground"
+                    : it.accent
+                      ? "text-cyan hover:bg-cyan/10"
+                      : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
               >
                 <it.icon className="h-4 w-4" />
