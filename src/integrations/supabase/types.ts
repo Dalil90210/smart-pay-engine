@@ -38,6 +38,65 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: Json
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: Json
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ledger_entries: {
         Row: {
           account_id: string
@@ -138,6 +197,65 @@ export type Database = {
         }
         Relationships: []
       }
+      reversals: {
+        Row: {
+          ai_recommendation: string | null
+          amount_minor: number
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          evidence: Json
+          id: string
+          priority_score: number
+          reason_code: string
+          status: Database["public"]["Enums"]["reversal_status"]
+          success_probability: number
+          timeline: Json
+          transaction_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_recommendation?: string | null
+          amount_minor: number
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          evidence?: Json
+          id?: string
+          priority_score?: number
+          reason_code: string
+          status?: Database["public"]["Enums"]["reversal_status"]
+          success_probability?: number
+          timeline?: Json
+          transaction_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_recommendation?: string | null
+          amount_minor?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          evidence?: Json
+          id?: string
+          priority_score?: number
+          reason_code?: string
+          status?: Database["public"]["Enums"]["reversal_status"]
+          success_probability?: number
+          timeline?: Json
+          transaction_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reversals_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           created_at: string
@@ -198,8 +316,20 @@ export type Database = {
       account_type: "checking" | "funding" | "fx_suspense"
       currency_code: "USD" | "EUR" | "GBP"
       entry_direction: "debit" | "credit"
-      tx_state: "initiated" | "confirmed" | "completed" | "failed"
-      tx_type: "deposit" | "withdrawal" | "transfer" | "fx"
+      reversal_status:
+        | "submitted"
+        | "under_review"
+        | "approved"
+        | "partially_approved"
+        | "rejected"
+      tx_state:
+        | "initiated"
+        | "confirmed"
+        | "completed"
+        | "failed"
+        | "processing"
+        | "reversed"
+      tx_type: "deposit" | "withdrawal" | "transfer" | "fx" | "reversal"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -330,8 +460,22 @@ export const Constants = {
       account_type: ["checking", "funding", "fx_suspense"],
       currency_code: ["USD", "EUR", "GBP"],
       entry_direction: ["debit", "credit"],
-      tx_state: ["initiated", "confirmed", "completed", "failed"],
-      tx_type: ["deposit", "withdrawal", "transfer", "fx"],
+      reversal_status: [
+        "submitted",
+        "under_review",
+        "approved",
+        "partially_approved",
+        "rejected",
+      ],
+      tx_state: [
+        "initiated",
+        "confirmed",
+        "completed",
+        "failed",
+        "processing",
+        "reversed",
+      ],
+      tx_type: ["deposit", "withdrawal", "transfer", "fx", "reversal"],
     },
   },
 } as const
