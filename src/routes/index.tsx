@@ -7,8 +7,20 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useReversals } from "@/hooks/useReversals";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Send, ArrowRightLeft, Sparkles, Loader2, Shield, TrendingUp } from "lucide-react";
+import {
+  Send,
+  ArrowRightLeft,
+  Sparkles,
+  Loader2,
+  Shield,
+  TrendingUp,
+  Wallet,
+  Radio,
+} from "lucide-react";
 import { CURRENCIES, formatMoney } from "@/lib/money";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,11 +36,40 @@ export const Route = createFileRoute("/")({
   ),
 });
 
+// Approximate FX rates for USD-equivalent total display
+const TO_USD: Record<string, number> = { USD: 1, EUR: 1.087, GBP: 1.265 };
+
 function Dashboard() {
   const { data: accounts } = useAccounts();
   const { data: balances, isLoading } = useBalances();
   const { data: txs } = useTransactions(8);
   const { data: reversals = [] } = useReversals();
+  const qc = useQueryClient();
+  const [tick, setTick] = useState(0);
+
+  // Realtime subscription — refetch balances on any ledger or transaction change
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "ledger_entries" }, () => {
+        qc.invalidateQueries({ queryKey: ["balances"] });
+        qc.invalidateQueries({ queryKey: ["transactions"] });
+        setTick((t) => t + 1);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, () => {
+        qc.invalidateQueries({ queryKey: ["transactions"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
+  // Re-render the "as of" timestamp every 30s
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const transferTxs = (txs ?? []).filter((t) => t.type === "transfer");
   const totalMovedUsd = transferTxs
@@ -39,6 +80,11 @@ function Dashboard() {
   const winRate = closed.length
     ? Math.round((closed.filter((r) => r.status === "approved" || r.status === "partially_approved").length / closed.length) * 100)
     : 0;
+
+  // Total holdings in USD equivalent
+  const totalUsdEquivMinor = (balances ?? [])
+    .filter((b) => b.type === "checking")
+    .reduce((sum, b) => sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1)), 0);
 
   return (
     <div className="space-y-8">
@@ -70,10 +116,30 @@ function Dashboard() {
         <Kpi icon={Sparkles} label="Saved via smart routing" value="~$312" sub="vs. naive routing" />
       </div>
 
-      {/* Balances */}
+      {/* Balances — multi-currency real-time */}
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Balances</h2>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Balances
+              </h2>
+              <span className="inline-flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-success">
+                <Radio className="h-2.5 w-2.5 animate-pulse" /> Live
+              </span>
+            </div>
+            <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Wallet className="h-3 w-3" /> Total ≈
+                <span className="font-display text-sm font-semibold text-foreground">
+                  {formatMoney(totalUsdEquivMinor, "USD")}
+                </span>
+              </span>
+              <span>· as of {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              <span className="hidden sm:inline">· auto-refresh on ledger change</span>
+              <span className="hidden">{tick}</span>
+            </div>
+          </div>
           <Link to="/convert" className="text-xs text-cyan hover:underline inline-flex items-center gap-1">
             <ArrowRightLeft className="h-3 w-3" /> Convert
           </Link>

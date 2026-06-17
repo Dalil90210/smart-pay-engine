@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Shield, CheckCircle2, Clock, UserPlus } from "lucide-react";
+import { Users, Shield, CheckCircle2, Clock, UserPlus, Lock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -75,6 +75,29 @@ function Team() {
         <h1 className="font-display text-2xl font-bold tracking-tight">Your workspace</h1>
         <p className="mt-1 text-sm text-muted-foreground">Role-based access with multi-party approvals on large payments.</p>
       </div>
+
+      {/* Approval policy */}
+      <Card className="p-5">
+        <div className="mb-3 flex items-center gap-2">
+          <Lock className="h-4 w-4 text-cyan" />
+          <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Approval policy</h3>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            { tier: "Under $5,000", rule: "Auto-approved", who: "Any Approver or Admin", tone: "bg-success/10 text-success border-success/30" },
+            { tier: "$5,000 – $25,000", rule: "1 Approver required", who: "Approver or Admin", tone: "bg-cyan/10 text-cyan border-cyan/30" },
+            { tier: "$25,000+", rule: "Dual approval", who: "Admin + Owner", tone: "bg-amber-500/10 text-amber-400 border-amber-500/30" },
+          ].map((p) => (
+            <div key={p.tier} className="rounded-lg border border-border bg-background/50 p-3">
+              <div className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${p.tone}`}>
+                {p.tier}
+              </div>
+              <div className="mt-2 text-sm font-medium text-foreground">{p.rule}</div>
+              <div className="text-xs text-muted-foreground">{p.who}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <Card className="p-5">
         <div className="mb-3 flex items-center justify-between">
