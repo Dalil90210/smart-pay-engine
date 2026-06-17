@@ -12,11 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
+import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
 import { Route as ConvertRouteImport } from './routes/convert'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AddFundsRouteImport } from './routes/add-funds'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssistantIndexRouteImport } from './routes/assistant.index'
+import { Route as AssistantThreadIdRouteImport } from './routes/assistant.$threadId'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
@@ -31,6 +37,16 @@ const SettingsRoute = SettingsRouteImport.update({
 const SendRoute = SendRouteImport.update({
   id: '/send',
   path: '/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReversalsRoute = ReversalsRouteImport.update({
+  id: '/reversals',
+  path: '/reversals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HiveRoute = HiveRouteImport.update({
@@ -48,6 +64,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssistantRoute = AssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AddFundsRoute = AddFundsRouteImport.update({
   id: '/add-funds',
   path: '/add-funds',
@@ -58,16 +79,37 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssistantIndexRoute = AssistantIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AssistantRoute,
+} as any)
+const AssistantThreadIdRoute = AssistantThreadIdRouteImport.update({
+  id: '/$threadId',
+  path: '/$threadId',
+  getParentRoute: () => AssistantRoute,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add-funds': typeof AddFundsRoute
+  '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
+  '/insights': typeof InsightsRoute
+  '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/api/chat': typeof ApiChatRoute
+  '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/assistant/': typeof AssistantIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,32 +117,49 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
+  '/insights': typeof InsightsRoute
+  '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/api/chat': typeof ApiChatRoute
+  '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/assistant': typeof AssistantIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add-funds': typeof AddFundsRoute
+  '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
+  '/insights': typeof InsightsRoute
+  '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/api/chat': typeof ApiChatRoute
+  '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/assistant/': typeof AssistantIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/add-funds'
+    | '/assistant'
     | '/auth'
     | '/convert'
     | '/hive'
+    | '/insights'
+    | '/reversals'
     | '/send'
     | '/settings'
     | '/transactions'
+    | '/api/chat'
+    | '/assistant/$threadId'
+    | '/assistant/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,30 +167,45 @@ export interface FileRouteTypes {
     | '/auth'
     | '/convert'
     | '/hive'
+    | '/insights'
+    | '/reversals'
     | '/send'
     | '/settings'
     | '/transactions'
+    | '/api/chat'
+    | '/assistant/$threadId'
+    | '/assistant'
   id:
     | '__root__'
     | '/'
     | '/add-funds'
+    | '/assistant'
     | '/auth'
     | '/convert'
     | '/hive'
+    | '/insights'
+    | '/reversals'
     | '/send'
     | '/settings'
     | '/transactions'
+    | '/api/chat'
+    | '/assistant/$threadId'
+    | '/assistant/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddFundsRoute: typeof AddFundsRoute
+  AssistantRoute: typeof AssistantRouteWithChildren
   AuthRoute: typeof AuthRoute
   ConvertRoute: typeof ConvertRoute
   HiveRoute: typeof HiveRoute
+  InsightsRoute: typeof InsightsRoute
+  ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -157,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SendRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reversals': {
+      id: '/reversals'
+      path: '/reversals'
+      fullPath: '/reversals'
+      preLoaderRoute: typeof ReversalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hive': {
       id: '/hive'
       path: '/hive'
@@ -178,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/add-funds': {
       id: '/add-funds'
       path: '/add-funds'
@@ -192,18 +287,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assistant/': {
+      id: '/assistant/'
+      path: '/'
+      fullPath: '/assistant/'
+      preLoaderRoute: typeof AssistantIndexRouteImport
+      parentRoute: typeof AssistantRoute
+    }
+    '/assistant/$threadId': {
+      id: '/assistant/$threadId'
+      path: '/$threadId'
+      fullPath: '/assistant/$threadId'
+      preLoaderRoute: typeof AssistantThreadIdRouteImport
+      parentRoute: typeof AssistantRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AssistantRouteChildren {
+  AssistantThreadIdRoute: typeof AssistantThreadIdRoute
+  AssistantIndexRoute: typeof AssistantIndexRoute
+}
+
+const AssistantRouteChildren: AssistantRouteChildren = {
+  AssistantThreadIdRoute: AssistantThreadIdRoute,
+  AssistantIndexRoute: AssistantIndexRoute,
+}
+
+const AssistantRouteWithChildren = AssistantRoute._addFileChildren(
+  AssistantRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddFundsRoute: AddFundsRoute,
+  AssistantRoute: AssistantRouteWithChildren,
   AuthRoute: AuthRoute,
   ConvertRoute: ConvertRoute,
   HiveRoute: HiveRoute,
+  InsightsRoute: InsightsRoute,
+  ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
