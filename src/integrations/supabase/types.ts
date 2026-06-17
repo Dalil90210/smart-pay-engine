@@ -181,19 +181,16 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
-          pin_hash: string | null
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
-          pin_hash?: string | null
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
-          pin_hash?: string | null
         }
         Relationships: []
       }
@@ -286,6 +283,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_pins: {
+        Row: {
+          pin_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          pin_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          pin_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       account_balances: {
@@ -300,6 +315,7 @@ export type Database = {
       }
     }
     Functions: {
+      has_pin: { Args: never; Returns: boolean }
       post_transaction: {
         Args: {
           p_entries: Json
