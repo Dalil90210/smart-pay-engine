@@ -85,12 +85,9 @@ export async function setPin(pin: string) {
 }
 
 export async function hasPin(): Promise<boolean> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("pin_hash")
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("has_pin");
   if (error) throw error;
-  return !!data?.pin_hash;
+  return !!data;
 }
 
 // Currency type re-export not needed but keeps imports tidy
