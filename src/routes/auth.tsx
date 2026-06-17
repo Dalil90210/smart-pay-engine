@@ -90,9 +90,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src={logoUrl} alt="Smart Pay Engine" width={56} height={56} className="mx-auto mb-3 h-12 w-12 shrink-0 rounded-2xl object-contain sm:h-14 sm:w-14" />
-
-          <h1 className="font-display text-2xl font-bold">Smart Pay Engine</h1>
+          <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-2 h-32 w-auto object-contain sm:h-40" />
           <p className="mt-1 text-sm text-muted-foreground">Multi-currency payments, reimagined.</p>
           <div className="mt-3 flex justify-center">
             <SandboxBadge />
