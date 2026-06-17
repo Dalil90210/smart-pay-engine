@@ -10,6 +10,8 @@ import { FileText, Plus, Download, Sparkles, Send, Loader2 } from "lucide-react"
 import { useState } from "react";
 import { formatMoney, type Currency } from "@/lib/money";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { generateInvoice, type AiInvoice } from "@/lib/invoices.functions";
 
 export const Route = createFileRoute("/invoices")({
   head: () => ({
