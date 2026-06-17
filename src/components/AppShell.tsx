@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Send, Plus, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { SandboxBadge } from "./SandboxBadge";
@@ -9,11 +9,12 @@ import type { ReactNode } from "react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/assistant", label: "Assistant", icon: Sparkles, accent: true },
   { to: "/send", label: "Send", icon: Send },
-  { to: "/add-funds", label: "Add Funds", icon: Plus },
-  { to: "/convert", label: "Convert", icon: ArrowRightLeft },
   { to: "/transactions", label: "Activity", icon: List },
-  { to: "/hive", label: "Hive", icon: Sparkles },
+  { to: "/reversals", label: "Reversals", icon: Shield },
+  { to: "/insights", label: "Insights", icon: BarChart3 },
+  { to: "/convert", label: "Convert", icon: ArrowRightLeft },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -99,7 +100,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Mobile bottom nav */}
         <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around border-t border-border bg-background/95 px-1 py-1 backdrop-blur md:hidden">
-          {navItems.slice(0, 5).map((it) => {
+          {[
+            { to: "/", label: "Home", icon: LayoutDashboard },
+            { to: "/assistant", label: "Assistant", icon: Sparkles },
+            { to: "/send", label: "Send", icon: Send },
+            { to: "/reversals", label: "Reversals", icon: Shield },
+            { to: "/transactions", label: "Activity", icon: List },
+          ].map((it) => {
             const active = location.pathname === it.to || (it.to !== "/" && location.pathname.startsWith(it.to));
             return (
               <Link
@@ -115,16 +122,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-          <Link
-            to="/hive"
-            className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 rounded-md px-1 py-2 text-[10px] font-medium transition-colors",
-              location.pathname === "/hive" ? "text-primary" : "text-muted-foreground",
-            )}
-          >
-            <Sparkles className="h-5 w-5" />
-            Hive
-          </Link>
         </nav>
       </div>
     </div>
