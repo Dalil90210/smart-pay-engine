@@ -87,14 +87,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden bg-background/70 backdrop-blur sticky top-0 z-30">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logoUrl} alt="Smart Pay Engine" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
-            <span className="font-display text-sm font-bold">Smart Pay</span>
+        <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/70 px-3 py-2.5 backdrop-blur sm:px-4 sm:py-3 md:hidden">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img src={logoUrl} alt="Smart Pay Engine" width={28} height={28} className="h-7 w-7 shrink-0 rounded-lg object-contain sm:h-8 sm:w-8" />
+            <span className="truncate font-display text-sm font-bold">Smart Pay</span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5">
             <SandboxBadge />
-            <Button variant="ghost" size="icon" onClick={toggle} className="h-8 w-8">
+            <Button variant="ghost" size="icon" onClick={toggle} className="h-8 w-8 shrink-0">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
