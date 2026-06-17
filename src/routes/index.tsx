@@ -84,7 +84,7 @@ function Dashboard() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CURRENCIES.map((ccy, i) => {
               const b = (balances || []).find((x) => x.currency === ccy && x.type === "checking");
-              return <BalanceCard key={ccy} currency={ccy} amountMinor={b?.amount_minor ?? 0} index={i} />;
+              return <BalanceCard key={ccy} currency={ccy} balanceMinor={b?.balance_minor ?? 0} highlight={i === 0} />;
             })}
           </div>
         )}
