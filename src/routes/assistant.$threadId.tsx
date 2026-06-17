@@ -119,7 +119,7 @@ function ChatWindow({
             Ask anything about your payments, FX, or reversals.
           </div>
         )}
-        {messages.map((m) => (
+        {messages.map((m: UIMessage) => (
           <MessageView key={m.id} message={m} />
         ))}
         {status === "submitted" && (
@@ -181,7 +181,7 @@ function MessageView({ message }: { message: UIMessage }) {
           </div>
         )}
         <div className={cn(isUser ? "rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground" : "")}>
-          {message.parts.map((part, i) => {
+          {message.parts.map((part: { type: string; text?: string }, i: number) => {
             if (part.type === "text") {
               return (
                 <div key={i} className={cn("whitespace-pre-wrap text-sm leading-relaxed", !isUser && "text-foreground")}>
