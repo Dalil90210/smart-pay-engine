@@ -3,8 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type TxRow = {
   id: string;
-  type: "deposit" | "withdrawal" | "transfer" | "fx";
-  state: "initiated" | "confirmed" | "completed" | "failed";
+  type: "deposit" | "withdrawal" | "transfer" | "fx" | "reversal";
+  state: "initiated" | "confirmed" | "completed" | "failed" | "processing" | "reversed";
   metadata: Record<string, unknown> | null;
   created_at: string;
   ledger_entries: {
