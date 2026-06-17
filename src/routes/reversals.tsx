@@ -267,7 +267,6 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
   const TierIcon = tierMeta.icon;
   const reason = reasonInfo(r.reason_code);
   const projected = Math.round(r.amount_minor * r.success_probability);
-  const isPartial = r.amount_minor < r.amount_minor; // placeholder; we surface "Full" vs explicit partial below
   const recommendation = r.success_probability >= 0.8 ? "full" : "partial";
   const uploadedNames = new Set((r.evidence ?? []).map((e) => e.name.toLowerCase()));
   const steps = nextSteps(r);
