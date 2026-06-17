@@ -1,14 +1,15 @@
 import { formatMoney, type Currency } from "@/lib/money";
 import { StateBadge } from "./StateBadge";
-import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, Plus } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ArrowRightLeft, Plus, Undo2 } from "lucide-react";
 import type { TxRow } from "@/hooks/useTransactions";
 import type { Account } from "@/hooks/useAccounts";
 
-const icons = {
+const icons: Record<TxRow["type"], typeof Plus> = {
   deposit: Plus,
   withdrawal: ArrowUpRight,
   transfer: ArrowUpRight,
   fx: ArrowRightLeft,
+  reversal: Undo2,
 };
 
 export function TransactionRow({ tx, accounts }: { tx: TxRow; accounts: Account[] }) {
