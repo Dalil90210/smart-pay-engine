@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
 import { Route as ConvertRouteImport } from './routes/convert'
@@ -29,6 +31,11 @@ const TransactionsRoute = TransactionsRouteImport.update({
   path: '/transactions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -42,6 +49,11 @@ const SendRoute = SendRouteImport.update({
 const ReversalsRoute = ReversalsRouteImport.update({
   id: '/reversals',
   path: '/reversals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoicesRoute = InvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InsightsRoute = InsightsRouteImport.update({
@@ -103,9 +115,11 @@ export interface FileRoutesByFullPath {
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
+  '/invoices': typeof InvoicesRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
@@ -118,9 +132,11 @@ export interface FileRoutesByTo {
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
+  '/invoices': typeof InvoicesRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
@@ -135,9 +151,11 @@ export interface FileRoutesById {
   '/convert': typeof ConvertRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
+  '/invoices': typeof InvoicesRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
@@ -153,9 +171,11 @@ export interface FileRouteTypes {
     | '/convert'
     | '/hive'
     | '/insights'
+    | '/invoices'
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/team'
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
@@ -168,9 +188,11 @@ export interface FileRouteTypes {
     | '/convert'
     | '/hive'
     | '/insights'
+    | '/invoices'
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/team'
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
@@ -184,9 +206,11 @@ export interface FileRouteTypes {
     | '/convert'
     | '/hive'
     | '/insights'
+    | '/invoices'
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/team'
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
@@ -201,9 +225,11 @@ export interface RootRouteChildren {
   ConvertRoute: typeof ConvertRoute
   HiveRoute: typeof HiveRoute
   InsightsRoute: typeof InsightsRoute
+  InvoicesRoute: typeof InvoicesRoute
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
+  TeamRoute: typeof TeamRoute
   TransactionsRoute: typeof TransactionsRoute
   ApiChatRoute: typeof ApiChatRoute
 }
@@ -215,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -236,6 +269,13 @@ declare module '@tanstack/react-router' {
       path: '/reversals'
       fullPath: '/reversals'
       preLoaderRoute: typeof ReversalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoices': {
+      id: '/invoices'
+      path: '/invoices'
+      fullPath: '/invoices'
+      preLoaderRoute: typeof InvoicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/insights': {
@@ -333,9 +373,11 @@ const rootRouteChildren: RootRouteChildren = {
   ConvertRoute: ConvertRoute,
   HiveRoute: HiveRoute,
   InsightsRoute: InsightsRoute,
+  InvoicesRoute: InvoicesRoute,
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
+  TeamRoute: TeamRoute,
   TransactionsRoute: TransactionsRoute,
   ApiChatRoute: ApiChatRoute,
 }
