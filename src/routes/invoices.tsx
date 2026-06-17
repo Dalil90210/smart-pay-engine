@@ -126,17 +126,25 @@ function NewInvoiceCard({ onClose, onCreate }: { onClose: () => void; onCreate: 
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<Currency>("USD");
   const [generating, setGenerating] = useState(false);
-  const [draft, setDraft] = useState<string | null>(null);
+  const [draft, setDraft] = useState<AiInvoice | null>(null);
+  const generateFn = useServerFn(generateInvoice);
 
-  const generate = () => {
-    if (!client || !brief) { toast.error("Add a client and a short brief"); return; }
+  const generate = async () => {
+    const amt = parseFloat(amount);
+    if (!client || !brief || !amt) {
+      toast.error("Add a client, amount, and short brief");
+      return;
+    }
     setGenerating(true);
-    setTimeout(() => {
-      setDraft(
-        `Dear ${client},\n\nThank you for your continued partnership. Please find detailed below the invoice for services rendered:\n\n• ${brief}\n• Delivered in full, on schedule.\n• Net 14 payment terms.\n\nWe appreciate your prompt settlement. Reach out with any questions.\n\nWarm regards,\nSmart Pay Engine on your behalf`
-      );
+    try {
+      const result = await generateFn({ data: { client, brief, amount: amt, currency } });
+      setDraft(result);
+      toast.success("AI invoice drafted");
+    } catch (e) {
+      toast.error((e as Error).message || "AI draft failed");
+    } finally {
       setGenerating(false);
-    }, 900);
+    }
   };
 
   const create = () => {
@@ -176,14 +184,32 @@ function NewInvoiceCard({ onClose, onCreate }: { onClose: () => void; onCreate: 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="outline" onClick={generate} disabled={generating} className="gap-2">
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          AI draft message
+          Generate with AI
         </Button>
         <Button onClick={create} className="gap-2"><Send className="h-4 w-4" /> Create draft</Button>
       </div>
       {draft && (
-        <pre className="mt-4 whitespace-pre-wrap rounded-lg border border-border bg-muted/40 p-3 text-xs text-foreground">
-          {draft}
-        </pre>
+        <div className="mt-4 space-y-3 rounded-lg border border-cyan/20 bg-cyan/5 p-4 text-xs">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-cyan">
+            <Sparkles className="h-3 w-3" /> AI-generated draft
+          </div>
+          <div className="font-display text-sm font-semibold text-foreground">{draft.subject}</div>
+          <div className="text-foreground">{draft.greeting}</div>
+          <div className="text-muted-foreground">{draft.summary}</div>
+          <div className="space-y-1">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Line items</div>
+            {draft.line_items.map((li, i) => (
+              <div key={i} className="flex items-center justify-between border-b border-border/40 py-1 last:border-0">
+                <span className="text-foreground">{li.description}</span>
+                <span className="text-muted-foreground">
+                  {li.qty} × {formatMoney(Math.round(li.unit_price * 100), currency)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="text-[11px] text-muted-foreground">{draft.payment_terms}</div>
+          <div className="text-foreground">{draft.closing}</div>
+        </div>
       )}
     </Card>
   );
