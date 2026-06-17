@@ -1,11 +1,12 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3, FileText, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { SandboxBadge } from "./SandboxBadge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import logoUrl from "@/assets/spe-logo.png";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -13,8 +14,10 @@ const navItems = [
   { to: "/send", label: "Send", icon: Send },
   { to: "/transactions", label: "Activity", icon: List },
   { to: "/reversals", label: "Reversals", icon: Shield },
+  { to: "/invoices", label: "Invoices", icon: FileText },
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/convert", label: "Convert", icon: ArrowRightLeft },
+  { to: "/team", label: "Team", icon: Users },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -33,9 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-sidebar/60 px-4 py-6 backdrop-blur md:flex">
         <Link to="/" className="mb-6 flex items-center gap-2 px-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-brand text-white font-bold">
-            S
-          </div>
+          <img src={logoUrl} alt="Smart Pay Engine" width={36} height={36} className="h-9 w-9 rounded-xl object-contain" />
           <div className="flex flex-col">
             <span className="font-display text-base font-bold leading-none">Smart Pay</span>
             <span className="text-[11px] text-muted-foreground">Engine</span>
@@ -87,7 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile top bar */}
         <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden bg-background/70 backdrop-blur sticky top-0 z-30">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand text-white font-bold text-sm">S</div>
+            <img src={logoUrl} alt="Smart Pay Engine" width={32} height={32} className="h-8 w-8 rounded-lg object-contain" />
             <span className="font-display text-sm font-bold">Smart Pay</span>
           </Link>
           <div className="flex items-center gap-2">

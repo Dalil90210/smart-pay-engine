@@ -64,7 +64,7 @@ export const Route = createFileRoute("/api/chat")({
             inputSchema: z.object({
               limit: z.number().int().min(1).max(50).default(10),
             }),
-            execute: async ({ limit }) => {
+            execute: async ({ limit }: { limit: number }) => {
               const { data, error } = await supabase
                 .from("transactions")
                 .select("id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction, account_id)")
@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/chat")({
               from_currency: z.enum(["USD", "EUR", "GBP"]),
               to_currency: z.enum(["USD", "EUR", "GBP"]),
             }),
-            execute: async ({ payee_name, amount, from_currency, to_currency }) => {
+            execute: async ({ payee_name, amount, from_currency, to_currency }: { payee_name: string; amount: number; from_currency: "USD"|"EUR"|"GBP"; to_currency: "USD"|"EUR"|"GBP" }) => {
               const amt = Math.round(amount * 100);
               const rates: Record<string, number> = {
                 "USD->EUR": 0.92, "EUR->USD": 1.087,
@@ -139,7 +139,7 @@ export const Route = createFileRoute("/api/chat")({
               amount_minor: z.number().int().positive(),
               route: z.string(),
             }),
-            execute: async ({ payee_name, memo, from_currency, amount_minor, route }) => {
+            execute: async ({ payee_name, memo, from_currency, amount_minor, route }: { payee_name: string; memo?: string; from_currency: "USD"|"EUR"|"GBP"; amount_minor: number; route: string }) => {
               const { data: accounts } = await supabase
                 .from("accounts")
                 .select("id, type, currency")
@@ -168,7 +168,7 @@ export const Route = createFileRoute("/api/chat")({
             inputSchema: z.object({
               transaction_id: z.string().uuid().describe("Transaction ID to analyze. Use list_recent_transactions to discover."),
             }),
-            execute: async ({ transaction_id }) => {
+            execute: async ({ transaction_id }: { transaction_id: string }) => {
               const { data: tx, error } = await supabase
                 .from("transactions")
                 .select("id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction)")
@@ -218,7 +218,7 @@ export const Route = createFileRoute("/api/chat")({
               amount_minor: z.number().int().positive(),
               success_probability: z.number().min(0).max(1).default(0.7),
             }),
-            execute: async ({ transaction_id, reason_code, amount_minor, success_probability }) => {
+            execute: async ({ transaction_id, reason_code, amount_minor, success_probability }: { transaction_id: string; reason_code: string; amount_minor: number; success_probability: number }) => {
               const { data: tx, error: txErr } = await supabase
                 .from("transactions")
                 .select("ledger_entries(currency)")
@@ -258,7 +258,7 @@ export const Route = createFileRoute("/api/chat")({
 
         return result.toUIMessageStreamResponse({
           originalMessages: messages,
-          onFinish: async ({ messages: finalMessages }) => {
+          onFinish: async ({ messages: finalMessages }: { messages: UIMessage[] }) => {
             const threadId = body.threadId;
             if (!threadId) return;
             const last = finalMessages[finalMessages.length - 1];
