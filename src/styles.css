@@ -85,7 +85,7 @@
 .dark {
   /* Deep navy base */
   --background: oklch(0.18 0.035 260);
-  --foreground: oklch(0.97 0.01 250);
+  --foreground: oklch(0 0 0);
   --card: oklch(0.23 0.04 262);
   --card-foreground: oklch(0.97 0.01 250);
   --popover: oklch(0.22 0.04 262);
