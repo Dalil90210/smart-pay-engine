@@ -57,7 +57,7 @@ function HivePage() {
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "hive", text: "Hi — I'm Hive. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens." },
+    { id: "welcome", role: "hive", text: "Hi — I'm your Smart Pay Engine assistant. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens." },
   ]);
   const [input, setInput] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
