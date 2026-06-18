@@ -20,7 +20,7 @@ import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/hive")({
-  head: () => ({ meta: [{ title: "Hive assistant — Smart Pay Engine" }] }),
+  head: () => ({ meta: [{ title: "Assistant — Smart Pay Engine" }] }),
   component: () => (
     <RequireAuth>
       <HivePage />
@@ -57,7 +57,7 @@ function HivePage() {
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "hive", text: "Hi — I'm Hive. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens." },
+    { id: "welcome", role: "hive", text: "Hi — I'm your Smart Pay Engine assistant. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens." },
   ]);
   const [input, setInput] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
@@ -92,7 +92,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "send",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `Sent to ${payee.name} (via Hive)`, payee_id: payee.id, payee_name: payee.name, amount_minor: intent.amountMinor, fee_minor: fee },
+        meta: { description: `Sent to ${payee.name} (via Smart Pay Engine)`, payee_id: payee.id, payee_name: payee.name, amount_minor: intent.amountMinor, fee_minor: fee },
         entries: [
           { account_id: checking.id, direction: "debit", amount_minor: total },
           { account_id: funding.id, direction: "credit", amount_minor: total },
@@ -114,7 +114,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "convert",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `${intent.from} → ${intent.to} (via Hive)`, from_currency: intent.from, to_currency: intent.to, rate: q.rate, from_amount_minor: q.fromMinor, to_amount_minor: q.toMinor, fee_minor: q.feeMinor },
+        meta: { description: `${intent.from} → ${intent.to} (via Smart Pay Engine)`, from_currency: intent.from, to_currency: intent.to, rate: q.rate, from_amount_minor: q.fromMinor, to_amount_minor: q.toMinor, fee_minor: q.feeMinor },
         entries: [
           { account_id: fromChk.id, direction: "debit", amount_minor: q.fromMinor },
           { account_id: fromFx.id, direction: "credit", amount_minor: q.fromMinor },
@@ -133,7 +133,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "deposit",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: "Sandbox deposit (via Hive)", amount_minor: intent.amountMinor },
+        meta: { description: "Sandbox deposit (via Smart Pay Engine)", amount_minor: intent.amountMinor },
         entries: [
           { account_id: fnd.id, direction: "debit", amount_minor: intent.amountMinor },
           { account_id: chk.id, direction: "credit", amount_minor: intent.amountMinor },
@@ -227,7 +227,7 @@ function HivePage() {
           <Sparkles className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold">Hive</h1>
+          <h1 className="font-display text-2xl font-bold">Assistant</h1>
           <p className="text-xs text-muted-foreground">Plain-language payments. Confirmation always required.</p>
         </div>
       </div>
@@ -299,7 +299,7 @@ function HivePage() {
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Hive" />
+      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Smart Pay Engine" />
     </div>
   );
 }

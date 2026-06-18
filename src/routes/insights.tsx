@@ -91,7 +91,7 @@ function InsightsPage() {
     {
       icon: PiggyBank,
       title: `Smart routing saved you ${formatMoney(computed.savedMinor, "USD")} so far`,
-      body: `Across ${computed.smartCount} routed payments, SPE picked rails that were ${savingsPct.toFixed(2)}% cheaper than a naive 80 bps baseline. Keep favoring Route A — Smart Direct for non-urgent EUR runs.`,
+      body: `Across ${computed.smartCount} routed payments, Smart Pay Engine picked rails that were ${savingsPct.toFixed(2)}% cheaper than a naive 80 bps baseline. Keep favoring Route A — Smart Direct for non-urgent EUR runs.`,
     },
     {
       icon: Shield,
@@ -116,7 +116,7 @@ function InsightsPage() {
         <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
           <TrendingUp className="h-3.5 w-3.5" /> Analytics & Insights
         </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Money saved by SPE</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Money saved by Smart Pay Engine</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           What smart routing, reversals, and AI prioritization are actually doing for your bottom line.
         </p>
