@@ -227,7 +227,7 @@ function HivePage() {
           <Sparkles className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold">Hive</h1>
+          <h1 className="font-display text-2xl font-bold">Assistant</h1>
           <p className="text-xs text-muted-foreground">Plain-language payments. Confirmation always required.</p>
         </div>
       </div>
