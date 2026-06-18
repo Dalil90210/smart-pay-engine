@@ -20,7 +20,7 @@ import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/hive")({
-  head: () => ({ meta: [{ title: "Hive assistant — Smart Pay Engine" }] }),
+  head: () => ({ meta: [{ title: "Assistant — Smart Pay Engine" }] }),
   component: () => (
     <RequireAuth>
       <HivePage />
