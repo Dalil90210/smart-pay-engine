@@ -158,7 +158,7 @@ function ChatWindow({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate font-display text-sm font-semibold tracking-tight sm:text-base">
-                Smart Pay Engine Intelligence
+                <span className="text-black">Smart Pay Engine</span> Intelligence
               </h1>
               <span className="rounded-full bg-success/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-success">
                 Online
@@ -368,7 +368,7 @@ function MessageView({ message }: { message: UIMessage }) {
       <div className={cn("max-w-[85%] space-y-2", isUser && "items-end")}>
         {!isUser && (
           <div className="flex items-center gap-1.5 px-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-            <Sparkles className="h-3 w-3 text-cyan" /> Smart Pay Engine Intelligence
+            <Sparkles className="h-3 w-3 text-cyan" /> <span className="text-black">Smart Pay Engine</span> Intelligence
           </div>
         )}
         <div className={cn(isUser ? "rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-primary-foreground" : "")}>

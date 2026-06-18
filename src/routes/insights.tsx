@@ -116,7 +116,7 @@ function InsightsPage() {
         <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
           <TrendingUp className="h-3.5 w-3.5" /> Analytics & Insights
         </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Money saved by Smart Pay Engine</h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">Money saved by <span className="text-black">Smart Pay Engine</span></h1>
         <p className="mt-1 text-sm text-muted-foreground">
           What smart routing, reversals, and AI prioritization are actually doing for your bottom line.
         </p>

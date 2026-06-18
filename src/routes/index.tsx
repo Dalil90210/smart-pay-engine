@@ -97,7 +97,7 @@ function Dashboard() {
             </div>
             <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Smart Pay Engine sits on top of your rails. Ask the assistant to send, plan, or reverse — it shows the smartest route and the success odds before anything moves.
+              <span className="text-black">Smart Pay Engine</span> sits on top of your rails. Ask the assistant to send, plan, or reverse — it shows the smartest route and the success odds before anything moves.
             </p>
           </div>
           <Link to="/assistant">
