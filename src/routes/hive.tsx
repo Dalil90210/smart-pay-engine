@@ -92,7 +92,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "send",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `Sent to ${payee.name} (via Hive)`, payee_id: payee.id, payee_name: payee.name, amount_minor: intent.amountMinor, fee_minor: fee },
+        meta: { description: `Sent to ${payee.name} (via Smart Pay Engine)`, payee_id: payee.id, payee_name: payee.name, amount_minor: intent.amountMinor, fee_minor: fee },
         entries: [
           { account_id: checking.id, direction: "debit", amount_minor: total },
           { account_id: funding.id, direction: "credit", amount_minor: total },
@@ -114,7 +114,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "convert",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `${intent.from} → ${intent.to} (via Hive)`, from_currency: intent.from, to_currency: intent.to, rate: q.rate, from_amount_minor: q.fromMinor, to_amount_minor: q.toMinor, fee_minor: q.feeMinor },
+        meta: { description: `${intent.from} → ${intent.to} (via Smart Pay Engine)`, from_currency: intent.from, to_currency: intent.to, rate: q.rate, from_amount_minor: q.fromMinor, to_amount_minor: q.toMinor, fee_minor: q.feeMinor },
         entries: [
           { account_id: fromChk.id, direction: "debit", amount_minor: q.fromMinor },
           { account_id: fromFx.id, direction: "credit", amount_minor: q.fromMinor },
@@ -133,7 +133,7 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "deposit",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: "Sandbox deposit (via Hive)", amount_minor: intent.amountMinor },
+        meta: { description: "Sandbox deposit (via Smart Pay Engine)", amount_minor: intent.amountMinor },
         entries: [
           { account_id: fnd.id, direction: "debit", amount_minor: intent.amountMinor },
           { account_id: chk.id, direction: "credit", amount_minor: intent.amountMinor },
@@ -299,7 +299,7 @@ function HivePage() {
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Hive" />
+      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Smart Pay Engine" />
     </div>
   );
 }
