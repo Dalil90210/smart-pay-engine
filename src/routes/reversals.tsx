@@ -147,7 +147,7 @@ function ReversalsPage() {
             </span>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Recover funds faster than Stripe Disputes. Smart Pay Engine Intelligence scores every case, picks the strongest reason code, and surfaces what evidence wins.
+            Recover funds faster than Stripe Disputes. <span className="text-black">Smart Pay Engine</span> Intelligence scores every case, picks the strongest reason code, and surfaces what evidence wins.
           </p>
         </div>
       </div>
