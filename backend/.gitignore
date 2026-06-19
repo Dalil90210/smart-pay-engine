@@ -1,0 +1,10 @@
+# The repo-root .gitignore ignores *.sln; the backend solution must be tracked.
+!SmartPayEngine.sln
+
+# .NET build artifacts
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+.vs/
