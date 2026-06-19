@@ -45,4 +45,17 @@ public sealed record ReversalContext
 
     /// <summary>The customer's standing, if known.</summary>
     public CustomerRiskProfile? Customer { get; init; }
+
+    /// <summary>
+    /// The specific contested portion of the transaction, when only part of the
+    /// amount is disputed (e.g. an overcharge delta). When supplied and smaller
+    /// than the full amount, the engine sizes a partial reversal to it.
+    /// </summary>
+    public decimal? DisputedAmount { get; init; }
+
+    /// <summary>
+    /// The counterparty/merchant has a history of disputes on the platform. A
+    /// mild positive signal for the customer (the pattern corroborates the claim).
+    /// </summary>
+    public bool CounterpartyHasDisputeHistory { get; init; }
 }

@@ -29,4 +29,10 @@ public sealed class InMemoryReversalRequestRepository : IReversalRequestReposito
             .ToList();
         return Task.FromResult(all);
     }
+
+    public Task UpdateAsync(ReversalRequest request, CancellationToken ct = default)
+    {
+        _store[request.Id] = request;
+        return Task.CompletedTask;
+    }
 }

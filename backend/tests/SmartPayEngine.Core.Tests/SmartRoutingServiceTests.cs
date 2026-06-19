@@ -46,4 +46,43 @@ public class SmartRoutingServiceTests
         var rec = Service.Analyze(new Money(1000m, Currency.NGN), Currency.NGN);
         Assert.All(rec.Options, o => Assert.NotEqual(PaymentProvider.Sepa, o.Provider));
     }
+
+    [Fact]
+    public void ZeroAmount_Throws()
+    {
+        Assert.Throws<SmartPayEngine.Core.Exceptions.DomainException>(
+            () => Service.Analyze(new Money(0m, Currency.USD), Currency.USD));
+    }
+
+    [Fact]
+    public void FastestPolicy_PrefersInstantRail()
+    {
+        var rec = Service.Analyze(
+            new Money(1000m, Currency.GBP),
+            Currency.GBP,
+            urgent: true,
+            RoutingPolicy.FastestFirst);
+
+        // Both Internal and Faster Payments settle instantly; the winner must.
+        Assert.Equal(TimeSpan.Zero, rec.Recommended.Speed);
+    }
+
+    [Fact]
+    public void EveryOption_HasNonEmptyRationale_AndBoundedScore()
+    {
+        var rec = Service.Analyze(new Money(2500m, Currency.USD), Currency.USD);
+        Assert.All(rec.Options, o =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(o.Rationale));
+            Assert.InRange(o.Score, 0.0, 1.0);
+        });
+    }
+
+    [Fact]
+    public void Policy_IsEchoedBack()
+    {
+        var rec = Service.Analyze(
+            new Money(1000m, Currency.USD), Currency.USD, urgent: false, RoutingPolicy.CheapestFirst);
+        Assert.Equal(RoutingPolicy.CheapestFirst, rec.Policy);
+    }
 }

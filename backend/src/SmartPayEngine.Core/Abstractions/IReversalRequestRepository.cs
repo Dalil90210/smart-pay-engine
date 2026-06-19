@@ -10,4 +10,7 @@ public interface IReversalRequestRepository
     Task<ReversalRequest?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     Task<IReadOnlyList<ReversalRequest>> ListAsync(CancellationToken ct = default);
+
+    /// <summary>Persist mutations to an already-tracked/known request.</summary>
+    Task UpdateAsync(ReversalRequest request, CancellationToken ct = default);
 }

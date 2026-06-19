@@ -44,7 +44,7 @@ public sealed class ReversalRequest
         RecommendedAction recommendedAction,
         ReasonCode reasonCode,
         IReadOnlyList<EvidenceType> evidenceNeeded,
-        string aiExplanation,
+        string aIExplanation,
         DateTimeOffset createdAt)
     {
         Id = id;
@@ -55,7 +55,7 @@ public sealed class ReversalRequest
         RecommendedAction = recommendedAction;
         ReasonCode = reasonCode;
         EvidenceNeeded = evidenceNeeded;
-        AIExplanation = aiExplanation;
+        AIExplanation = aIExplanation;
         CreatedAt = createdAt;
     }
 
@@ -101,7 +101,7 @@ public sealed class ReversalRequest
             recommendedAction: RecommendedAction.ManualReview,
             reasonCode,
             evidenceNeeded: Array.Empty<EvidenceType>(),
-            aiExplanation: string.Empty,
+            aIExplanation: string.Empty,
             createdAt ?? DateTimeOffset.UtcNow);
     }
 

@@ -21,7 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\SmartPayEngine.Core\SmartPayEngine.Core.csproj" />
+    <ProjectReference Include="..\..\src\SmartPayEngine.Infrastructure\SmartPayEngine.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

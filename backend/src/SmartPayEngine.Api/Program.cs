@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using SmartPayEngine.Infrastructure;
+using SmartPayEngine.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +15,32 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register Core + Infrastructure services (routing service, reversal engine,
-// repositories, clock).
+// clock, transaction store).
 builder.Services.AddSmartPayEngine();
 
+// Persistence for reversal requests: SQLite via EF Core when a connection string
+// is configured, otherwise the in-memory sandbox store. Either way, the Core and
+// Api layers are identical.
+var connectionString = builder.Configuration.GetConnectionString("SmartPay");
+var useSqlite = !string.IsNullOrWhiteSpace(connectionString);
+if (useSqlite)
+{
+    builder.Services.AddSqlitePersistence(connectionString!);
+}
+else
+{
+    builder.Services.AddInMemoryPersistence();
+}
+
 var app = builder.Build();
+
+// Apply EF Core migrations at startup so the schema is ready in the sandbox.
+if (useSqlite)
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<SmartPayDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

@@ -110,6 +110,36 @@ public sealed class ReversalsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<ReversalRequest>>> List(CancellationToken ct)
         => Ok(await _repository.ListAsync(ct));
 
+    /// <summary>Approve a filed reversal request.</summary>
+    [HttpPost("{id:guid}/approve")]
+    [ProducesResponseType(typeof(ReversalRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<ActionResult<ReversalRequest>> Approve(Guid id, CancellationToken ct)
+        => Transition(id, r => r.Approve(), ct);
+
+    /// <summary>Reject a filed reversal request.</summary>
+    [HttpPost("{id:guid}/reject")]
+    [ProducesResponseType(typeof(ReversalRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<ActionResult<ReversalRequest>> Reject(Guid id, CancellationToken ct)
+        => Transition(id, r => r.Reject(), ct);
+
+    private async Task<ActionResult<ReversalRequest>> Transition(
+        Guid id,
+        Action<ReversalRequest> apply,
+        CancellationToken ct)
+    {
+        var reversal = await _repository.GetByIdAsync(id, ct);
+        if (reversal is null)
+        {
+            return NotFound();
+        }
+
+        apply(reversal);
+        await _repository.UpdateAsync(reversal, ct);
+        return Ok(reversal);
+    }
+
     private static (Transaction? Transaction, string? Error) BuildTransaction(TransactionDto dto)
     {
         try

@@ -42,13 +42,17 @@ public sealed record ReversalContextDto
     public ReasonCode? ReasonHint { get; init; }
     public bool ObservedDuplicate { get; init; }
     public CustomerProfileDto? Customer { get; init; }
+    public decimal? DisputedAmount { get; init; }
+    public bool CounterpartyHasDisputeHistory { get; init; }
 
     public ReversalContext ToDomain() => new()
     {
         AvailableEvidence = AvailableEvidence ?? new List<EvidenceType>(),
         ReasonHint = ReasonHint,
         ObservedDuplicate = ObservedDuplicate,
-        Customer = Customer?.ToDomain()
+        Customer = Customer?.ToDomain(),
+        DisputedAmount = DisputedAmount,
+        CounterpartyHasDisputeHistory = CounterpartyHasDisputeHistory
     };
 }
 
@@ -82,5 +86,15 @@ public sealed record CreateReversalRequest
 {
     public required TransactionDto Transaction { get; init; }
     public required decimal RequestedAmount { get; init; }
+    public ReversalContextDto? Context { get; init; }
+}
+
+/// <summary>
+/// Body of POST /api/transactions/{id}/reversal-analysis. The requested amount
+/// is optional — when omitted the full transaction amount is analyzed.
+/// </summary>
+public sealed record StoredReversalAnalysisRequest
+{
+    public decimal? RequestedAmount { get; init; }
     public ReversalContextDto? Context { get; init; }
 }

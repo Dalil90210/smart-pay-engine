@@ -227,54 +227,97 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
         DateTimeOffset now)
     {
         var profile = ProviderCatalog.For(tx.RouteUsed);
+        var customer = ctx.Customer ?? CustomerRiskProfile.Unknown;
 
         return new List<ScoreFactor>
         {
+            // How reversible the rail is in the abstract (chargeback vs recall).
             new(
                 "Rail reversibility",
                 profile.BaseReversalSuccess,
-                0.26,
+                0.18,
                 $"{profile.DisplayName} unwinds via {profile.Reversibility}."),
 
+            // Whether the chosen reason code actually has standing on this rail's
+            // rulebook — the scheme/network rules matrix.
+            new(
+                "Scheme rule fit",
+                Scoring.Clamp(NetworkReversalRules.Multiplier(profile.Reversibility, best.Code), 0, 1),
+                0.16,
+                NetworkReversalRules.Describe(profile.Reversibility, best.Code)),
+
+            // Evidence-adjusted strength of the reason code itself.
             new(
                 "Reason code strength",
                 best.AdjustedWinRate,
-                0.24,
+                0.18,
                 $"Best code '{best.Label}' at {best.AdjustedWinRate:P0} adjusted win rate."),
 
+            // Freshness relative to the rail's reversal window.
             new(
                 "Timing",
                 TimingScore(tx, now),
-                0.15,
+                0.12,
                 TimingDetail(tx, now)),
 
+            // Pre-settlement disputes can often be cancelled outright.
+            new(
+                "Settlement state",
+                SettlementScore(tx),
+                0.06,
+                SettlementDetail(tx)),
+
+            // Tenure / track record vs. reversal-abuse pattern.
             new(
                 "Customer trust",
-                CustomerScore(ctx.Customer ?? CustomerRiskProfile.Unknown),
-                0.13,
-                CustomerDetail(ctx.Customer ?? CustomerRiskProfile.Unknown)),
+                CustomerScore(customer),
+                0.10,
+                CustomerDetail(customer)),
 
+            // Upstream fraud/risk signal (banded; mid-band = friendly-fraud risk).
             new(
                 "Fraud / risk signal",
                 FraudScore(tx),
-                0.10,
+                0.08,
                 $"Upstream risk score {tx.RiskScore}/100."),
 
+            // Larger amounts attract more scrutiny.
             new(
                 "Amount scrutiny",
                 AmountScore(tx.Amount),
-                0.07,
+                0.06,
                 $"Claim of {tx.Amount}."),
 
+            // Counterparty channel + cross-currency recall friction + dispute history.
             new(
                 "Counterparty & FX",
-                CounterpartyScore(tx),
-                0.05,
-                tx.IsCrossCurrency
-                    ? $"Cross-currency ({tx.FromCurrency}→{tx.ToCurrency}) complicates recall."
-                    : $"Counterparty type: {tx.CounterpartyType}.")
+                CounterpartyScore(tx, ctx),
+                0.06,
+                CounterpartyDetail(tx, ctx))
         };
     }
+
+    /// <summary>
+    /// Pre-settlement transactions (Pending/Processing) can frequently be
+    /// cancelled before funds leave, which is far easier than a post-settlement
+    /// reversal; settled transactions sit at a neutral baseline.
+    /// </summary>
+    private static double SettlementScore(Transaction tx) => tx.Status switch
+    {
+        TransactionStatus.Pending => 0.97,
+        TransactionStatus.Processing => 0.92,
+        TransactionStatus.Completed => 0.82,
+        TransactionStatus.PartiallyReversed => 0.60,
+        _ => 0.5
+    };
+
+    private static string SettlementDetail(Transaction tx) => tx.Status switch
+    {
+        TransactionStatus.Pending or TransactionStatus.Processing =>
+            $"{tx.Status}: pre-settlement, can likely be cancelled outright.",
+        TransactionStatus.PartiallyReversed => "Already partially reversed; remaining balance only.",
+        _ => $"{tx.Status}: post-settlement reversal."
+    };
 
     /// <summary>Fresher disputes win more often; decays across the rail window.</summary>
     private static double TimingScore(Transaction tx, DateTimeOffset now)
@@ -298,13 +341,21 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
             : $"Filed {ageHours:0}h after creation, {(now - tx.CompletedAt.Value).TotalHours:0}h post-settlement.";
     }
 
-    /// <summary>Tenure & track record raise the score; prior reversals lower it.</summary>
+    /// <summary>
+    /// Tenure, track record and KYC raise the score; a high <em>reversal rate</em>
+    /// (disputes as a share of all activity) signals abuse and lowers it. Using a
+    /// ratio rather than a raw count avoids penalizing heavy-but-clean users.
+    /// </summary>
     private static double CustomerScore(CustomerRiskProfile c)
     {
         var tenure = Scoring.Clamp(c.AccountAgeDays / 365.0, 0, 1);
         var history = Scoring.Clamp(c.PriorSuccessfulTransactions / 50.0, 0, 1);
         var kyc = c.KycVerified ? 1.0 : 0.4;
-        var abusePenalty = Scoring.Clamp(c.PriorReversals * 0.12, 0, 0.6);
+
+        var totalActivity = c.PriorSuccessfulTransactions + c.PriorReversals;
+        var reversalRate = totalActivity == 0 ? 0.0 : (double)c.PriorReversals / totalActivity;
+        var abusePenalty = Scoring.Clamp(0.5 * reversalRate + 0.04 * c.PriorReversals, 0, 0.6);
+
         var baseScore = 0.35 * tenure + 0.30 * history + 0.35 * kyc;
         return Scoring.Clamp(baseScore - abusePenalty, 0, 1);
     }
@@ -343,7 +394,7 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
         _ => 0.38
     };
 
-    private static double CounterpartyScore(Transaction tx)
+    private static double CounterpartyScore(Transaction tx, ReversalContext ctx)
     {
         var score = tx.CounterpartyType switch
         {
@@ -353,6 +404,11 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
             _ => 0.55
         };
 
+        if (ctx.CounterpartyHasDisputeHistory)
+        {
+            score += 0.08; // a pattern of disputes corroborates the claim
+        }
+
         if (tx.IsCrossCurrency)
         {
             score *= 0.8; // FX recall friction
@@ -361,16 +417,36 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
         return Scoring.Clamp(score, 0, 1);
     }
 
+    private static string CounterpartyDetail(Transaction tx, ReversalContext ctx)
+    {
+        var note = tx.IsCrossCurrency
+            ? $"Cross-currency ({tx.FromCurrency}→{tx.ToCurrency}) complicates recall"
+            : $"Counterparty type: {tx.CounterpartyType}";
+        if (ctx.CounterpartyHasDisputeHistory)
+        {
+            note += "; prior dispute history on this counterparty";
+        }
+
+        return note + ".";
+    }
+
     // === Decision ============================================================
+
+    /// <summary>Exposure (major units) above which marginal odds warrant a human.</summary>
+    private const decimal HighValueThreshold = 25_000m;
 
     /// <summary>
     /// Choose the recommended action and amount:
     /// <list type="bullet">
     /// <item>Low odds AND small exposure → <see cref="RecommendedAction.NoReversal"/>.</item>
-    /// <item>Strong fraud signal with non-trivial odds → <see cref="RecommendedAction.ManualReview"/>.</item>
-    /// <item>Requested &lt; full on a partial-capable reason → <see cref="RecommendedAction.PartialReversal"/>.</item>
+    /// <item>High-risk + mid odds, OR very large exposure with sub-strong odds →
+    /// <see cref="RecommendedAction.ManualReview"/>.</item>
+    /// <item>A contested sub-amount (explicit disputed delta, or requested &lt; full)
+    /// on a partial-capable reason → <see cref="RecommendedAction.PartialReversal"/>.</item>
     /// <item>Otherwise → <see cref="RecommendedAction.FullReversal"/>.</item>
     /// </list>
+    /// The partial amount is sized to the contested portion when known, never
+    /// exceeding what was requested or the original amount.
     /// </summary>
     private static (RecommendedAction Action, Money Amount) DecideAction(
         Transaction tx,
@@ -393,9 +469,24 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
             return (RecommendedAction.ManualReview, requested);
         }
 
-        var isPartial = reason.SupportsPartial && requested < tx.Amount;
+        // Large exposure that isn't a near-certainty also gets a human in the loop.
+        if (tx.Amount.Amount >= HighValueThreshold && probability < 85)
+        {
+            return (RecommendedAction.ManualReview, requested);
+        }
+
+        // Size the contested portion: an explicit disputed delta wins, else the
+        // requested amount, each clamped to (0, full].
+        var target = requested;
+        if (ctx.DisputedAmount is { } disputed && disputed > 0m && disputed < tx.Amount.Amount)
+        {
+            var capped = Math.Min(disputed, requested.Amount);
+            target = new Money(capped, currency);
+        }
+
+        var isPartial = reason.SupportsPartial && target < tx.Amount;
         return isPartial
-            ? (RecommendedAction.PartialReversal, requested)
+            ? (RecommendedAction.PartialReversal, target)
             : (RecommendedAction.FullReversal, tx.Amount);
     }
 
@@ -519,6 +610,20 @@ public sealed class IntelligentReversalEngine : IIntelligentReversalEngine
           .Append("; ")
           .Append(TimingDetail(tx, now))
           .AppendLine();
+
+        if (a.BestReasonCode is { } code)
+        {
+            sb.Append("Scheme rules: ")
+              .Append(NetworkReversalRules.Describe(profile.Reversibility, code))
+              .AppendLine();
+        }
+
+        if (tx.Status is TransactionStatus.Pending or TransactionStatus.Processing)
+        {
+            sb.AppendLine(
+                "This transaction has not settled yet — a pre-settlement cancellation is " +
+                "usually faster and cheaper than a post-settlement reversal.");
+        }
 
         if (a.RequiredEvidence.Count > 0)
         {

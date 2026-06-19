@@ -8,3 +8,8 @@ obj/
 [Rr]elease/
 *.user
 .vs/
+
+# Local SQLite databases (created at runtime)
+*.db
+*.db-shm
+*.db-wal
