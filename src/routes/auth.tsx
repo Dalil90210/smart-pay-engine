@@ -90,9 +90,17 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-2 h-48 w-auto object-contain sm:h-56" />
-          <a href="https://smartpayengine.com" className="mt-1 inline-block font-display text-base font-semibold tracking-wide text-foreground hover:text-primary sm:text-lg">smartpayengine.com</a>
-          <p className="mt-1 text-sm text-muted-foreground">Multi-currency payments, reimagined.</p>
+          <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-3 h-48 w-auto object-contain sm:h-56" />
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Smart Pay Engine</h1>
+          <a
+            href="https://smartpayengine.com"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 font-display text-sm font-semibold tracking-wide text-gradient-brand shadow-sm backdrop-blur-sm transition hover:border-primary/40 hover:shadow-md sm:text-base"
+          >
+            smartpayengine.com
+          </a>
+          <p className="mt-3 text-sm text-muted-foreground">Multi-currency payments, reimagined.</p>
           <div className="mt-3 flex justify-center">
             <SandboxBadge />
           </div>
