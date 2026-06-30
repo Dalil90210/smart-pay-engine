@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-sidebar/60 px-4 py-6 backdrop-blur md:flex">
         <Link to="/" className="mb-6 flex items-center px-1">
-          <img src={logoUrl} alt="Smart Pay Engine" className="h-16 w-auto object-contain" />
+          <img src={logoUrl} alt="Smart Pay Engine" className="h-28 w-auto object-contain" />
         </Link>
         <div className="px-2 pb-4">
           <SandboxBadge />
