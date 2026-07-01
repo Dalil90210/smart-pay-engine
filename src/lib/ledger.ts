@@ -73,6 +73,43 @@ export async function auditIdempotencyKey(key: string): Promise<IdempotencyAudit
   };
 }
 
+export type FxConversionResult = {
+  transaction_id: string;
+  from_amount_minor: number;
+  to_amount_minor: number;
+  fee_minor: number;
+  mid_rate: number;
+  effective_rate: number;
+  spread: number;
+  reused: boolean;
+};
+
+/**
+ * Server-priced FX conversion. The mid rate and 0.5% spread are computed inside
+ * the Postgres RPC, which posts a balanced ledger transaction:
+ *   debit  checking(from)      X     from_ccy
+ *   credit fx_suspense(from)   X     from_ccy
+ *   debit  fx_suspense(to)     gross to_ccy      (gross = X * mid)
+ *   credit checking(to)        net   to_ccy      (net = gross * (1 - spread))
+ *   credit fee_revenue(to)     fee   to_ccy      (fee = gross - net)
+ * Idempotent by key.
+ */
+export async function postFxConversion(args: {
+  idempotencyKey: string;
+  fromCurrency: Currency;
+  toCurrency: Currency;
+  fromAmountMinor: number;
+}): Promise<FxConversionResult> {
+  const { data, error } = await supabase.rpc("post_fx_conversion", {
+    p_idempotency_key: args.idempotencyKey,
+    p_from_currency: args.fromCurrency,
+    p_to_currency: args.toCurrency,
+    p_from_amount_minor: args.fromAmountMinor,
+  });
+  if (error) throw error;
+  return data as unknown as FxConversionResult;
+}
+
 export async function verifyPin(pin: string) {
   const { data, error } = await supabase.rpc("verify_pin", { p_pin: pin });
   if (error) throw error;
