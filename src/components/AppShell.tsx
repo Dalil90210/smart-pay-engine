@@ -2,7 +2,9 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3, FileText, Users, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useProfile } from "@/hooks/useProfile";
 import { SandboxBadge } from "./SandboxBadge";
+import { OnboardingModal } from "./OnboardingModal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -25,8 +27,10 @@ const navItems = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const { data: profile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
+  const needsOnboarding = !!user && !!profile && !profile.onboarded_at;
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full">
+      <OnboardingModal open={needsOnboarding} />
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-sidebar/60 px-4 py-6 backdrop-blur md:flex">
         <Link to="/" className="mb-6 flex items-center px-1">
