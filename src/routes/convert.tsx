@@ -47,6 +47,18 @@ function ConvertPage() {
 
   const amountMinor = toMinor(amount || 0);
   const quote = getFxQuote(from, to, amountMinor);
+  const inverseRate = quote.rate > 0 ? 1 / quote.rate : 0;
+
+  // Timestamp refreshes whenever inputs affecting the quote change, and
+  // ticks every 15s while the form is open so users see a live "as of" time.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+  const quotedAt = useMemo(() => new Date(now), [from, to, amountMinor, now]);
+  const quotedAtTime = quotedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const quotedAtIso = quotedAt.toISOString();
 
   const fromChecking = accounts?.find((a) => a.currency === from && a.type === "checking");
   const toChecking = accounts?.find((a) => a.currency === to && a.type === "checking");
