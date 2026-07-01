@@ -31,6 +31,7 @@ function SettingsPage() {
   const navigate = useNavigate();
   const [pin, setPinValue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [taxPct, setTaxPct] = useState<string>("");
   const [savingTax, setSavingTax] = useState(false);
   const { data: profile } = useProfile();
