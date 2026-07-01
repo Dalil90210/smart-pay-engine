@@ -443,6 +443,15 @@ export type Database = {
         Args: { p_idempotency_key: string; p_token: string }
         Returns: Json
       }
+      post_fx_conversion: {
+        Args: {
+          p_from_amount_minor: number
+          p_from_currency: Database["public"]["Enums"]["currency_code"]
+          p_idempotency_key: string
+          p_to_currency: Database["public"]["Enums"]["currency_code"]
+        }
+        Returns: Json
+      }
       post_transaction: {
         Args: {
           p_entries: Json
