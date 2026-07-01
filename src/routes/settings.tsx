@@ -30,6 +30,7 @@ function SettingsPage() {
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const [pin, setPinValue] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [taxPct, setTaxPct] = useState<string>("");
