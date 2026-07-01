@@ -143,13 +143,20 @@ function ConvertPage() {
                 <span>You get <b className="font-display text-primary">{formatMoney(quote.toMinor, to)}</b></span>
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 border-t border-border/60 pt-2 text-xs text-muted-foreground">
-                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">{quote.mid.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">1 {from} = {quote.mid.toFixed(4)} {to}</span></div>
                 <div className="flex justify-between"><span>Spread</span><span className="tabular-nums">0.50%</span></div>
-                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">{quote.rate.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">1 {from} = {quote.rate.toFixed(4)} {to}</span></div>
+                <div className="flex justify-between"><span>Inverse</span><span className="tabular-nums">1 {to} = {inverseRate.toFixed(4)} {from}</span></div>
                 <div className="flex justify-between"><span>Fee revenue</span><span className="tabular-nums">{formatMoney(quote.feeMinor, to)}</span></div>
+                <div className="flex justify-between"><span>Quoted at</span><span className="tabular-nums" title={quotedAtIso}>{quotedAtTime}</span></div>
               </div>
-              <div className="flex items-center gap-1 pt-1 text-[10px] uppercase tracking-wider text-cyan">
-                <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-cyan">
+                  <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+                </div>
+                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Refreshes every 15s
+                </div>
               </div>
             </div>
           )}
