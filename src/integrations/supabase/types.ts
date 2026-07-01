@@ -283,18 +283,21 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          home_currency: Database["public"]["Enums"]["currency_code"]
           id: string
           tax_setaside_percent: number
         }
         Insert: {
           created_at?: string
           display_name?: string | null
+          home_currency?: Database["public"]["Enums"]["currency_code"]
           id: string
           tax_setaside_percent?: number
         }
         Update: {
           created_at?: string
           display_name?: string | null
+          home_currency?: Database["public"]["Enums"]["currency_code"]
           id?: string
           tax_setaside_percent?: number
         }
@@ -440,6 +443,15 @@ export type Database = {
         Args: { p_idempotency_key: string; p_token: string }
         Returns: Json
       }
+      post_fx_conversion: {
+        Args: {
+          p_from_amount_minor: number
+          p_from_currency: Database["public"]["Enums"]["currency_code"]
+          p_idempotency_key: string
+          p_to_currency: Database["public"]["Enums"]["currency_code"]
+        }
+        Returns: Json
+      }
       post_transaction: {
         Args: {
           p_entries: Json
@@ -454,7 +466,12 @@ export type Database = {
       verify_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
-      account_type: "checking" | "funding" | "fx_suspense" | "tax_setaside"
+      account_type:
+        | "checking"
+        | "funding"
+        | "fx_suspense"
+        | "tax_setaside"
+        | "fee_revenue"
       currency_code: "USD" | "EUR" | "GBP"
       entry_direction: "debit" | "credit"
       reversal_status:
@@ -598,7 +615,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_type: ["checking", "funding", "fx_suspense", "tax_setaside"],
+      account_type: [
+        "checking",
+        "funding",
+        "fx_suspense",
+        "tax_setaside",
+        "fee_revenue",
+      ],
       currency_code: ["USD", "EUR", "GBP"],
       entry_direction: ["debit", "credit"],
       reversal_status: [

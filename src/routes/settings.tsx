@@ -11,7 +11,9 @@ import { setPin } from "@/lib/ledger";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
-import { Moon, Sun, LogOut, Loader2, PiggyBank } from "lucide-react";
+import { useProfile, useUpdateHomeCurrency } from "@/hooks/useProfile";
+import { CURRENCIES, CURRENCY_SYMBOL, type Currency } from "@/lib/money";
+import { Moon, Sun, LogOut, Loader2, PiggyBank, Globe2 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Smart Pay Engine" }] }),
@@ -30,6 +32,9 @@ function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [taxPct, setTaxPct] = useState<string>("");
   const [savingTax, setSavingTax] = useState(false);
+  const { data: profile } = useProfile();
+  const updateHome = useUpdateHomeCurrency();
+  const homeCurrency = profile?.home_currency ?? "USD";
 
   useEffect(() => {
     if (!user) return;
@@ -80,6 +85,27 @@ function SettingsPage() {
       <Card className="card-glass space-y-3 p-6">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Account</div>
         <div className="text-sm">{user?.email}</div>
+      </Card>
+
+      <Card className="card-glass space-y-3 p-6">
+        <div>
+          <Label className="flex items-center gap-2"><Globe2 className="h-4 w-4 text-cyan" /> Home currency</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            The dashboard combined total is shown in this currency (converted at sandbox mid rates).
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {CURRENCIES.map((c) => (
+            <button
+              key={c}
+              disabled={updateHome.isPending}
+              onClick={() => updateHome.mutate(c as Currency, { onSuccess: () => toast.success(`Home currency set to ${c}`) })}
+              className={`rounded-xl border py-2.5 text-sm font-semibold transition-all disabled:opacity-40 ${homeCurrency === c ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}
+            >
+              {CURRENCY_SYMBOL[c]} {c}
+            </button>
+          ))}
+        </div>
       </Card>
 
       <Card className="card-glass space-y-4 p-6">

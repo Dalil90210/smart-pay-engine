@@ -5,6 +5,7 @@ import { TransactionRow } from "@/components/TransactionRow";
 import { useAccounts, useBalances } from "@/hooks/useAccounts";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useReversals } from "@/hooks/useReversals";
+import { useProfile } from "@/hooks/useProfile";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,14 +37,17 @@ export const Route = createFileRoute("/")({
   ),
 });
 
-// Approximate FX rates for USD-equivalent total display
+// Approximate cross-rates for home-currency total display (sandbox mids)
 const TO_USD: Record<string, number> = { USD: 1, EUR: 1.087, GBP: 1.265 };
+const USD_TO: Record<string, number> = { USD: 1, EUR: 0.92, GBP: 0.79 };
 
 function Dashboard() {
   const { data: accounts } = useAccounts();
   const { data: balances, isLoading } = useBalances();
   const { data: txs } = useTransactions(8);
   const { data: reversals = [] } = useReversals();
+  const { data: profile } = useProfile();
+  const homeCurrency = profile?.home_currency ?? "USD";
   const qc = useQueryClient();
   const [tick, setTick] = useState(0);
 
@@ -81,10 +85,10 @@ function Dashboard() {
     ? Math.round((closed.filter((r) => r.status === "approved" || r.status === "partially_approved").length / closed.length) * 100)
     : 0;
 
-  // Total holdings in USD equivalent
-  const totalUsdEquivMinor = (balances ?? [])
+  // Total holdings converted to the user's home currency
+  const totalHomeMinor = (balances ?? [])
     .filter((b) => b.type === "checking")
-    .reduce((sum, b) => sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1)), 0);
+    .reduce((sum, b) => sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1) * (USD_TO[homeCurrency] ?? 1)), 0);
 
   return (
     <div className="space-y-8">
@@ -132,7 +136,7 @@ function Dashboard() {
               <span className="inline-flex items-center gap-1">
                 <Wallet className="h-3 w-3" /> Total ≈
                 <span className="font-display text-sm font-semibold text-foreground">
-                  {formatMoney(totalUsdEquivMinor, "USD")}
+                  {formatMoney(totalHomeMinor, homeCurrency)}
                 </span>
               </span>
               <span>· as of {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
