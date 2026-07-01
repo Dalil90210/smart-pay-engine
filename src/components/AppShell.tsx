@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3, FileText, Users } from "lucide-react";
+import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3, FileText, Users, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { SandboxBadge } from "./SandboxBadge";
@@ -19,6 +19,7 @@ const navItems = [
   { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/convert", label: "Convert", icon: ArrowRightLeft },
   { to: "/team", label: "Team", icon: Users },
+  { to: "/ledger-integrity", label: "Ledger integrity", icon: ShieldCheck },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
