@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Clock } from "lucide-react";
 import { useAccounts, useBalances } from "@/hooks/useAccounts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,18 @@ function ConvertPage() {
 
   const amountMinor = toMinor(amount || 0);
   const quote = getFxQuote(from, to, amountMinor);
+  const inverseRate = quote.rate > 0 ? 1 / quote.rate : 0;
+
+  // Timestamp refreshes whenever inputs affecting the quote change, and
+  // ticks every 15s while the form is open so users see a live "as of" time.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+  const quotedAt = useMemo(() => new Date(now), [from, to, amountMinor, now]);
+  const quotedAtTime = quotedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const quotedAtIso = quotedAt.toISOString();
 
   const fromChecking = accounts?.find((a) => a.currency === from && a.type === "checking");
   const toChecking = accounts?.find((a) => a.currency === to && a.type === "checking");
@@ -130,13 +143,20 @@ function ConvertPage() {
                 <span>You get <b className="font-display text-primary">{formatMoney(quote.toMinor, to)}</b></span>
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 border-t border-border/60 pt-2 text-xs text-muted-foreground">
-                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">{quote.mid.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">1 {from} = {quote.mid.toFixed(4)} {to}</span></div>
                 <div className="flex justify-between"><span>Spread</span><span className="tabular-nums">0.50%</span></div>
-                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">{quote.rate.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">1 {from} = {quote.rate.toFixed(4)} {to}</span></div>
+                <div className="flex justify-between"><span>Inverse</span><span className="tabular-nums">1 {to} = {inverseRate.toFixed(4)} {from}</span></div>
                 <div className="flex justify-between"><span>Fee revenue</span><span className="tabular-nums">{formatMoney(quote.feeMinor, to)}</span></div>
+                <div className="flex justify-between"><span>Quoted at</span><span className="tabular-nums" title={quotedAtIso}>{quotedAtTime}</span></div>
               </div>
-              <div className="flex items-center gap-1 pt-1 text-[10px] uppercase tracking-wider text-cyan">
-                <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-cyan">
+                  <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+                </div>
+                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Refreshes every 15s
+                </div>
               </div>
             </div>
           )}
@@ -158,7 +178,9 @@ function ConvertPage() {
               { label: "You send", value: formatMoney(quote.fromMinor, from) },
               { label: "Mid rate", value: `1 ${from} = ${quote.mid.toFixed(4)} ${to}` },
               { label: "Spread (0.5%)", value: formatMoney(quote.feeMinor, to) },
-              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}` },
+              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}`, emphasis: true },
+              { label: "Inverse rate", value: `1 ${to} = ${inverseRate.toFixed(4)} ${from}` },
+              { label: "Quoted at", value: `${quotedAtTime} · ${quotedAtIso.slice(0, 10)}` },
             ]}
             totalLabel="You get"
             totalMinor={quote.toMinor}
