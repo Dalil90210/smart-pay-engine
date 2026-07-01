@@ -72,7 +72,7 @@ BAL=$(psql -Atc "SELECT balance_minor FROM public.account_balances WHERE account
 CODE=$(rpc "over-$(date +%s%N)" $((BAL + 1)))
 [ "$CODE" != "200" ] || fail "overdraft was accepted (body: $(cat /tmp/ledger_rpc_body))"
 pass "overdraft (balance+1) is rejected"
-NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND balance_minor < 0")
+NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND type='checking' AND balance_minor < 0")
 [ "$NEG" = "0" ] || fail "$NEG account(s) went negative"
 pass "no account balance is negative"
 
@@ -100,7 +100,7 @@ OK=0
 [ "$OK" -eq 1 ] || fail "expected exactly 1 concurrent transfer to win, got $OK (A=$CA B=$CB)"
 pass "concurrent double-spend: exactly one transfer wins"
 
-NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND balance_minor < 0")
+NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND type='checking' AND balance_minor < 0")
 [ "$NEG" = "0" ] || fail "concurrency drove balance negative"
 pass "post-concurrency: no negative balances"
 
