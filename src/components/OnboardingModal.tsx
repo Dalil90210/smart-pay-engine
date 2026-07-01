@@ -17,7 +17,7 @@ export function OnboardingModal({ open }: { open: boolean }) {
   const [saving, setSaving] = useState(false);
   const mark = useMarkOnboarded();
 
-  const next = () => setStep((s) => Math.min(3, (s + 1) as Step));
+  const next = () => setStep((s) => (Math.min(3, s + 1) as Step));
 
   const finish = async () => {
     if (pin.length !== 4) return toast.error("PIN must be 4 digits");
