@@ -178,7 +178,9 @@ function ConvertPage() {
               { label: "You send", value: formatMoney(quote.fromMinor, from) },
               { label: "Mid rate", value: `1 ${from} = ${quote.mid.toFixed(4)} ${to}` },
               { label: "Spread (0.5%)", value: formatMoney(quote.feeMinor, to) },
-              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}` },
+              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}`, emphasis: true },
+              { label: "Inverse rate", value: `1 ${to} = ${inverseRate.toFixed(4)} ${from}` },
+              { label: "Quoted at", value: `${quotedAtTime} · ${quotedAtIso.slice(0, 10)}` },
             ]}
             totalLabel="You get"
             totalMinor={quote.toMinor}
