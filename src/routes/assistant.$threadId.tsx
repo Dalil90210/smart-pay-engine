@@ -414,7 +414,7 @@ function HivePage() {
       });
       updateMsg(msg.id, { done: { txId: result.transaction_id, toAmountMinor: result.to_amount_minor } } as Partial<Msg>);
       if (msg.logId) {
-        await supabase.from("hive_logs").update({ confirmed: true, result: result as unknown as Record<string, unknown> }).eq("id", msg.logId);
+        await supabase.from("hive_logs").update({ confirmed: true, result: result as unknown as never }).eq("id", msg.logId);
       }
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
