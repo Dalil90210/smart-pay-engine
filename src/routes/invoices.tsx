@@ -206,23 +206,26 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
     });
   };
 
-  const sendReminder = () => {
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const sendReminder = async () => {
     if (!invoice.client_email) {
       toast.error("Add a client email to send a reminder");
       return;
     }
-    const href = buildInvoiceReminderMailto({
-      number: invoice.number,
-      client_name: invoice.client_name,
-      client_email: invoice.client_email,
-      currency: invoice.currency,
-      subtotal_minor: invoice.subtotal_minor,
-      due_date: invoice.due_date,
-      biller_name: billerName,
-      share_url: shareUrl,
-    });
-    window.location.href = href;
-    toast.success("Reminder opened in your email app");
+    setReminderBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("send_invoice_reminder" as never, { p_invoice_id: invoice.id } as never);
+      if (error) throw error;
+      const payload = data as { recipient_email: string; subject: string } | null;
+      toast.success(`Reminder sent (sandbox) to ${payload?.recipient_email ?? invoice.client_email}`, {
+        description: payload?.subject,
+      });
+      qc.invalidateQueries({ queryKey: ["invoice-reminders", invoice.id] });
+    } catch (e) {
+      toast.error((e as Error).message || "Could not send reminder");
+    } finally {
+      setReminderBusy(false);
+    }
   };
 
   return (
