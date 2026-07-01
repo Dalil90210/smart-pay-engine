@@ -141,7 +141,12 @@ function TaxJarStat({ balances }: { balances: Partial<Record<Currency, number>> 
 
 function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
+  const { user } = useAuth();
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/i/${invoice.share_token}`;
+  const billerName =
+    (user?.user_metadata as { display_name?: string } | undefined)?.display_name ||
+    user?.email?.split("@")[0] ||
+    "Smart Pay Engine user";
 
   const send = async () => {
     setBusy(true);
@@ -180,6 +185,46 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
     }
   };
 
+  const downloadPdf = () => {
+    downloadInvoicePdf({
+      number: invoice.number,
+      biller_name: billerName,
+      client_name: invoice.client_name,
+      client_email: invoice.client_email,
+      currency: invoice.currency,
+      due_date: invoice.due_date,
+      status: invoice.status,
+      subtotal_minor: invoice.subtotal_minor,
+      tax_setaside_percent: Number(invoice.tax_setaside_percent) || 0,
+      notes: invoice.notes,
+      items: (invoice.invoice_items ?? []).map((it) => ({
+        description: it.description,
+        quantity: Number(it.quantity),
+        unit_price_minor: Number(it.unit_price_minor),
+      })),
+      share_url: shareUrl,
+    });
+  };
+
+  const sendReminder = () => {
+    if (!invoice.client_email) {
+      toast.error("Add a client email to send a reminder");
+      return;
+    }
+    const href = buildInvoiceReminderMailto({
+      number: invoice.number,
+      client_name: invoice.client_name,
+      client_email: invoice.client_email,
+      currency: invoice.currency,
+      subtotal_minor: invoice.subtotal_minor,
+      due_date: invoice.due_date,
+      biller_name: billerName,
+      share_url: shareUrl,
+    });
+    window.location.href = href;
+    toast.success("Reminder opened in your email app");
+  };
+
   return (
     <div className="flex items-center gap-3 px-4 py-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/50">
@@ -197,8 +242,8 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
         </div>
         <div className="text-xs text-muted-foreground">{invoice.number} · due {invoice.due_date}</div>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="text-right">
+      <div className="flex items-center gap-1">
+        <div className="mr-2 text-right">
           <div className="font-display text-sm font-semibold">{formatMoney(invoice.subtotal_minor, invoice.currency)}</div>
         </div>
         {invoice.status === "draft" ? (
@@ -206,16 +251,24 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
             <Button size="sm" variant="outline" onClick={send} disabled={busy} className="gap-1">
               <Send className="h-3 w-3" /> Send
             </Button>
+            <Button size="icon" variant="ghost" onClick={downloadPdf} title="Download PDF"><Download className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={del} disabled={busy}><Trash2 className="h-4 w-4" /></Button>
           </>
         ) : invoice.status === "paid" ? (
-          <Button size="sm" variant="ghost" disabled className="gap-1 text-success">
-            <CheckCircle2 className="h-3 w-3" /> Paid
-          </Button>
+          <>
+            <Button size="sm" variant="ghost" disabled className="gap-1 text-success">
+              <CheckCircle2 className="h-3 w-3" /> Paid
+            </Button>
+            <Button size="icon" variant="ghost" onClick={downloadPdf} title="Download PDF"><Download className="h-4 w-4" /></Button>
+          </>
         ) : (
-          <Button size="sm" variant="outline" onClick={copyLink} className="gap-1">
-            <LinkIcon className="h-3 w-3" /> Copy link
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={sendReminder} className="gap-1" title="Send reminder email">
+              <Bell className="h-3 w-3" /> Remind
+            </Button>
+            <Button size="icon" variant="ghost" onClick={copyLink} title="Copy share link"><LinkIcon className="h-4 w-4" /></Button>
+            <Button size="icon" variant="ghost" onClick={downloadPdf} title="Download PDF"><Download className="h-4 w-4" /></Button>
+          </>
         )}
       </div>
     </div>
