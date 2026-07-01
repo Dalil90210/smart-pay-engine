@@ -152,7 +152,7 @@ function HivePage() {
             user_id: u.user.id,
             thread_id: threadId,
             user_message: text,
-            parsed_intent: (parsedIntent as unknown) ?? null,
+            parsed_intent: (parsedIntent as unknown as never) ?? null,
             error: parseError,
           })
           .select("id")
