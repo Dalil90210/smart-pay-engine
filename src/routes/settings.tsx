@@ -28,6 +28,18 @@ function SettingsPage() {
   const navigate = useNavigate();
   const [pin, setPinValue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [taxPct, setTaxPct] = useState<string>("");
+  const [savingTax, setSavingTax] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as unknown as {
+        from: (t: string) => { select: (s: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { tax_setaside_percent?: number } | null }> } } };
+      }).from("profiles").select("tax_setaside_percent").eq("id", user.id).maybeSingle();
+      if (data?.tax_setaside_percent != null) setTaxPct(String(data.tax_setaside_percent));
+    })();
+  }, [user]);
 
   const save = async () => {
     if (pin.length !== 4) return;
@@ -40,6 +52,24 @@ function SettingsPage() {
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const saveTax = async () => {
+    if (!user) return;
+    const pct = parseFloat(taxPct);
+    if (isNaN(pct) || pct < 0 || pct > 100) return toast.error("Enter 0-100");
+    setSavingTax(true);
+    try {
+      const { error } = await (supabase as unknown as {
+        from: (t: string) => { update: (v: Record<string, number>) => { eq: (c: string, v: string) => Promise<{ error: unknown }> } };
+      }).from("profiles").update({ tax_setaside_percent: pct }).eq("id", user.id);
+      if (error) throw error as Error;
+      toast.success("Tax set-aside updated");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingTax(false);
     }
   };
 
