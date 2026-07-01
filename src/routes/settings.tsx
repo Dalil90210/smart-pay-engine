@@ -62,6 +62,11 @@ function SettingsPage() {
     }
   };
 
+  const requestSave = () => {
+    if (pin.length !== 4) return;
+    setConfirmOpen(true);
+  };
+
   const saveTax = async () => {
     if (!user) return;
     const pct = parseFloat(taxPct);
