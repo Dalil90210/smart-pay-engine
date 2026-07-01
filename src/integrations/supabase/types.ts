@@ -97,6 +97,109 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          position: number
+          quantity: number
+          unit_price_minor: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          position?: number
+          quantity?: number
+          unit_price_minor: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          position?: number
+          quantity?: number
+          unit_price_minor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_email: string | null
+          client_name: string
+          created_at: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          due_date: string
+          id: string
+          notes: string | null
+          number: string
+          paid_at: string | null
+          paid_transaction_id: string | null
+          share_token: string
+          status: string
+          subtotal_minor: number
+          tax_setaside_percent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_email?: string | null
+          client_name: string
+          created_at?: string
+          currency: Database["public"]["Enums"]["currency_code"]
+          due_date: string
+          id?: string
+          notes?: string | null
+          number: string
+          paid_at?: string | null
+          paid_transaction_id?: string | null
+          share_token?: string
+          status?: string
+          subtotal_minor?: number
+          tax_setaside_percent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency_code"]
+          due_date?: string
+          id?: string
+          notes?: string | null
+          number?: string
+          paid_at?: string | null
+          paid_transaction_id?: string | null
+          share_token?: string
+          status?: string
+          subtotal_minor?: number
+          tax_setaside_percent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_paid_transaction_id_fkey"
+            columns: ["paid_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_entries: {
         Row: {
           account_id: string
@@ -181,16 +284,19 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          tax_setaside_percent: number
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          tax_setaside_percent?: number
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          tax_setaside_percent?: number
         }
         Relationships: []
       }
@@ -315,7 +421,25 @@ export type Database = {
       }
     }
     Functions: {
+      create_invoice: {
+        Args: {
+          p_client_email: string
+          p_client_name: string
+          p_currency: Database["public"]["Enums"]["currency_code"]
+          p_due_date: string
+          p_items: Json
+          p_notes?: string
+          p_send?: boolean
+          p_tax_setaside_percent?: number
+        }
+        Returns: string
+      }
+      get_invoice_by_token: { Args: { p_token: string }; Returns: Json }
       has_pin: { Args: never; Returns: boolean }
+      pay_invoice_by_token: {
+        Args: { p_idempotency_key: string; p_token: string }
+        Returns: Json
+      }
       post_transaction: {
         Args: {
           p_entries: Json
@@ -325,6 +449,7 @@ export type Database = {
         }
         Returns: string
       }
+      send_invoice: { Args: { p_invoice_id: string }; Returns: undefined }
       set_pin: { Args: { p_pin: string }; Returns: undefined }
       verify_pin: { Args: { p_pin: string }; Returns: boolean }
     }
