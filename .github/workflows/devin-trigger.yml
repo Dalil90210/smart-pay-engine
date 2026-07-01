@@ -1,0 +1,127 @@
+# ---------------------------------------------------------------------------
+# Devin trigger workflow
+# ---------------------------------------------------------------------------
+# Notifies Devin (https://app.devin.ai) about relevant GitHub events so it can
+# pick up work, push code, and open/update Pull Requests on this repository.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   DEVIN_API_TOKEN     Personal/organization API token from app.devin.ai
+#                       (Settings -> API Keys). Sent as a Bearer token.
+#   DEVIN_API_ENDPOINT  Devin sessions endpoint, e.g. https://api.devin.ai/v1/sessions
+#
+# This workflow only *notifies* Devin; it never executes Devin's changes itself.
+# It is intentionally conservative: it no-ops gracefully when secrets are absent
+# (e.g. on forks) so it never fails a contributor's PR.
+# ---------------------------------------------------------------------------
+name: Devin Trigger
+
+on:
+  # React to pull request lifecycle events.
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+  # React to comments on issues *and* pull requests (PRs are issues in the API).
+  issue_comment:
+    types: [created, edited]
+
+# Least-privilege token: we only read repo metadata; Devin acts via its own App.
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+# Avoid piling up redundant notifications for rapid pushes / repeated comments.
+concurrency:
+  group: devin-trigger-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  notify-devin:
+    name: Notify Devin
+    runs-on: ubuntu-latest
+
+    # Skip noise: ignore bot comments (including Devin's own) and only act on
+    # comments that explicitly mention Devin. PR events always pass through.
+    if: >-
+      github.event_name == 'pull_request' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.comment.user.type != 'Bot' &&
+        contains(github.event.comment.body, '@Devin')
+      )
+
+    steps:
+      - name: Verify Devin secrets are configured
+        id: guard
+        env:
+          DEVIN_API_TOKEN: ${{ secrets.DEVIN_API_TOKEN }}
+          DEVIN_API_ENDPOINT: ${{ secrets.DEVIN_API_ENDPOINT }}
+        run: |
+          if [ -z "${DEVIN_API_TOKEN}" ] || [ -z "${DEVIN_API_ENDPOINT}" ]; then
+            echo "Devin secrets are not configured; skipping notification."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build event context
+        id: ctx
+        if: steps.guard.outputs.configured == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_URL: ${{ github.event.comment.html_url }}
+        run: |
+          # Assemble a single human-readable prompt describing the event so Devin
+          # has enough context to act without another round-trip.
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            PROMPT="GitHub PR event on ${REPO} by ${ACTOR}: PR #${PR_NUMBER} (${PR_BRANCH}) \"${PR_TITLE}\" -> ${PR_URL}"
+            TARGET_URL="${PR_URL}"
+          else
+            PROMPT="GitHub comment on ${REPO} by ${ACTOR}: issue/PR #${ISSUE_NUMBER} -> ${COMMENT_URL}. Comment: ${COMMENT_BODY}"
+            TARGET_URL="${ISSUE_URL}"
+          fi
+          # Emit as multiline-safe outputs.
+          {
+            echo "prompt<<__EOF__"
+            echo "${PROMPT}"
+            echo "__EOF__"
+            echo "target_url=${TARGET_URL}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send notification to Devin
+        if: steps.guard.outputs.configured == 'true'
+        env:
+          DEVIN_API_TOKEN: ${{ secrets.DEVIN_API_TOKEN }}
+          DEVIN_API_ENDPOINT: ${{ secrets.DEVIN_API_ENDPOINT }}
+          PROMPT: ${{ steps.ctx.outputs.prompt }}
+          TARGET_URL: ${{ steps.ctx.outputs.target_url }}
+        run: |
+          set -euo pipefail
+          # Build a JSON body safely with jq so user-supplied text is escaped.
+          payload="$(jq -n \
+            --arg prompt "${PROMPT}" \
+            --arg url "${TARGET_URL}" \
+            '{prompt: $prompt, idempotent: true, metadata: {source: "github-actions", target_url: $url}}')"
+
+          http_code="$(curl -sS -o /tmp/devin_response.json -w '%{http_code}' \
+            -X POST "${DEVIN_API_ENDPOINT}" \
+            -H "Authorization: Bearer ${DEVIN_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "${payload}")"
+
+          echo "Devin API responded with HTTP ${http_code}"
+          cat /tmp/devin_response.json || true
+
+          # Fail the step on server/client errors so problems are visible.
+          if [ "${http_code}" -ge 400 ]; then
+            echo "::error::Devin API call failed with HTTP ${http_code}"
+            exit 1
+          fi
