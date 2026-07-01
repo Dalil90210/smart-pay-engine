@@ -735,6 +735,7 @@ export type Database = {
           display_name: string | null
           home_currency: Database["public"]["Enums"]["currency_code"]
           id: string
+          onboarded_at: string | null
           tax_setaside_percent: number
         }
         Insert: {
@@ -742,6 +743,7 @@ export type Database = {
           display_name?: string | null
           home_currency?: Database["public"]["Enums"]["currency_code"]
           id: string
+          onboarded_at?: string | null
           tax_setaside_percent?: number
         }
         Update: {
@@ -749,6 +751,7 @@ export type Database = {
           display_name?: string | null
           home_currency?: Database["public"]["Enums"]["currency_code"]
           id?: string
+          onboarded_at?: string | null
           tax_setaside_percent?: number
         }
         Relationships: []
