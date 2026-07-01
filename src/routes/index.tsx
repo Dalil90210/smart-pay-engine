@@ -136,7 +136,7 @@ function Dashboard() {
               <span className="inline-flex items-center gap-1">
                 <Wallet className="h-3 w-3" /> Total ≈
                 <span className="font-display text-sm font-semibold text-foreground">
-                  {formatMoney(totalUsdEquivMinor, "USD")}
+                  {formatMoney(totalHomeMinor, homeCurrency)}
                 </span>
               </span>
               <span>· as of {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
