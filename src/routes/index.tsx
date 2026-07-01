@@ -85,9 +85,9 @@ function Dashboard() {
     ? Math.round((closed.filter((r) => r.status === "approved" || r.status === "partially_approved").length / closed.length) * 100)
     : 0;
 
-  // Total holdings converted to the user's home currency
+  // Total holdings converted to the user's home currency (checking + fee revenue)
   const totalHomeMinor = (balances ?? [])
-    .filter((b) => b.type === "checking")
+    .filter((b) => b.type === "checking" || b.type === "fee_revenue")
     .reduce((sum, b) => sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1) * (USD_TO[homeCurrency] ?? 1)), 0);
 
   return (
