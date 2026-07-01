@@ -329,7 +329,7 @@ export type Database = {
       verify_pin: { Args: { p_pin: string }; Returns: boolean }
     }
     Enums: {
-      account_type: "checking" | "funding" | "fx_suspense"
+      account_type: "checking" | "funding" | "fx_suspense" | "tax_setaside"
       currency_code: "USD" | "EUR" | "GBP"
       entry_direction: "debit" | "credit"
       reversal_status:
@@ -473,7 +473,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_type: ["checking", "funding", "fx_suspense"],
+      account_type: ["checking", "funding", "fx_suspense", "tax_setaside"],
       currency_code: ["USD", "EUR", "GBP"],
       entry_direction: ["debit", "credit"],
       reversal_status: [
