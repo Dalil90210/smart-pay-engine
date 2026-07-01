@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, toMinor, type Currency } from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
-import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
+import { postFxConversion, type IdempotencyAuditResult } from "@/lib/ledger";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowDown, ArrowLeft, ArrowRightLeft, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRightLeft, Loader2, ShieldCheck } from "lucide-react";
 import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/IdempotencyIndicator";
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
@@ -72,31 +72,14 @@ function ConvertPage() {
         toast.error("Duplicate request blocked — this conversion was already submitted.");
         return;
       }
-      await postTransaction({
+      const res = await postFxConversion({
         idempotencyKey,
-        type: "fx",
-        metadata: {
-          description: `${from} → ${to}`,
-          from_currency: from,
-          to_currency: to,
-          rate: quote.rate,
-          mid_rate: quote.mid,
-          spread: quote.spread,
-          from_amount_minor: quote.fromMinor,
-          to_amount_minor: quote.toMinor,
-          fee_minor: quote.feeMinor,
-        },
-        entries: [
-          // Source leg: debit user checking, credit FX suspense source ccy
-          { account_id: fromChecking.id, direction: "debit", amount_minor: quote.fromMinor },
-          { account_id: fromFx.id, direction: "credit", amount_minor: quote.fromMinor },
-          // Target leg: debit FX suspense target ccy, credit user checking
-          { account_id: toFx.id, direction: "debit", amount_minor: quote.toMinor },
-          { account_id: toChecking.id, direction: "credit", amount_minor: quote.toMinor },
-        ],
+        fromCurrency: from,
+        toCurrency: to,
+        fromAmountMinor: amountMinor,
       });
       setIdemStatus("posted");
-      toast.success(`Converted ${formatMoney(quote.fromMinor, from)} → ${formatMoney(quote.toMinor, to)}`);
+      toast.success(`Converted ${formatMoney(res.from_amount_minor, from)} → ${formatMoney(res.to_amount_minor, to)}`);
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       navigate({ to: "/" });
