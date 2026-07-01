@@ -56,6 +56,7 @@ function SettingsPage() {
       await setPin(pin);
       toast.success("PIN updated");
       setPinValue("");
+      setConfirmPin("");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -63,8 +64,11 @@ function SettingsPage() {
     }
   };
 
+  const PIN_RE = /^\d{4}$/;
+
   const requestSave = () => {
-    if (pin.length !== 4) return;
+    if (!PIN_RE.test(pin)) return toast.error("PIN must be exactly 4 digits");
+    if (pin !== confirmPin) return toast.error("PINs don't match");
     setConfirmOpen(true);
   };
 
