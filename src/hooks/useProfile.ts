@@ -7,6 +7,7 @@ export type Profile = {
   display_name: string | null;
   home_currency: Currency;
   tax_setaside_percent: number | null;
+  onboarded_at: string | null;
 };
 
 export function useProfile() {
@@ -17,7 +18,7 @@ export function useProfile() {
       if (!auth.user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, home_currency, tax_setaside_percent")
+        .select("id, display_name, home_currency, tax_setaside_percent, onboarded_at")
         .eq("id", auth.user.id)
         .maybeSingle();
       if (error) throw error;
@@ -35,6 +36,22 @@ export function useUpdateHomeCurrency() {
       const { error } = await supabase
         .from("profiles")
         .update({ home_currency: currency })
+        .eq("id", auth.user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+  });
+}
+
+export function useMarkOnboarded() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) throw new Error("not signed in");
+      const { error } = await supabase
+        .from("profiles")
+        .update({ onboarded_at: new Date().toISOString() })
         .eq("id", auth.user.id);
       if (error) throw error;
     },
