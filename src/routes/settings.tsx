@@ -125,15 +125,36 @@ function SettingsPage() {
           <Label>Change PIN</Label>
           <p className="mt-1 text-xs text-muted-foreground">A 4-digit code required to authorize transfers.</p>
         </div>
-        <InputOTP maxLength={4} value={pin} onChange={setPinValue} inputMode="numeric">
-          <InputOTPGroup>
-            <InputOTPSlot index={0} className="h-12 w-12 text-xl" />
-            <InputOTPSlot index={1} className="h-12 w-12 text-xl" />
-            <InputOTPSlot index={2} className="h-12 w-12 text-xl" />
-            <InputOTPSlot index={3} className="h-12 w-12 text-xl" />
-          </InputOTPGroup>
-        </InputOTP>
-        <Button onClick={requestSave} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">New PIN</label>
+          <InputOTP maxLength={4} value={pin} onChange={(v) => setPinValue(v.replace(/\D/g, ""))} inputMode="numeric" pattern="^[0-9]+$">
+            <InputOTPGroup>
+              <InputOTPSlot index={0} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={1} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={2} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={3} className="h-12 w-12 text-xl" />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground">Confirm new PIN</label>
+          <InputOTP maxLength={4} value={confirmPin} onChange={(v) => setConfirmPin(v.replace(/\D/g, ""))} inputMode="numeric" pattern="^[0-9]+$">
+            <InputOTPGroup>
+              <InputOTPSlot index={0} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={1} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={2} className="h-12 w-12 text-xl" />
+              <InputOTPSlot index={3} className="h-12 w-12 text-xl" />
+            </InputOTPGroup>
+          </InputOTP>
+          {confirmPin.length === 4 && pin !== confirmPin && (
+            <p className="text-xs text-destructive">PINs don't match</p>
+          )}
+        </div>
+        <Button
+          onClick={requestSave}
+          disabled={!/^\d{4}$/.test(pin) || pin !== confirmPin || busy}
+          className="gradient-brand text-white border-0"
+        >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update PIN"}
         </Button>
       </Card>
