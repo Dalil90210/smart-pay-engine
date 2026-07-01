@@ -14,6 +14,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as LedgerIntegrityRouteImport } from './routes/ledger-integrity'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
@@ -50,6 +51,11 @@ const SendRoute = SendRouteImport.update({
 const ReversalsRoute = ReversalsRouteImport.update({
   id: '/reversals',
   path: '/reversals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerIntegrityRoute = LedgerIntegrityRouteImport.update({
+  id: '/ledger-integrity',
+  path: '/ledger-integrity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvoicesRoute = InvoicesRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
+  '/ledger-integrity': typeof LedgerIntegrityRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
+  '/ledger-integrity': typeof LedgerIntegrityRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
+  '/ledger-integrity': typeof LedgerIntegrityRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/hive'
     | '/insights'
     | '/invoices'
+    | '/ledger-integrity'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/hive'
     | '/insights'
     | '/invoices'
+    | '/ledger-integrity'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/hive'
     | '/insights'
     | '/invoices'
+    | '/ledger-integrity'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   HiveRoute: typeof HiveRoute
   InsightsRoute: typeof InsightsRoute
   InvoicesRoute: typeof InvoicesRoute
+  LedgerIntegrityRoute: typeof LedgerIntegrityRoute
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/reversals'
       fullPath: '/reversals'
       preLoaderRoute: typeof ReversalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger-integrity': {
+      id: '/ledger-integrity'
+      path: '/ledger-integrity'
+      fullPath: '/ledger-integrity'
+      preLoaderRoute: typeof LedgerIntegrityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invoices': {
@@ -394,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   HiveRoute: HiveRoute,
   InsightsRoute: InsightsRoute,
   InvoicesRoute: InvoicesRoute,
+  LedgerIntegrityRoute: LedgerIntegrityRoute,
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
