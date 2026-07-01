@@ -100,14 +100,20 @@ export async function postFxConversion(args: {
   toCurrency: Currency;
   fromAmountMinor: number;
 }): Promise<FxConversionResult> {
-  const { data, error } = await supabase.rpc("post_fx_conversion", {
+  const rpc = (supabase as unknown as {
+    rpc: (
+      name: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  }).rpc;
+  const { data, error } = await rpc("post_fx_conversion", {
     p_idempotency_key: args.idempotencyKey,
     p_from_currency: args.fromCurrency,
     p_to_currency: args.toCurrency,
     p_from_amount_minor: args.fromAmountMinor,
   });
-  if (error) throw error;
-  return data as unknown as FxConversionResult;
+  if (error) throw new Error(error.message);
+  return data as FxConversionResult;
 }
 
 export async function verifyPin(pin: string) {
