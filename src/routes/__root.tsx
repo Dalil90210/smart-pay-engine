@@ -81,6 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google-site-verification", content: "yJbEKw6rw7LQ6GH61he9uzLS2DAw2FKsFArpJRC3Ha4" },
       { title: "Smart Pay Engine" },
       { name: "description", content: "Multi-currency smart payments — sandbox" },
       { name: "author", content: "Smart Pay Engine" },
