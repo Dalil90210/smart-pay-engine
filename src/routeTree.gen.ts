@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
@@ -36,6 +37,11 @@ const TransactionsRoute = TransactionsRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/sitemap.xml'
     | '/team'
     | '/transactions'
     | '/api/chat'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/sitemap.xml'
     | '/team'
     | '/transactions'
     | '/api/chat'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/reversals'
     | '/send'
     | '/settings'
+    | '/sitemap.xml'
     | '/team'
     | '/transactions'
     | '/api/chat'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
   TransactionsRoute: typeof TransactionsRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -274,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -418,6 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
   TransactionsRoute: TransactionsRoute,
   ApiChatRoute: ApiChatRoute,
