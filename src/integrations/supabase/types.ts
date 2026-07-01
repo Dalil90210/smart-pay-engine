@@ -327,6 +327,42 @@ export type Database = {
         }
         Relationships: []
       }
+      hive_logs: {
+        Row: {
+          confirmed: boolean
+          created_at: string
+          error: string | null
+          id: string
+          parsed_intent: Json | null
+          result: Json | null
+          thread_id: string | null
+          user_id: string
+          user_message: string
+        }
+        Insert: {
+          confirmed?: boolean
+          created_at?: string
+          error?: string | null
+          id?: string
+          parsed_intent?: Json | null
+          result?: Json | null
+          thread_id?: string | null
+          user_id: string
+          user_message: string
+        }
+        Update: {
+          confirmed?: boolean
+          created_at?: string
+          error?: string | null
+          id?: string
+          parsed_intent?: Json | null
+          result?: Json | null
+          thread_id?: string | null
+          user_id?: string
+          user_message?: string
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           created_at: string
