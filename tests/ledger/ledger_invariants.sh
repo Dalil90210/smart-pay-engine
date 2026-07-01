@@ -59,11 +59,11 @@ rpc() {
 
 # --- 2. Idempotency --------------------------------------------------------
 KEY="idem-$(date +%s%N)"
-C1=$(rpc "$KEY" 100); B1=$(cat /tmp/ledger_rpc_body)
-C2=$(rpc "$KEY" 100); B2=$(cat /tmp/ledger_rpc_body)
+C1=$(rpc "$KEY" 100); B1=$(cat /tmp/ledger_rpc_body | tr -d '"')
+C2=$(rpc "$KEY" 100); B2=$(cat /tmp/ledger_rpc_body | tr -d '"')
 [ "$C1" = "200" ] && [ "$C2" = "200" ] || fail "idempotent rpc http $C1/$C2 ($B1 / $B2)"
 [ "$B1" = "$B2" ] || fail "duplicate key returned different tx ids ($B1 vs $B2)"
-ENTRY_COUNT=$(psql -Atc "SELECT COUNT(*) FROM public.ledger_entries WHERE transaction_id=$B1")
+ENTRY_COUNT=$(psql -Atc "SELECT COUNT(*) FROM public.ledger_entries WHERE transaction_id='$B1'")
 [ "$ENTRY_COUNT" = "2" ] || fail "duplicate idem key double-inserted entries ($ENTRY_COUNT rows)"
 pass "duplicate idempotency key does not re-execute"
 
