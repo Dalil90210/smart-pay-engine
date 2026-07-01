@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { formatMoney, type Currency } from "@/lib/money";
-import { FileText, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
+import { FileText, Loader2, CheckCircle2, Sparkles, Download, PiggyBank } from "lucide-react";
 import { toast } from "sonner";
 import { useMemo, useState } from "react";
 import logoAsset from "@/assets/spe-icon.png.asset.json";
@@ -20,6 +21,7 @@ type PublicInvoice = {
   due_date: string;
   status: "sent" | "paid" | "overdue";
   subtotal_minor: number;
+  tax_setaside_percent: number;
   notes: string | null;
   biller_name: string;
   items: { description: string; quantity: number; unit_price_minor: number }[];
