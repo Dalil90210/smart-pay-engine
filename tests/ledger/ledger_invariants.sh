@@ -105,7 +105,7 @@ NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$US
 pass "post-concurrency: no negative balances"
 
 # Cleanup
-psql -Atc "DELETE FROM auth.users WHERE id='$USR'" >/dev/null
+# cleanup: test user remains in auth.users (schema not writable from psql)
 
 echo
 echo "All ledger invariants hold ✓"
