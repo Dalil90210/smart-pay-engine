@@ -6,10 +6,14 @@ export function BalanceCard({
   currency,
   balanceMinor,
   highlight = false,
+  label = "Available · checking",
+  title,
 }: {
   currency: Currency;
   balanceMinor: number;
   highlight?: boolean;
+  label?: string;
+  title?: string;
 }) {
   return (
     <Card
@@ -25,7 +29,7 @@ export function BalanceCard({
     >
       <div className="flex items-center justify-between">
         <div className={cn("text-xs font-medium uppercase tracking-wider", highlight ? "text-white/80" : "text-muted-foreground")}>
-          {currency} Balance
+          {title ?? `${currency} Balance`}
         </div>
         <div
           className={cn(
@@ -40,7 +44,7 @@ export function BalanceCard({
         {formatMoney(balanceMinor, currency)}
       </div>
       <div className={cn("mt-1 text-xs", highlight ? "text-white/70" : "text-muted-foreground")}>
-        Available · checking
+        {label}
       </div>
     </Card>
   );

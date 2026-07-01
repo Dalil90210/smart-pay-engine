@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Currency } from "@/lib/money";
 
-export type AccountType = "checking" | "funding" | "fx_suspense" | "tax_setaside";
+export type AccountType = "checking" | "funding" | "fx_suspense" | "tax_setaside" | "fee_revenue";
 
 export type Account = {
   id: string;
