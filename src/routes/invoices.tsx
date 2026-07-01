@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FileText, Plus, Send, Loader2, Link as LinkIcon, Trash2, CheckCircle2, PiggyBank, Download, Bell } from "lucide-react";
-import { downloadInvoicePdf, buildInvoiceReminderMailto } from "@/lib/invoicePdf";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney, toMinor, type Currency, CURRENCIES } from "@/lib/money";
 import { toast } from "sonner";
@@ -267,8 +267,8 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
           </>
         ) : (
           <>
-            <Button size="sm" variant="outline" onClick={sendReminder} className="gap-1" title="Send reminder email">
-              <Bell className="h-3 w-3" /> Remind
+            <Button size="sm" variant="outline" onClick={sendReminder} disabled={reminderBusy} className="gap-1" title="Send sandbox reminder email">
+              {reminderBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />} Remind
             </Button>
             <Button size="icon" variant="ghost" onClick={copyLink} title="Copy share link"><LinkIcon className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={downloadPdf} title="Download PDF"><Download className="h-4 w-4" /></Button>
