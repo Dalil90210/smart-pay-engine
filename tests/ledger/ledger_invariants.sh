@@ -38,13 +38,13 @@ SIGNUP=$(curl -sS -X POST "$URL/auth/v1/signup" \
   -H "apikey: $ANON" -H "Content-Type: application/json" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
 JWT=$(echo "$SIGNUP" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token") or "")')
-UID=$(echo "$SIGNUP" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("user") or {}).get("id") or "")')
-[ -n "$JWT" ] && [ -n "$UID" ] || fail "signup failed: $SIGNUP"
+USR=$(echo "$SIGNUP" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("user") or {}).get("id") or "")')
+[ -n "$JWT" ] && [ -n "$USR" ] || fail "signup failed: $SIGNUP"
 
 # Wait for handle_new_user seed to complete + grab account ids
 for _ in 1 2 3 4 5; do
-  CHK=$(psql -Atc "SELECT id FROM public.accounts WHERE user_id='$UID' AND currency='USD' AND type='checking'")
-  FND=$(psql -Atc "SELECT id FROM public.accounts WHERE user_id='$UID' AND currency='USD' AND type='funding'")
+  CHK=$(psql -Atc "SELECT id FROM public.accounts WHERE user_id='$USR' AND currency='USD' AND type='checking'")
+  FND=$(psql -Atc "SELECT id FROM public.accounts WHERE user_id='$USR' AND currency='USD' AND type='funding'")
   [ -n "$CHK" ] && [ -n "$FND" ] && break
   sleep 0.4
 done
@@ -72,7 +72,7 @@ BAL=$(psql -Atc "SELECT balance_minor FROM public.account_balances WHERE account
 CODE=$(rpc "over-$(date +%s%N)" $((BAL + 1)))
 [ "$CODE" != "200" ] || fail "overdraft was accepted (body: $(cat /tmp/ledger_rpc_body))"
 pass "overdraft (balance+1) is rejected"
-NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$UID' AND balance_minor < 0")
+NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND balance_minor < 0")
 [ "$NEG" = "0" ] || fail "$NEG account(s) went negative"
 pass "no account balance is negative"
 
@@ -100,12 +100,12 @@ OK=0
 [ "$OK" -eq 1 ] || fail "expected exactly 1 concurrent transfer to win, got $OK (A=$CA B=$CB)"
 pass "concurrent double-spend: exactly one transfer wins"
 
-NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$UID' AND balance_minor < 0")
+NEG=$(psql -Atc "SELECT COUNT(*) FROM public.account_balances WHERE user_id='$USR' AND balance_minor < 0")
 [ "$NEG" = "0" ] || fail "concurrency drove balance negative"
 pass "post-concurrency: no negative balances"
 
 # Cleanup
-psql -Atc "DELETE FROM auth.users WHERE id='$UID'" >/dev/null
+psql -Atc "DELETE FROM auth.users WHERE id='$USR'" >/dev/null
 
 echo
 echo "All ledger invariants hold ✓"
