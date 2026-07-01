@@ -27,8 +27,10 @@ const navItems = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const { data: profile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
+  const needsOnboarding = !!user && !!profile && !profile.onboarded_at;
 
   const handleSignOut = async () => {
     await signOut();
