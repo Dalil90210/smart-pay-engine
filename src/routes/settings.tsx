@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { setPin } from "@/lib/ledger";
+import { PinModal } from "@/components/PinModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
@@ -30,6 +31,7 @@ function SettingsPage() {
   const navigate = useNavigate();
   const [pin, setPinValue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [taxPct, setTaxPct] = useState<string>("");
   const [savingTax, setSavingTax] = useState(false);
   const { data: profile } = useProfile();
@@ -58,6 +60,11 @@ function SettingsPage() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const requestSave = () => {
+    if (pin.length !== 4) return;
+    setConfirmOpen(true);
   };
 
   const saveTax = async () => {
@@ -121,10 +128,18 @@ function SettingsPage() {
             <InputOTPSlot index={3} className="h-12 w-12 text-xl" />
           </InputOTPGroup>
         </InputOTP>
-        <Button onClick={save} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
+        <Button onClick={requestSave} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update PIN"}
         </Button>
       </Card>
+
+      <PinModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onSuccess={save}
+        title="Confirm current PIN"
+        description="Enter your current 4-digit PIN to change it."
+      />
 
       <Card className="card-glass space-y-3 p-6">
         <div>
