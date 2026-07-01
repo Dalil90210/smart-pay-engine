@@ -365,6 +365,47 @@ export type Database = {
           },
         ]
       }
+      invoice_reminders: {
+        Row: {
+          body: string
+          channel: string
+          id: string
+          invoice_id: string
+          recipient_email: string
+          sent_at: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          channel?: string
+          id?: string
+          invoice_id: string
+          recipient_email: string
+          sent_at?: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          id?: string
+          invoice_id?: string
+          recipient_email?: string
+          sent_at?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_reminders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           client_email: string | null
@@ -871,6 +912,7 @@ export type Database = {
         Returns: string
       }
       send_invoice: { Args: { p_invoice_id: string }; Returns: undefined }
+      send_invoice_reminder: { Args: { p_invoice_id: string }; Returns: Json }
       set_pin: { Args: { p_pin: string }; Returns: undefined }
       verify_pin: { Args: { p_pin: string }; Returns: boolean }
     }

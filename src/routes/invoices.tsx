@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FileText, Plus, Send, Loader2, Link as LinkIcon, Trash2, CheckCircle2, PiggyBank, Download, Bell } from "lucide-react";
-import { downloadInvoicePdf, buildInvoiceReminderMailto } from "@/lib/invoicePdf";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney, toMinor, type Currency, CURRENCIES } from "@/lib/money";
 import { toast } from "sonner";
@@ -142,6 +142,7 @@ function TaxJarStat({ balances }: { balances: Partial<Record<Currency, number>> 
 function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
+  const qc = useQueryClient();
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/i/${invoice.share_token}`;
   const billerName =
     (user?.user_metadata as { display_name?: string } | undefined)?.display_name ||
@@ -206,23 +207,26 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
     });
   };
 
-  const sendReminder = () => {
+  const [reminderBusy, setReminderBusy] = useState(false);
+  const sendReminder = async () => {
     if (!invoice.client_email) {
       toast.error("Add a client email to send a reminder");
       return;
     }
-    const href = buildInvoiceReminderMailto({
-      number: invoice.number,
-      client_name: invoice.client_name,
-      client_email: invoice.client_email,
-      currency: invoice.currency,
-      subtotal_minor: invoice.subtotal_minor,
-      due_date: invoice.due_date,
-      biller_name: billerName,
-      share_url: shareUrl,
-    });
-    window.location.href = href;
-    toast.success("Reminder opened in your email app");
+    setReminderBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("send_invoice_reminder" as never, { p_invoice_id: invoice.id } as never);
+      if (error) throw error;
+      const payload = data as { recipient_email: string; subject: string } | null;
+      toast.success(`Reminder sent (sandbox) to ${payload?.recipient_email ?? invoice.client_email}`, {
+        description: payload?.subject,
+      });
+      qc.invalidateQueries({ queryKey: ["invoice-reminders", invoice.id] });
+    } catch (e) {
+      toast.error((e as Error).message || "Could not send reminder");
+    } finally {
+      setReminderBusy(false);
+    }
   };
 
   return (
@@ -263,8 +267,8 @@ function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () =>
           </>
         ) : (
           <>
-            <Button size="sm" variant="outline" onClick={sendReminder} className="gap-1" title="Send reminder email">
-              <Bell className="h-3 w-3" /> Remind
+            <Button size="sm" variant="outline" onClick={sendReminder} disabled={reminderBusy} className="gap-1" title="Send sandbox reminder email">
+              {reminderBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bell className="h-3 w-3" />} Remind
             </Button>
             <Button size="icon" variant="ghost" onClick={copyLink} title="Copy share link"><LinkIcon className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={downloadPdf} title="Download PDF"><Download className="h-4 w-4" /></Button>
