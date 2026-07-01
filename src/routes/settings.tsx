@@ -101,6 +101,22 @@ function SettingsPage() {
       </Card>
 
       <Card className="card-glass space-y-3 p-6">
+        <div>
+          <Label className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-cyan" /> Tax set-aside</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Default % of every paid invoice routed into a separate tax jar (per currency). Applied to new invoices.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input type="number" min={0} max={100} step={1} value={taxPct} onChange={(e) => setTaxPct(e.target.value)} placeholder="e.g. 25" className="max-w-[120px]" />
+          <span className="text-sm text-muted-foreground">%</span>
+          <Button onClick={saveTax} disabled={savingTax} size="sm" className="ml-auto">
+            {savingTax ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="card-glass space-y-3 p-6">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium">Theme</div>
