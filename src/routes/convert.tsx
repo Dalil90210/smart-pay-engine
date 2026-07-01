@@ -119,10 +119,25 @@ function ConvertPage() {
           </div>
           <CurrencySelectRow label="To" value={to} onChange={setTo} exclude={from} />
           {amountMinor > 0 && from !== to && (
-            <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm space-y-1">
-              <div className="flex justify-between"><span className="text-muted-foreground">Rate</span><span>1 {from} = {quote.rate.toFixed(4)} {to}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Spread (0.5%)</span><span>{formatMoney(quote.feeMinor, to)}</span></div>
-              <div className="mt-1 flex justify-between border-t border-border pt-2 font-semibold"><span>You receive</span><span>{formatMoney(quote.toMinor, to)}</span></div>
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm space-y-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-foreground">
+                <span>You send <b className="font-display">{formatMoney(quote.fromMinor, from)}</b></span>
+                <span className="text-muted-foreground">·</span>
+                <span>Rate <b className="font-display">{quote.rate.toFixed(4)}</b></span>
+                <span className="text-muted-foreground">·</span>
+                <span>Fee <b className="font-display">{formatMoney(quote.feeMinor, to)}</b></span>
+                <span className="text-muted-foreground">·</span>
+                <span>You get <b className="font-display text-primary">{formatMoney(quote.toMinor, to)}</b></span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 border-t border-border/60 pt-2 text-xs text-muted-foreground">
+                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">{quote.mid.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Spread</span><span className="tabular-nums">0.50%</span></div>
+                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">{quote.rate.toFixed(4)}</span></div>
+                <div className="flex justify-between"><span>Fee revenue</span><span className="tabular-nums">{formatMoney(quote.feeMinor, to)}</span></div>
+              </div>
+              <div className="flex items-center gap-1 pt-1 text-[10px] uppercase tracking-wider text-cyan">
+                <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+              </div>
             </div>
           )}
           <Button
@@ -140,11 +155,12 @@ function ConvertPage() {
           <ConfirmationCard
             title={`${from} → ${to}`}
             rows={[
-              { label: "From", value: formatMoney(quote.fromMinor, from) },
-              { label: "Rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}` },
-              { label: "Spread fee", value: formatMoney(quote.feeMinor, to) },
+              { label: "You send", value: formatMoney(quote.fromMinor, from) },
+              { label: "Mid rate", value: `1 ${from} = ${quote.mid.toFixed(4)} ${to}` },
+              { label: "Spread (0.5%)", value: formatMoney(quote.feeMinor, to) },
+              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}` },
             ]}
-            totalLabel="You receive"
+            totalLabel="You get"
             totalMinor={quote.toMinor}
             totalCurrency={to}
           />
