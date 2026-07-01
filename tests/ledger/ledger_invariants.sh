@@ -37,15 +37,9 @@ PASSWORD="LedgerTest!$(date +%s)"
 SIGNUP=$(curl -sS -X POST "$URL/auth/v1/signup" \
   -H "apikey: $ANON" -H "Content-Type: application/json" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
-USR=$(echo "$SIGNUP" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("user") or json.load(sys.stdin)).get("id",""))' 2>/dev/null || echo "$SIGNUP" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id") or (d.get("user") or {}).get("id",""))')
-[ -n "$USR" ] || fail "signup failed: $SIGNUP"
-# Confirm email so we can sign in (sandbox project — no real email delivery).
-psql -Atc "UPDATE auth.users SET email_confirmed_at=now() WHERE id='$USR'" >/dev/null
-TOKEN=$(curl -sS -X POST "$URL/auth/v1/token?grant_type=password" \
-  -H "apikey: $ANON" -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
-JWT=$(echo "$TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token") or "")')
-[ -n "$JWT" ] || fail "sign in failed: $TOKEN"
+JWT=$(echo "$SIGNUP" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("access_token") or "")')
+USR=$(echo "$SIGNUP" | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("user") or {}).get("id") or d.get("id") or "")')
+[ -n "$JWT" ] && [ -n "$USR" ] || fail "signup failed (auto_confirm_email must be on): $SIGNUP"
 
 # Wait for handle_new_user seed to complete + grab account ids
 for _ in 1 2 3 4 5; do
