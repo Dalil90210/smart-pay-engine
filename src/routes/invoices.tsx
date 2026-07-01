@@ -142,6 +142,7 @@ function TaxJarStat({ balances }: { balances: Partial<Record<Currency, number>> 
 function InvoiceRow({ invoice, onChanged }: { invoice: Invoice; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
   const { user } = useAuth();
+  const qc = useQueryClient();
   const shareUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/i/${invoice.share_token}`;
   const billerName =
     (user?.user_metadata as { display_name?: string } | undefined)?.display_name ||
