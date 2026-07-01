@@ -128,10 +128,18 @@ function SettingsPage() {
             <InputOTPSlot index={3} className="h-12 w-12 text-xl" />
           </InputOTPGroup>
         </InputOTP>
-        <Button onClick={save} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
+        <Button onClick={requestSave} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update PIN"}
         </Button>
       </Card>
+
+      <PinModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onSuccess={save}
+        title="Confirm current PIN"
+        description="Enter your current 4-digit PIN to change it."
+      />
 
       <Card className="card-glass space-y-3 p-6">
         <div>
