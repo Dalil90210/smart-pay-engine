@@ -2,16 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Currency } from "@/lib/money";
 
+export type AccountType = "checking" | "funding" | "fx_suspense" | "tax_setaside";
+
 export type Account = {
   id: string;
   currency: Currency;
-  type: "checking" | "funding" | "fx_suspense";
+  type: AccountType;
 };
 
 export type Balance = {
   account_id: string;
   currency: Currency;
-  type: "checking" | "funding" | "fx_suspense";
+  type: AccountType;
   balance_minor: number;
 };
 

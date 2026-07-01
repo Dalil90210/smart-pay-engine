@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { setPin } from "@/lib/ledger";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
-import { Moon, Sun, LogOut, Loader2 } from "lucide-react";
+import { Moon, Sun, LogOut, Loader2, PiggyBank } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Smart Pay Engine" }] }),
@@ -26,6 +28,18 @@ function SettingsPage() {
   const navigate = useNavigate();
   const [pin, setPinValue] = useState("");
   const [busy, setBusy] = useState(false);
+  const [taxPct, setTaxPct] = useState<string>("");
+  const [savingTax, setSavingTax] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as unknown as {
+        from: (t: string) => { select: (s: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { tax_setaside_percent?: number } | null }> } } };
+      }).from("profiles").select("tax_setaside_percent").eq("id", user.id).maybeSingle();
+      if (data?.tax_setaside_percent != null) setTaxPct(String(data.tax_setaside_percent));
+    })();
+  }, [user]);
 
   const save = async () => {
     if (pin.length !== 4) return;
@@ -38,6 +52,24 @@ function SettingsPage() {
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const saveTax = async () => {
+    if (!user) return;
+    const pct = parseFloat(taxPct);
+    if (isNaN(pct) || pct < 0 || pct > 100) return toast.error("Enter 0-100");
+    setSavingTax(true);
+    try {
+      const { error } = await (supabase as unknown as {
+        from: (t: string) => { update: (v: Record<string, number>) => { eq: (c: string, v: string) => Promise<{ error: unknown }> } };
+      }).from("profiles").update({ tax_setaside_percent: pct }).eq("id", user.id);
+      if (error) throw error as Error;
+      toast.success("Tax set-aside updated");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingTax(false);
     }
   };
 
@@ -66,6 +98,22 @@ function SettingsPage() {
         <Button onClick={save} disabled={pin.length !== 4 || busy} className="gradient-brand text-white border-0">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update PIN"}
         </Button>
+      </Card>
+
+      <Card className="card-glass space-y-3 p-6">
+        <div>
+          <Label className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-cyan" /> Tax set-aside</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Default % of every paid invoice routed into a separate tax jar (per currency). Applied to new invoices.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input type="number" min={0} max={100} step={1} value={taxPct} onChange={(e) => setTaxPct(e.target.value)} placeholder="e.g. 25" className="max-w-[120px]" />
+          <span className="text-sm text-muted-foreground">%</span>
+          <Button onClick={saveTax} disabled={savingTax} size="sm" className="ml-auto">
+            {savingTax ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+          </Button>
+        </div>
       </Card>
 
       <Card className="card-glass space-y-3 p-6">
