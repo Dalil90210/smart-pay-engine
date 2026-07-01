@@ -171,9 +171,34 @@ function PublicInvoicePage() {
               <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">{inv.notes}</div>
             )}
 
-            <div className="flex items-center justify-between border-t border-border pt-4">
-              <div className="text-sm text-muted-foreground">Amount due</div>
-              <div className="font-display text-2xl font-bold">{formatMoney(inv.subtotal_minor, inv.currency)}</div>
+            <div className="space-y-1 border-t border-border pt-4 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{formatMoney(inv.subtotal_minor, inv.currency)}</span>
+              </div>
+              {inv.tax_setaside_percent > 0 && (() => {
+                const setaside = Math.round((inv.subtotal_minor * inv.tax_setaside_percent) / 100);
+                const net = inv.subtotal_minor - setaside;
+                return (
+                  <>
+                    <div className="flex items-center justify-between text-cyan">
+                      <span className="flex items-center gap-1.5">
+                        <PiggyBank className="h-3.5 w-3.5" />
+                        Tax reserve ({Number(inv.tax_setaside_percent)}%)
+                      </span>
+                      <span>{formatMoney(setaside, inv.currency)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Net to {inv.biller_name}</span>
+                      <span>{formatMoney(net, inv.currency)}</span>
+                    </div>
+                  </>
+                );
+              })()}
+              <div className="flex items-center justify-between pt-2">
+                <span className="font-medium">Amount due</span>
+                <span className="font-display text-2xl font-bold">{formatMoney(inv.subtotal_minor, inv.currency)}</span>
+              </div>
             </div>
 
             {isPaid ? (
@@ -191,6 +216,27 @@ function PublicInvoicePage() {
                 )}
               </Button>
             )}
+
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => downloadInvoicePdf({
+                number: inv.number,
+                biller_name: inv.biller_name,
+                client_name: inv.client_name,
+                client_email: inv.client_email,
+                currency: inv.currency,
+                due_date: inv.due_date,
+                status: isPaid ? "paid" : inv.status,
+                subtotal_minor: inv.subtotal_minor,
+                tax_setaside_percent: Number(inv.tax_setaside_percent) || 0,
+                notes: inv.notes,
+                items: inv.items,
+                share_url: typeof window !== "undefined" ? window.location.href : "",
+              })}
+            >
+              <Download className="h-4 w-4" /> Download PDF
+            </Button>
             <p className="text-center text-[10px] text-muted-foreground">
               Sandbox — no real money moves. Powered by Smart Pay Engine.
             </p>
