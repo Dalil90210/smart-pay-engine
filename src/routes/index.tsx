@@ -160,6 +160,32 @@ function Dashboard() {
         )}
       </section>
 
+      {/* Fee revenue — sandbox */}
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-2">
+          <div>
+            <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Fee revenue <span className="ml-1 rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">Sandbox</span>
+            </h2>
+            <div className="mt-1 text-xs text-muted-foreground">Spread booked from FX conversions.</div>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CURRENCIES.map((ccy) => {
+            const b = (balances || []).find((x) => x.currency === ccy && x.type === "fee_revenue");
+            return (
+              <BalanceCard
+                key={`fee-${ccy}`}
+                currency={ccy}
+                balanceMinor={b?.balance_minor ?? 0}
+                title={`${ccy} Fee revenue`}
+                label="Collected · fee revenue"
+              />
+            );
+          })}
+        </div>
+      </section>
+
       {/* Recent activity */}
       <section>
         <div className="mb-3 flex items-center justify-between">
