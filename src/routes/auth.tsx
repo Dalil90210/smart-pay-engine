@@ -18,9 +18,13 @@ const logoUrl = logoAsset.url;
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Smart Pay Engine" },
-      { name: "description", content: "Sign in to Smart Pay Engine sandbox." },
+      { title: "Login to Smart Pay Engine" },
+      { name: "description", content: "Sign in or create your Smart Pay Engine sandbox account to explore AI-powered multi-currency payments." },
+      { property: "og:title", content: "Login to Smart Pay Engine" },
+      { property: "og:description", content: "Sign in to your Smart Pay Engine sandbox account." },
+      { property: "og:url", content: "https://app.smartpayengine.com/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/auth" }],
   }),
   component: AuthPage,
 });
