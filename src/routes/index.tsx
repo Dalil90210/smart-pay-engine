@@ -26,8 +26,25 @@ import { useQueryClient } from "@tanstack/react-query";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Smart Pay Engine" },
-      { name: "description", content: "Smart Pay Engine — AI payment intelligence across USD, EUR, GBP." },
+      { title: "Dashboard — AI Payment Intelligence | Smart Pay Engine" },
+      { name: "description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP in one dashboard." },
+      { property: "og:title", content: "Dashboard — AI Payment Intelligence" },
+      { property: "og:description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP." },
+      { property: "og:url", content: "https://app.smartpayengine.com/" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FinancialService",
+          name: "Smart Pay Engine",
+          url: "https://app.smartpayengine.com/",
+          description: "AI-powered multi-currency payment intelligence, smart routing, and reversal analysis.",
+        }),
+      },
     ],
   }),
   component: () => (
@@ -99,7 +116,7 @@ function Dashboard() {
             <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
               <Sparkles className="h-3.5 w-3.5" /> AI Payment Intelligence
             </div>
-            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Dashboard — AI Payment Intelligence</h1>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
               <span className="text-black">Smart Pay Engine</span> sits on top of your rails. Ask the assistant to send, plan, or reverse — it shows the smartest route and the success odds before anything moves.
             </p>

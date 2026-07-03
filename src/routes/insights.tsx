@@ -8,7 +8,16 @@ import { Sparkles, TrendingUp, Shield, Zap, Loader2, PiggyBank, Route as RouteIc
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/insights")({
-  head: () => ({ meta: [{ title: "Insights — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Insights — Smart Pay Engine" },
+      { name: "description", content: "See how much smart routing has saved, average arrival times and reversal recovery trends in real time." },
+      { property: "og:title", content: "Insights — Smart Pay Engine" },
+      { property: "og:description", content: "See how much smart routing has saved, average arrival times and reversal recovery trends in real time." },
+      { property: "og:url", content: "https://app.smartpayengine.com/insights" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/insights" }],
+  }),
   component: () => (
     <RequireAuth>
       <InsightsPage />

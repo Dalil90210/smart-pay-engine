@@ -13,8 +13,12 @@ export const Route = createFileRoute("/team")({
   head: () => ({
     meta: [
       { title: "Team — Smart Pay Engine" },
-      { name: "description", content: "Role-based approvals and team collaboration." },
+      { name: "description", content: "Invite teammates, manage roles and set approval thresholds for outbound Smart Pay Engine transfers." },
+      { property: "og:title", content: "Team — Smart Pay Engine" },
+      { property: "og:description", content: "Role-based approvals and team collaboration." },
+      { property: "og:url", content: "https://app.smartpayengine.com/team" },
     ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/team" }],
   }),
   component: () => (
     <RequireAuth>

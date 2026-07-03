@@ -27,7 +27,16 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reversals")({
-  head: () => ({ meta: [{ title: "Reversals — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Reversals — Smart Pay Engine" },
+      { name: "description", content: "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps." },
+      { property: "og:title", content: "Reversals — Smart Pay Engine" },
+      { property: "og:description", content: "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps." },
+      { property: "og:url", content: "https://app.smartpayengine.com/reversals" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/reversals" }],
+  }),
   component: () => (
     <RequireAuth>
       <ReversalsPage />

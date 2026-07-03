@@ -17,7 +17,16 @@ import { CURRENCIES, CURRENCY_SYMBOL, type Currency } from "@/lib/money";
 import { Moon, Sun, LogOut, Loader2, PiggyBank, Globe2 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Settings — Smart Pay Engine" },
+      { name: "description", content: "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place." },
+      { property: "og:title", content: "Settings — Smart Pay Engine" },
+      { property: "og:description", content: "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place." },
+      { property: "og:url", content: "https://app.smartpayengine.com/settings" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/settings" }],
+  }),
   component: () => (
     <RequireAuth>
       <SettingsPage />

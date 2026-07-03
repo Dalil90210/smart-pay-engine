@@ -20,7 +20,16 @@ import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/convert")({
-  head: () => ({ meta: [{ title: "Convert currency — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Convert currency — Smart Pay Engine" },
+      { name: "description", content: "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts." },
+      { property: "og:title", content: "Convert currency — Smart Pay Engine" },
+      { property: "og:description", content: "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts." },
+      { property: "og:url", content: "https://app.smartpayengine.com/convert" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/convert" }],
+  }),
   component: () => (
     <RequireAuth>
       <ConvertPage />

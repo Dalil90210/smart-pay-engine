@@ -17,7 +17,16 @@ import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/add-funds")({
-  head: () => ({ meta: [{ title: "Add funds — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Add funds — Smart Pay Engine" },
+      { name: "description", content: "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions." },
+      { property: "og:title", content: "Add funds — Smart Pay Engine" },
+      { property: "og:description", content: "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions." },
+      { property: "og:url", content: "https://app.smartpayengine.com/add-funds" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/add-funds" }],
+  }),
   component: () => (
     <RequireAuth>
       <AddFundsPage />

@@ -1,0 +1,17 @@
+# Smart Pay Engine
+
+> AI-powered multi-currency payment intelligence. Smart Pay Engine helps operators send, convert and reconcile money across USD, EUR and GBP with intelligent routing, PIN-confirmed transfers and AI-scored reversal analysis.
+
+Smart Pay Engine is a sandbox fintech platform that combines a double-entry ledger, live FX conversion, invoicing with automatic tax set-aside, and an AI assistant (Hive) that drafts payments, previews fees and success probability, and executes only after user PIN confirmation.
+
+## Pages
+
+- [Dashboard](/): Live multi-currency balances, recent activity and AI recommendations.
+- [Sign in](/auth): Create a sandbox account or sign in to Smart Pay Engine.
+- [Invoices](/invoices): Create shareable invoices with automatic tax set-aside, PDF export and sandbox pay links.
+- [Insights](/insights): Analytics on smart-routing savings, arrival times and reversal recovery.
+- [Convert currency](/convert): Convert USD, EUR and GBP at live mid-market rates with a transparent 0.5% spread.
+
+## Optional
+
+- [Assistant](/assistant): Chat with Hive, the Smart Pay Engine AI, to draft payments and analyse reversals.
