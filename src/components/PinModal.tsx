@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { Lock, Loader2 } from "lucide-react";
-import { verifyPin } from "@/lib/ledger";
+import { verifyPin, hasPin } from "@/lib/ledger";
 import { toast } from "sonner";
 
 export function PinModal({
