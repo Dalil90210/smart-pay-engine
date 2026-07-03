@@ -405,13 +405,14 @@ function HivePage() {
     }
   };
 
-  const executeFx = async (msg: Extract<Msg, { kind: "confirm_fx" }>) => {
+  const executeFx = async (msg: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => {
     try {
       const result = await postFxConversion({
         idempotencyKey: `hive:${msg.logId || crypto.randomUUID()}`,
         fromCurrency: msg.from,
         toCurrency: msg.to,
         fromAmountMinor: msg.fromAmountMinor,
+        pin,
       });
       updateMsg(msg.id, { done: { txId: result.transaction_id, toAmountMinor: result.to_amount_minor } } as Partial<Msg>);
       if (msg.logId) {
