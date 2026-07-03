@@ -176,7 +176,7 @@ function HivePage() {
     );
   };
 
-  const execute = async (msgId: string) => {
+  const execute = async (msgId: string, pin?: string) => {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
     const p = msg.pending;
