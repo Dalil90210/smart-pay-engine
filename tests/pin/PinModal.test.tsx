@@ -111,14 +111,6 @@ describe.each([
 
 describe("PinModal wiring in money-moving screens", () => {
   it("Send, Convert, and Hive screens render PinModal for authorization", async () => {
-    // Static import check: each screen imports PinModal and passes an onSuccess handler.
-    const [send, convert, hive, assistant] = await Promise.all([
-      import("@/routes/send.tsx?raw" as string).catch(() => null),
-      import("@/routes/convert.tsx?raw" as string).catch(() => null),
-      import("@/routes/hive.tsx?raw" as string).catch(() => null),
-      import("@/routes/assistant.$threadId.tsx?raw" as string).catch(() => null),
-    ]);
-    // Fallback to fs read if ?raw not configured
     const fs = await import("node:fs/promises");
     const files = await Promise.all([
       fs.readFile("src/routes/send.tsx", "utf8"),
@@ -130,6 +122,5 @@ describe("PinModal wiring in money-moving screens", () => {
       expect(src).toMatch(/PinModal/);
       expect(src).toMatch(/onSuccess=/);
     }
-    void send; void convert; void hive; void assistant; void act;
   });
 });
