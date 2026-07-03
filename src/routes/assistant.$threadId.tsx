@@ -592,8 +592,8 @@ function AssistantBubble({
   onExecuteInvoice,
 }: {
   msg: Extract<Msg, { role: "assistant" }>;
-  onExecuteSend: (m: Extract<Msg, { kind: "confirm_send" }>) => Promise<void>;
-  onExecuteFx: (m: Extract<Msg, { kind: "confirm_fx" }>) => Promise<void>;
+  onExecuteSend: (m: Extract<Msg, { kind: "confirm_send" }>, pin: string) => Promise<void>;
+  onExecuteFx: (m: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => Promise<void>;
   onExecuteInvoice: (m: Extract<Msg, { kind: "invoice_draft" }>) => Promise<void>;
 }) {
   if (msg.kind === "text") {
