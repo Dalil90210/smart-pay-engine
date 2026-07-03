@@ -51,7 +51,7 @@ export function PinModal({
           const ok = await verifyPin(pin);
           if (ok) {
             onOpenChange(false);
-            onSuccess();
+            onSuccess(pin);
           } else {
             toast.error("Incorrect PIN");
             setPin("");
