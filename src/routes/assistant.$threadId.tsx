@@ -364,7 +364,7 @@ function HivePage() {
 
   // ---------- Confirmation executors ----------
 
-  const executeSend = async (msg: Extract<Msg, { kind: "confirm_send" }>) => {
+  const executeSend = async (msg: Extract<Msg, { kind: "confirm_send" }>, pin: string) => {
     try {
       const checking = accounts.find((a) => a.currency === msg.payee.currency && a.type === "checking");
       const funding = accounts.find((a) => a.currency === msg.payee.currency && a.type === "funding");
@@ -386,6 +386,7 @@ function HivePage() {
           { account_id: checking.id, direction: "debit", amount_minor: total },
           { account_id: funding.id, direction: "credit", amount_minor: total },
         ],
+        pin,
       });
       updateMsg(msg.id, { done: { txId } } as Partial<Msg>);
       if (msg.logId) {
