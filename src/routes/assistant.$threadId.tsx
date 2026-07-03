@@ -651,7 +651,7 @@ function ConfirmSend({
   onExecute,
 }: {
   msg: Extract<Msg, { kind: "confirm_send" }>;
-  onExecute: (m: Extract<Msg, { kind: "confirm_send" }>) => Promise<void>;
+  onExecute: (m: Extract<Msg, { kind: "confirm_send" }>, pin: string) => Promise<void>;
 }) {
   const [pinOpen, setPinOpen] = useState(false);
   const total = msg.amountMinor + msg.feeMinor;
