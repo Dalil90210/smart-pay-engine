@@ -300,7 +300,7 @@ function HivePage() {
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Smart Pay Engine" />
+      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={(pin) => activeMsgId && execute(activeMsgId, pin)} title="Authorize via Smart Pay Engine" />
     </div>
   );
 }
