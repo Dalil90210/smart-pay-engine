@@ -12,13 +12,15 @@ export async function postTransaction(args: {
   type: "deposit" | "withdrawal" | "transfer" | "fx";
   metadata: Record<string, unknown>;
   entries: LedgerEntryInput[];
+  pin?: string;
 }) {
   const { data, error } = await supabase.rpc("post_transaction", {
     p_idempotency_key: args.idempotencyKey,
     p_type: args.type,
     p_metadata: args.metadata as never,
     p_entries: args.entries as never,
-  });
+    p_pin: args.pin ?? null,
+  } as never);
   if (error) throw error;
   return data as string;
 }
