@@ -13,7 +13,16 @@ import { useCreateThread } from "@/hooks/useThreads";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/transactions")({
-  head: () => ({ meta: [{ title: "Activity — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "Activity — Smart Pay Engine" },
+      { name: "description", content: "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates." },
+      { property: "og:title", content: "Activity — Smart Pay Engine" },
+      { property: "og:description", content: "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates." },
+      { property: "og:url", content: "https://app.smartpayengine.com/transactions" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/transactions" }],
+  }),
   component: () => (
     <RequireAuth>
       <ActivityPage />

@@ -21,7 +21,14 @@ import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
 
 export const Route = createFileRoute("/send")({
   head: () => ({
-    meta: [{ title: "Send money — Smart Pay Engine" }],
+    meta: [
+      { title: "Send money — Smart Pay Engine" },
+      { name: "description", content: "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution." },
+      { property: "og:title", content: "Send money — Smart Pay Engine" },
+      { property: "og:description", content: "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution." },
+      { property: "og:url", content: "https://app.smartpayengine.com/send" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/send" }],
   }),
   component: () => (
     <RequireAuth>

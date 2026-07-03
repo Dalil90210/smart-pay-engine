@@ -7,7 +7,16 @@ import { Plus, MessageSquare, Trash2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/assistant")({
-  head: () => ({ meta: [{ title: "AI Assistant — Smart Pay Engine" }] }),
+  head: () => ({
+    meta: [
+      { title: "AI Assistant — Smart Pay Engine" },
+      { name: "description", content: "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route." },
+      { property: "og:title", content: "AI Assistant — Smart Pay Engine" },
+      { property: "og:description", content: "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route." },
+      { property: "og:url", content: "https://app.smartpayengine.com/assistant" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/assistant" }],
+  }),
   component: () => (
     <RequireAuth>
       <AppShell>
