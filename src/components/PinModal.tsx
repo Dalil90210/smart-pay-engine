@@ -15,7 +15,7 @@ export function PinModal({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (pin: string) => void;
   title?: string;
   description?: string;
 }) {
