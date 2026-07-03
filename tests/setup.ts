@@ -21,4 +21,6 @@ if (typeof window !== "undefined") {
   window.HTMLElement.prototype.releasePointerCapture ||= () => {};
   // @ts-expect-error - jsdom missing
   window.HTMLElement.prototype.scrollIntoView ||= () => {};
+  // @ts-expect-error - jsdom missing
+  document.elementFromPoint ||= () => null;
 }
