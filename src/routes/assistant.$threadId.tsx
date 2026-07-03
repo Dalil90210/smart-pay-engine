@@ -721,7 +721,7 @@ function ConfirmFx({
       <PinModal
         open={pinOpen}
         onOpenChange={setPinOpen}
-        onSuccess={() => onExecute(msg)}
+        onSuccess={(pin) => onExecute(msg, pin)}
         title="Authorize conversion"
         description="Enter your 4-digit PIN to run this FX conversion."
       />
