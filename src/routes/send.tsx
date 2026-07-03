@@ -90,6 +90,7 @@ function SendPage() {
           // outbound transfer: credit funding account to represent money leaving the wallet
           { account_id: funding.id, direction: "credit", amount_minor: totalMinor },
         ],
+        pin,
       });
       setIdemStatus("posted");
       toast.success(`Sent ${formatMoney(amountMinor, currency)} to ${payee.name}`);
