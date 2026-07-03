@@ -95,7 +95,7 @@ function AuthPage() {
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-3 h-48 w-auto object-contain sm:h-56" />
-          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Smart Pay Engine</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Login to Smart Pay Engine</h1>
           <a
             href="https://smartpayengine.com"
             target="_blank"
