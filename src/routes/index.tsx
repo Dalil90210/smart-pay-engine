@@ -116,7 +116,7 @@ function Dashboard() {
             <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
               <Sparkles className="h-3.5 w-3.5" /> AI Payment Intelligence
             </div>
-            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Dashboard — AI Payment Intelligence</h1>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
               <span className="text-black">Smart Pay Engine</span> sits on top of your rails. Ask the assistant to send, plan, or reverse — it shows the smartest route and the success odds before anything moves.
             </p>
