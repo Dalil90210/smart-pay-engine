@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errText = await response.text();
       console.error("anthropic error", response.status, errText);
-      return jsonResponse({ error: "parser upstream error", detail: errText.slice(0, 400) }, 502);
+      return jsonResponse({ error: "upstream error" }, 502);
     }
 
     const data = await response.json();
@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
     return jsonResponse(parsed);
   } catch (err) {
     console.error("hive-parse fatal", err);
-    return jsonResponse({ error: (err as Error).message }, 500);
+    return jsonResponse({ error: "internal error" }, 500);
   }
 });
 

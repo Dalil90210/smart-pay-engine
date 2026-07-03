@@ -61,7 +61,7 @@ function SendPage() {
   const balance = balances?.find((b) => b.account_id === checking?.id)?.balance_minor ?? 0;
   const insufficient = totalMinor > balance;
 
-  const handleExecute = async () => {
+  const handleExecute = async (pin: string) => {
     if (!payee || !checking || !funding) return;
     setSubmitting(true);
     setIdemStatus("submitting");
@@ -90,6 +90,7 @@ function SendPage() {
           // outbound transfer: credit funding account to represent money leaving the wallet
           { account_id: funding.id, direction: "credit", amount_minor: totalMinor },
         ],
+        pin,
       });
       setIdemStatus("posted");
       toast.success(`Sent ${formatMoney(amountMinor, currency)} to ${payee.name}`);

@@ -15,7 +15,7 @@ export function PinModal({
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (pin: string) => void;
   title?: string;
   description?: string;
 }) {
@@ -51,7 +51,7 @@ export function PinModal({
           const ok = await verifyPin(pin);
           if (ok) {
             onOpenChange(false);
-            onSuccess();
+            onSuccess(pin);
           } else {
             toast.error("Incorrect PIN");
             setPin("");

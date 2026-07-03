@@ -73,7 +73,7 @@ function ConvertPage() {
     setTo(from);
   };
 
-  const execute = async () => {
+  const execute = async (pin: string) => {
     if (!fromChecking || !toChecking || !fromFx || !toFx) return;
     setBusy(true);
     setIdemStatus("submitting");
@@ -90,6 +90,7 @@ function ConvertPage() {
         fromCurrency: from,
         toCurrency: to,
         fromAmountMinor: amountMinor,
+        pin,
       });
       setIdemStatus("posted");
       toast.success(`Converted ${formatMoney(res.from_amount_minor, from)} → ${formatMoney(res.to_amount_minor, to)}`);

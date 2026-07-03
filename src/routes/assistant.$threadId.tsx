@@ -364,7 +364,7 @@ function HivePage() {
 
   // ---------- Confirmation executors ----------
 
-  const executeSend = async (msg: Extract<Msg, { kind: "confirm_send" }>) => {
+  const executeSend = async (msg: Extract<Msg, { kind: "confirm_send" }>, pin: string) => {
     try {
       const checking = accounts.find((a) => a.currency === msg.payee.currency && a.type === "checking");
       const funding = accounts.find((a) => a.currency === msg.payee.currency && a.type === "funding");
@@ -386,6 +386,7 @@ function HivePage() {
           { account_id: checking.id, direction: "debit", amount_minor: total },
           { account_id: funding.id, direction: "credit", amount_minor: total },
         ],
+        pin,
       });
       updateMsg(msg.id, { done: { txId } } as Partial<Msg>);
       if (msg.logId) {
@@ -404,13 +405,14 @@ function HivePage() {
     }
   };
 
-  const executeFx = async (msg: Extract<Msg, { kind: "confirm_fx" }>) => {
+  const executeFx = async (msg: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => {
     try {
       const result = await postFxConversion({
         idempotencyKey: `hive:${msg.logId || crypto.randomUUID()}`,
         fromCurrency: msg.from,
         toCurrency: msg.to,
         fromAmountMinor: msg.fromAmountMinor,
+        pin,
       });
       updateMsg(msg.id, { done: { txId: result.transaction_id, toAmountMinor: result.to_amount_minor } } as Partial<Msg>);
       if (msg.logId) {
@@ -590,8 +592,8 @@ function AssistantBubble({
   onExecuteInvoice,
 }: {
   msg: Extract<Msg, { role: "assistant" }>;
-  onExecuteSend: (m: Extract<Msg, { kind: "confirm_send" }>) => Promise<void>;
-  onExecuteFx: (m: Extract<Msg, { kind: "confirm_fx" }>) => Promise<void>;
+  onExecuteSend: (m: Extract<Msg, { kind: "confirm_send" }>, pin: string) => Promise<void>;
+  onExecuteFx: (m: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => Promise<void>;
   onExecuteInvoice: (m: Extract<Msg, { kind: "invoice_draft" }>) => Promise<void>;
 }) {
   if (msg.kind === "text") {
@@ -649,7 +651,7 @@ function ConfirmSend({
   onExecute,
 }: {
   msg: Extract<Msg, { kind: "confirm_send" }>;
-  onExecute: (m: Extract<Msg, { kind: "confirm_send" }>) => Promise<void>;
+  onExecute: (m: Extract<Msg, { kind: "confirm_send" }>, pin: string) => Promise<void>;
 }) {
   const [pinOpen, setPinOpen] = useState(false);
   const total = msg.amountMinor + msg.feeMinor;
@@ -678,7 +680,7 @@ function ConfirmSend({
       <PinModal
         open={pinOpen}
         onOpenChange={setPinOpen}
-        onSuccess={() => onExecute(msg)}
+        onSuccess={(pin) => onExecute(msg, pin)}
         title="Authorize transfer"
         description="Enter your 4-digit PIN to send this payment."
       />
@@ -691,7 +693,7 @@ function ConfirmFx({
   onExecute,
 }: {
   msg: Extract<Msg, { kind: "confirm_fx" }>;
-  onExecute: (m: Extract<Msg, { kind: "confirm_fx" }>) => Promise<void>;
+  onExecute: (m: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => Promise<void>;
 }) {
   const [pinOpen, setPinOpen] = useState(false);
   const done = msg.done;
@@ -719,7 +721,7 @@ function ConfirmFx({
       <PinModal
         open={pinOpen}
         onOpenChange={setPinOpen}
-        onSuccess={() => onExecute(msg)}
+        onSuccess={(pin) => onExecute(msg, pin)}
         title="Authorize conversion"
         description="Enter your 4-digit PIN to run this FX conversion."
       />

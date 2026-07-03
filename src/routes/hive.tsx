@@ -176,7 +176,7 @@ function HivePage() {
     );
   };
 
-  const execute = async (msgId: string) => {
+  const execute = async (msgId: string, pin?: string) => {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
     const p = msg.pending;
@@ -195,6 +195,7 @@ function HivePage() {
         type: p.kind === "send" ? "transfer" : p.kind === "convert" ? "fx" : "deposit",
         metadata: p.meta,
         entries: p.entries,
+        pin,
       });
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
@@ -299,7 +300,7 @@ function HivePage() {
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={() => activeMsgId && execute(activeMsgId)} title="Authorize via Smart Pay Engine" />
+      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={(pin) => activeMsgId && execute(activeMsgId, pin)} title="Authorize via Smart Pay Engine" />
     </div>
   );
 }
