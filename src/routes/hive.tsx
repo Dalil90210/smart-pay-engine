@@ -195,6 +195,7 @@ function HivePage() {
         type: p.kind === "send" ? "transfer" : p.kind === "convert" ? "fx" : "deposit",
         metadata: p.meta,
         entries: p.entries,
+        pin,
       });
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
