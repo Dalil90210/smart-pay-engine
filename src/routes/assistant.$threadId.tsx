@@ -693,7 +693,7 @@ function ConfirmFx({
   onExecute,
 }: {
   msg: Extract<Msg, { kind: "confirm_fx" }>;
-  onExecute: (m: Extract<Msg, { kind: "confirm_fx" }>) => Promise<void>;
+  onExecute: (m: Extract<Msg, { kind: "confirm_fx" }>, pin: string) => Promise<void>;
 }) {
   const [pinOpen, setPinOpen] = useState(false);
   const done = msg.done;
