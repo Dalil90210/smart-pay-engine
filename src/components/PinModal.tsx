@@ -27,8 +27,20 @@ export function PinModal({
     if (open) {
       setPin("");
       submitted.current = false;
+      (async () => {
+        try {
+          const exists = await hasPin();
+          if (!exists) {
+            toast.error("No PIN set. Please create a 4-digit PIN in Settings before authorizing transfers.");
+            onOpenChange(false);
+          }
+        } catch (e) {
+          toast.error((e as Error).message);
+          onOpenChange(false);
+        }
+      })();
     }
-  }, [open]);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     if (pin.length === 4 && !submitted.current) {
