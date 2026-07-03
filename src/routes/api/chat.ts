@@ -127,38 +127,11 @@ export const Route = createFileRoute("/api/chat")({
             },
           }),
 
-          execute_send_payment: tool({
-            description:
-              "Execute a previously-previewed send. Requires user approval. Posts a double-entry transfer in the sandbox ledger.",
-            inputSchema: z.object({
-              payee_name: z.string(),
-              memo: z.string().optional(),
-              from_currency: z.enum(["USD", "EUR", "GBP"]),
-              amount_minor: z.number().int().positive(),
-              route: z.string(),
-            }),
-            execute: async ({ payee_name, memo, from_currency, amount_minor, route }: { payee_name: string; memo?: string; from_currency: "USD"|"EUR"|"GBP"; amount_minor: number; route: string }) => {
-              const { data: accounts } = await supabase
-                .from("accounts")
-                .select("id, type, currency")
-                .eq("user_id", userId);
-              const chk = accounts?.find((a) => a.type === "checking" && a.currency === from_currency);
-              const fund = accounts?.find((a) => a.type === "funding" && a.currency === from_currency);
-              if (!chk || !fund) return { error: "Accounts not found" };
-              const key = `assistant:send:${userId}:${Date.now()}`;
-              const { data, error } = await supabase.rpc("post_transaction", {
-                p_idempotency_key: key,
-                p_type: "transfer",
-                p_metadata: { payee: payee_name, memo, route, via: "assistant" } as never,
-                p_entries: [
-                  { account_id: chk.id, direction: "debit", amount_minor },
-                  { account_id: fund.id, direction: "credit", amount_minor },
-                ] as never,
-              });
-              if (error) return { error: error.message };
-              return { ok: true, transaction_id: data, state: "completed", idempotency_key: key };
-            },
-          }),
+          // execute_send_payment tool removed: money movement must go through
+          // client-side PIN gating (PinModal + post_transaction with p_pin).
+          // Server-side execution here would bypass the user's PIN.
+
+
 
           analyze_reversal: tool({
             description:
