@@ -93,6 +93,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Multi-currency smart payments — sandbox" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp" },
+      { property: "og:site_name", content: "Smart Pay Engine" },
+      { property: "og:url", content: "https://app.smartpayengine.com/" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Smart Pay Engine",
+          url: "https://app.smartpayengine.com/",
+          logo: "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Smart Pay Engine",
+          url: "https://app.smartpayengine.com/",
+        }),
+      },
     ],
     links: [
       { rel: "icon", type: "image/x-icon", href: faviconIco.url },
