@@ -680,7 +680,7 @@ function ConfirmSend({
       <PinModal
         open={pinOpen}
         onOpenChange={setPinOpen}
-        onSuccess={() => onExecute(msg)}
+        onSuccess={(pin) => onExecute(msg, pin)}
         title="Authorize transfer"
         description="Enter your 4-digit PIN to send this payment."
       />
