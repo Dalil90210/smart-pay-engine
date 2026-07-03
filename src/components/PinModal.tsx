@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { Lock, Loader2 } from "lucide-react";
-import { verifyPin } from "@/lib/ledger";
+import { verifyPin, hasPin } from "@/lib/ledger";
 import { toast } from "sonner";
 
 export function PinModal({
@@ -27,8 +27,20 @@ export function PinModal({
     if (open) {
       setPin("");
       submitted.current = false;
+      (async () => {
+        try {
+          const exists = await hasPin();
+          if (!exists) {
+            toast.error("No PIN set. Please create a 4-digit PIN in Settings before authorizing transfers.");
+            onOpenChange(false);
+          }
+        } catch (e) {
+          toast.error((e as Error).message);
+          onOpenChange(false);
+        }
+      })();
     }
-  }, [open]);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     if (pin.length === 4 && !submitted.current) {
