@@ -26,8 +26,25 @@ import { useQueryClient } from "@tanstack/react-query";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Smart Pay Engine" },
-      { name: "description", content: "Smart Pay Engine — AI payment intelligence across USD, EUR, GBP." },
+      { title: "Dashboard — AI Payment Intelligence | Smart Pay Engine" },
+      { name: "description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP in one dashboard." },
+      { property: "og:title", content: "Dashboard — AI Payment Intelligence" },
+      { property: "og:description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP." },
+      { property: "og:url", content: "https://app.smartpayengine.com/" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FinancialService",
+          name: "Smart Pay Engine",
+          url: "https://app.smartpayengine.com/",
+          description: "AI-powered multi-currency payment intelligence, smart routing, and reversal analysis.",
+        }),
+      },
     ],
   }),
   component: () => (
