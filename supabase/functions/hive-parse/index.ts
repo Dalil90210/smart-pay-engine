@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
     return jsonResponse(parsed);
   } catch (err) {
     console.error("hive-parse fatal", err);
-    return jsonResponse({ error: (err as Error).message }, 500);
+    return jsonResponse({ error: "internal error" }, 500);
   }
 });
 
