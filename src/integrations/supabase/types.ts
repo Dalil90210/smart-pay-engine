@@ -763,6 +763,13 @@ export type Database = {
             referencedRelation: "farmers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_farmer_id_fkey"
+            columns: ["farmer_id"]
+            isOneToOne: false
+            referencedRelation: "farmers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -911,6 +918,45 @@ export type Database = {
         }
         Relationships: []
       }
+      farmers_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          crops: string[] | null
+          expected_supply: string | null
+          farm_name: string | null
+          full_name: string | null
+          id: string | null
+          livestock: string[] | null
+          location_label: string | null
+          onboarded_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          expected_supply?: string | null
+          farm_name?: string | null
+          full_name?: string | null
+          id?: string | null
+          livestock?: string[] | null
+          location_label?: string | null
+          onboarded_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          crops?: string[] | null
+          expected_supply?: string | null
+          farm_name?: string | null
+          full_name?: string | null
+          id?: string | null
+          livestock?: string[] | null
+          location_label?: string | null
+          onboarded_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_invoice: {
@@ -928,6 +974,7 @@ export type Database = {
       }
       get_invoice_by_token: { Args: { p_token: string }; Returns: Json }
       get_my_farmer_phone: { Args: never; Returns: string }
+      get_order_otp_status: { Args: { p_order_id: string }; Returns: Json }
       has_pin: { Args: never; Returns: boolean }
       pay_invoice_by_token: {
         Args: { p_idempotency_key: string; p_token: string }
