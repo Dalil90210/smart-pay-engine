@@ -928,6 +928,7 @@ export type Database = {
       }
       get_invoice_by_token: { Args: { p_token: string }; Returns: Json }
       get_my_farmer_phone: { Args: never; Returns: string }
+      get_order_otp_status: { Args: { p_order_id: string }; Returns: Json }
       has_pin: { Args: never; Returns: boolean }
       pay_invoice_by_token: {
         Args: { p_idempotency_key: string; p_token: string }
