@@ -21,8 +21,12 @@ export const Route = createFileRoute("/invoices")({
   head: () => ({
     meta: [
       { title: "Invoices — Smart Pay Engine" },
-      { name: "description", content: "Create and share multi-currency invoices with automatic tax set-aside." },
+      { name: "description", content: "Create shareable invoices with automatic tax set-aside, PDF export and sandbox pay links for your clients." },
+      { property: "og:title", content: "Invoices — Smart Pay Engine" },
+      { property: "og:description", content: "Create shareable invoices with automatic tax set-aside and sandbox pay links." },
+      { property: "og:url", content: "https://app.smartpayengine.com/invoices" },
     ],
+    links: [{ rel: "canonical", href: "https://app.smartpayengine.com/invoices" }],
   }),
   component: () => (
     <RequireAuth>
