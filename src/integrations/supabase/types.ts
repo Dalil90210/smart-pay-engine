@@ -939,6 +939,7 @@ export type Database = {
           p_from_amount_minor: number
           p_from_currency: Database["public"]["Enums"]["currency_code"]
           p_idempotency_key: string
+          p_pin?: string
           p_to_currency: Database["public"]["Enums"]["currency_code"]
         }
         Returns: Json
@@ -948,6 +949,7 @@ export type Database = {
           p_entries: Json
           p_idempotency_key: string
           p_metadata: Json
+          p_pin?: string
           p_type: Database["public"]["Enums"]["tx_type"]
         }
         Returns: string
