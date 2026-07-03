@@ -61,7 +61,7 @@ function SendPage() {
   const balance = balances?.find((b) => b.account_id === checking?.id)?.balance_minor ?? 0;
   const insufficient = totalMinor > balance;
 
-  const handleExecute = async () => {
+  const handleExecute = async (pin: string) => {
     if (!payee || !checking || !funding) return;
     setSubmitting(true);
     setIdemStatus("submitting");
