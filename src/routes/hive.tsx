@@ -18,6 +18,8 @@ import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/Idemp
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
+import { parseHiveIntent } from "@/lib/hive-parse.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/hive")({
   head: () => ({
@@ -72,12 +74,29 @@ function HivePage() {
   const [pinOpen, setPinOpen] = useState(false);
   const [activeMsgId, setActiveMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [thinking, setThinking] = useState(false);
   const { history: auditHistory, runCheck, clear: clearAuditHistory } = useIdempotencyAuditHistory();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const callParse = useServerFn(parseHiveIntent);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  const mapParsedToIntent = (p: Awaited<ReturnType<typeof callParse>>): HiveIntent | null => {
+    if (p.intent === "balance") return { kind: "balance" };
+    if (p.intent === "send" && p.amount_minor && p.currency && p.payee_query) {
+      return { kind: "send", amountMinor: p.amount_minor, currency: p.currency, payeeQuery: p.payee_query };
+    }
+    if (p.intent === "convert" && p.amount_minor && p.currency && p.to_currency && p.currency !== p.to_currency) {
+      return { kind: "convert", amountMinor: p.amount_minor, from: p.currency, to: p.to_currency };
+    }
+    if (p.intent === "deposit" && p.amount_minor && p.currency) {
+      return { kind: "deposit", amountMinor: p.amount_minor, currency: p.currency };
+    }
+    if (p.intent === "unknown" && p.clarification) return { kind: "unknown", reason: p.clarification };
+    return null;
+  };
 
   type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
   const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
@@ -163,14 +182,27 @@ function HivePage() {
     return { msg: { text: intent.reason, intent } };
   };
 
-  const onSend = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { id: crypto.randomUUID(), role: "user", text: input.trim() };
-    const intent = parseIntent(input);
+  const onSend = async () => {
+    if (!input.trim() || thinking) return;
+    const text = input.trim();
+    const userMsg: Message = { id: crypto.randomUUID(), role: "user", text };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setThinking(true);
+    let intent: HiveIntent;
+    try {
+      const parsed = await callParse({ data: { message: text } });
+      intent = mapParsedToIntent(parsed) ?? parseIntent(text);
+      if (parsed.clarification && intent.kind === "unknown") {
+        intent = { kind: "unknown", reason: parsed.clarification };
+      }
+    } catch {
+      intent = parseIntent(text);
+    }
     const { msg, payee } = buildPending(intent);
     const hiveMsg: Message = { id: crypto.randomUUID(), role: "hive", ...msg, resolvedPayee: msg.resolvedPayee ?? payee };
-    setMessages((m) => [...m, userMsg, hiveMsg]);
-    setInput("");
+    setMessages((m) => [...m, hiveMsg]);
+    setThinking(false);
   };
 
   const setIdemStatus = (msgId: string, status: IdempotencyStatus) => {
@@ -278,6 +310,16 @@ function HivePage() {
             </div>
           ),
         )}
+        {thinking && (
+          <div className="flex gap-2">
+            <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full gradient-brand text-white">
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <div className="rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm text-muted-foreground inline-flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Thinking…
+            </div>
+          </div>
+        )}
       </div>
 
       {messages.length <= 1 && (
@@ -298,8 +340,8 @@ function HivePage() {
           placeholder='Try "send €500 to Maria"'
           className="h-12"
         />
-        <Button onClick={onSend} disabled={!input.trim()} size="icon" className="h-12 w-12 gradient-brand text-white border-0">
-          <ArrowUp className="h-5 w-5" />
+        <Button onClick={onSend} disabled={!input.trim() || thinking} size="icon" className="h-12 w-12 gradient-brand text-white border-0">
+          {thinking ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
         </Button>
       </div>
 
