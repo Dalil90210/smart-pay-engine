@@ -57,6 +57,8 @@ const SUGGESTIONS = [
   "Send €500 to Maria",
   "Convert 200 USD to GBP",
   "Add 1000 EUR",
+  "Pay James £120",
+  "Swap 300 euros for pounds",
   "What's my balance?",
 ];
 
@@ -220,6 +222,8 @@ function HivePage() {
   const execute = async (msgId: string, pin?: string) => {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
+    // Guard against double-invocation (rapid Confirm clicks, PIN modal double-success)
+    if (busy || msg.idemStatus === "submitting" || msg.idemStatus === "posted" || msg.idemStatus === "duplicate") return;
     const p = msg.pending;
     setBusy(true);
     setIdemStatus(msgId, "submitting");
@@ -246,12 +250,29 @@ function HivePage() {
       ]);
       toast.success(p.successMessage);
     } catch (e) {
+      // Re-audit before allowing retry: if the RPC actually committed and the failure
+      // was network/serialization, the key is now used and the user must not resubmit.
+      try {
+        const postCheck = await runCheck(p.idempotencyKey);
+        setAudit(msgId, postCheck);
+        if (postCheck.used) {
+          setIdemStatus(msgId, "posted");
+          setMessages((all) => all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, pending: undefined } : m)));
+          toast.success(`${p.successMessage} (recovered)`);
+          qc.invalidateQueries({ queryKey: ["balances"] });
+          qc.invalidateQueries({ queryKey: ["transactions"] });
+          return;
+        }
+      } catch {
+        // audit-check failed too — safe path is to leave key locked
+      }
       setIdemStatus(msgId, "ready");
       toast.error((e as Error).message);
     } finally {
       setBusy(false);
     }
   };
+
 
   const handleConfirm = (msgId: string, requiresPin: boolean) => {
     if (requiresPin) {
@@ -322,15 +343,19 @@ function HivePage() {
         )}
       </div>
 
-      {messages.length <= 1 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <button key={s} onClick={() => setInput(s)} className="rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs hover:border-primary/40">
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => setInput(s)}
+            disabled={thinking}
+            className="shrink-0 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-50"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
 
       <div className="mt-3 flex items-center gap-2">
         <Input
