@@ -341,15 +341,19 @@ function HivePage() {
         )}
       </div>
 
-      {messages.length <= 1 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <button key={s} onClick={() => setInput(s)} className="rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs hover:border-primary/40">
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s}
+            onClick={() => setInput(s)}
+            disabled={thinking}
+            className="shrink-0 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-50"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
 
       <div className="mt-3 flex items-center gap-2">
         <Input
