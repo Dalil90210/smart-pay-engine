@@ -340,8 +340,8 @@ function HivePage() {
           placeholder='Try "send €500 to Maria"'
           className="h-12"
         />
-        <Button onClick={onSend} disabled={!input.trim()} size="icon" className="h-12 w-12 gradient-brand text-white border-0">
-          <ArrowUp className="h-5 w-5" />
+        <Button onClick={onSend} disabled={!input.trim() || thinking} size="icon" className="h-12 w-12 gradient-brand text-white border-0">
+          {thinking ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
         </Button>
       </div>
 
