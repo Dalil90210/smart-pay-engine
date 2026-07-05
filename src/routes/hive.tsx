@@ -310,6 +310,16 @@ function HivePage() {
             </div>
           ),
         )}
+        {thinking && (
+          <div className="flex gap-2">
+            <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full gradient-brand text-white">
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <div className="rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm text-muted-foreground inline-flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Thinking…
+            </div>
+          </div>
+        )}
       </div>
 
       {messages.length <= 1 && (
