@@ -83,6 +83,21 @@ function HivePage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  const mapParsedToIntent = (p: Awaited<ReturnType<typeof callParse>>): HiveIntent | null => {
+    if (p.intent === "balance") return { kind: "balance" };
+    if (p.intent === "send" && p.amount_minor && p.currency && p.payee_query) {
+      return { kind: "send", amountMinor: p.amount_minor, currency: p.currency, payeeQuery: p.payee_query };
+    }
+    if (p.intent === "convert" && p.amount_minor && p.currency && p.to_currency && p.currency !== p.to_currency) {
+      return { kind: "convert", amountMinor: p.amount_minor, from: p.currency, to: p.to_currency };
+    }
+    if (p.intent === "deposit" && p.amount_minor && p.currency) {
+      return { kind: "deposit", amountMinor: p.amount_minor, currency: p.currency };
+    }
+    if (p.intent === "unknown" && p.clarification) return { kind: "unknown", reason: p.clarification };
+    return null;
+  };
+
   type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
   const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
     if (intent.kind === "send") {
