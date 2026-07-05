@@ -57,6 +57,8 @@ const SUGGESTIONS = [
   "Send €500 to Maria",
   "Convert 200 USD to GBP",
   "Add 1000 EUR",
+  "Pay James £120",
+  "Swap 300 euros for pounds",
   "What's my balance?",
 ];
 
