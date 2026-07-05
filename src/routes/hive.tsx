@@ -167,14 +167,27 @@ function HivePage() {
     return { msg: { text: intent.reason, intent } };
   };
 
-  const onSend = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = { id: crypto.randomUUID(), role: "user", text: input.trim() };
-    const intent = parseIntent(input);
+  const onSend = async () => {
+    if (!input.trim() || thinking) return;
+    const text = input.trim();
+    const userMsg: Message = { id: crypto.randomUUID(), role: "user", text };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setThinking(true);
+    let intent: HiveIntent;
+    try {
+      const parsed = await callParse({ data: { message: text } });
+      intent = mapParsedToIntent(parsed) ?? parseIntent(text);
+      if (parsed.clarification && intent.kind === "unknown") {
+        intent = { kind: "unknown", reason: parsed.clarification };
+      }
+    } catch {
+      intent = parseIntent(text);
+    }
     const { msg, payee } = buildPending(intent);
     const hiveMsg: Message = { id: crypto.randomUUID(), role: "hive", ...msg, resolvedPayee: msg.resolvedPayee ?? payee };
-    setMessages((m) => [...m, userMsg, hiveMsg]);
-    setInput("");
+    setMessages((m) => [...m, hiveMsg]);
+    setThinking(false);
   };
 
   const setIdemStatus = (msgId: string, status: IdempotencyStatus) => {
