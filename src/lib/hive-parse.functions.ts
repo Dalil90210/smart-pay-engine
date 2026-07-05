@@ -44,12 +44,12 @@ export const parseHiveIntent = createServerFn({ method: "POST" })
     if (!key) throw new Error("AI not configured");
     const gateway = createLovableAiGatewayProvider(key);
 
-    const { experimental_output } = await generateText({
+    const { output } = await generateText({
       model: gateway("google/gemini-3-flash-preview"),
       system: SYSTEM_PROMPT,
       prompt: `USER MESSAGE:\n${data.message}`,
-      experimental_output: Output.object({ schema: IntentSchema }),
+      output: Output.object({ schema: IntentSchema }),
     });
 
-    return experimental_output;
+    return output;
   });
