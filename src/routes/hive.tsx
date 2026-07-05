@@ -74,8 +74,10 @@ function HivePage() {
   const [pinOpen, setPinOpen] = useState(false);
   const [activeMsgId, setActiveMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [thinking, setThinking] = useState(false);
   const { history: auditHistory, runCheck, clear: clearAuditHistory } = useIdempotencyAuditHistory();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const callParse = useServerFn(parseHiveIntent);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
