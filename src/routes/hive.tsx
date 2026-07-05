@@ -18,6 +18,8 @@ import { IdempotencyIndicator, type IdempotencyStatus } from "@/components/Idemp
 import { IdempotencyAudit } from "@/components/IdempotencyAudit";
 import { IdempotencyAuditHistory } from "@/components/IdempotencyAuditHistory";
 import { useIdempotencyAuditHistory } from "@/hooks/useIdempotencyAuditHistory";
+import { parseHiveIntent } from "@/lib/hive-parse.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/hive")({
   head: () => ({
