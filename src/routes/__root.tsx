@@ -15,6 +15,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import faviconIco from "@/assets/favicon.ico.asset.json";
 import faviconPng from "@/assets/favicon-512.png.asset.json";
+import { ConsentBanner } from "@/components/ConsentBanner";
+import { CONSENT_STORAGE_KEY } from "@/lib/consent";
 
 function NotFoundComponent() {
   return (
