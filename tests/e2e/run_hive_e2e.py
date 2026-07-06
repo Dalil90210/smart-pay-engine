@@ -150,36 +150,26 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
         _log("mint-fail", f"no access_token in session response: {list(session)}")
         return None
 
-    # Ensure the test PIN is set so the Confirm → PIN dialog can succeed.
-    # public.set_pin() uses gen_salt/crypt from pgcrypto (in the `extensions`
-    # schema), and its `SET search_path = public` hides them — the RPC 404s.
-    # Bypass by writing user_pins directly via PostgREST as service_role
-    # (RLS-bypass), with a bcrypt hash computed here that the SQL verifier
-    # (extensions.crypt) will accept at PIN-check time.
-    user_id = (session.get("user") or {}).get("id")
-    if user_id and service_role:
-        try:
-            import bcrypt
-            pin_hash = bcrypt.hashpw(PIN.encode(), bcrypt.gensalt()).decode()
-            r = requests.post(
-                f"{supabase_url}/rest/v1/user_pins",
-                headers={
-                    "apikey": service_role,
-                    "Authorization": f"Bearer {service_role}",
-                    "Content-Type": "application/json",
-                    "Prefer": "resolution=merge-duplicates,return=minimal",
-                },
-                json={"user_id": user_id, "pin_hash": pin_hash},
-                timeout=10,
-            )
-            if r.status_code >= 300:
-                _log("pin-warn", f"user_pins upsert {r.status_code}: {r.text[:200]}")
-            else:
-                _log("pin-set", "ok")
-        except Exception as exc:
-            _log("pin-warn", f"user_pins upsert threw: {exc}")
-    else:
-        _log("pin-warn", "SUPABASE_SERVICE_ROLE_KEY or user id missing — cannot seed PIN")
+    # Seed the test PIN via the app's own set_pin RPC so the hash is produced
+    # by the same pgcrypto build that verify_pin/post_transaction will call.
+    try:
+        r = requests.post(
+            f"{supabase_url}/rest/v1/rpc/set_pin",
+            headers={
+                "apikey": publishable,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            json={"p_pin": PIN},
+            timeout=10,
+        )
+        if r.status_code >= 300:
+            _log("pin-warn", f"set_pin {r.status_code}: {r.text[:200]}")
+        else:
+            _log("pin-set", "ok")
+    except Exception as exc:
+        _log("pin-warn", f"set_pin call failed: {exc}")
+
 
 
 
