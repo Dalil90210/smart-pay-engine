@@ -243,7 +243,7 @@ async def main() -> int:
                             "from_amount_minor": meta.get("from_amount_minor"),
                             "to_amount_minor": meta.get("to_amount_minor"),
                             "fee_minor": meta.get("fee_minor"),
-                            "effective_rate": meta.get("effective_rate"),
+                            "effective_rate": meta.get("effective_rate") or meta.get("rate"),
                         }
                         result["comparison"] = cmp
                         if not cmp["ok"]:
