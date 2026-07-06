@@ -34,6 +34,8 @@ jobs:
       # invariants (no unbalanced tx, no negative user cash, value conserved).
       LEDGER_FUZZ_ITERATIONS: "20"
       LEDGER_FUZZ_OPS_PER_ITER: "200"
+      # Vary the seed per CI run so successive PRs explore different op sequences.
+      LEDGER_FUZZ_SEED: ${{ github.run_id }}
 
     steps:
       - name: Checkout
