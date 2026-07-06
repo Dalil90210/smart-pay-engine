@@ -131,9 +131,13 @@ async def main() -> int:
         context = await browser.new_context(viewport={"width": 1280, "height": 1800})
         results = []
         for route in ROUTES:
+            # Fresh context per route so localStorage/consent from a prior
+            # route can't leak into pre-consent expectations.
+            context = await browser.new_context(viewport={"width": 1280, "height": 1800})
             ok, msg = await check_route(context, route)
             print(("PASS " if ok else "FAIL ") + msg)
             results.append(ok)
+            await context.close()
         await browser.close()
         return 0 if all(results) else 1
 
