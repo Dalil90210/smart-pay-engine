@@ -190,8 +190,27 @@ async def _run_flow(page: Page) -> dict:
     await page.goto(f"{BASE_URL}/hive", wait_until="domcontentloaded")
     composer = page.get_by_placeholder(__import__("re").compile(r"send .* to ", __import__("re").I))
     await composer.wait_for(state="visible", timeout=15_000)
+
+    # First-run onboarding modal covers the Confirm button; dismiss it if present.
+    try:
+        get_started = page.get_by_role("button", name=__import__("re").compile(r"Get started", __import__("re").I))
+        await get_started.first.click(timeout=1_500)
+        # Click through any remaining onboarding steps.
+        for _ in range(4):
+            nxt = page.get_by_role("button", name=__import__("re").compile(r"^(Next|Finish|Done|Continue)$", __import__("re").I))
+            if await nxt.count() == 0:
+                break
+            try:
+                await nxt.first.click(timeout=1_000)
+            except PWTimeout:
+                break
+        result["steps"].append("onboarding-dismissed")
+    except PWTimeout:
+        pass
+
     await page.screenshot(path=str(SCREENSHOTS / "01_hive_loaded.png"))
     result["steps"].append("hive-loaded")
+
 
     # 2. Type prompt → parsed intent.
     await composer.fill(PROMPT)
