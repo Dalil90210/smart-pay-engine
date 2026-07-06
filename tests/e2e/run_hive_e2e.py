@@ -152,7 +152,7 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
 
     # Ensure the test PIN is set so the Confirm → PIN dialog can succeed.
     try:
-        requests.post(
+        r = requests.post(
             f"{supabase_url}/rest/v1/rpc/set_pin",
             headers={
                 "apikey": publishable,
@@ -162,8 +162,13 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
             json={"p_pin": PIN},
             timeout=10,
         )
+        if r.status_code >= 300:
+            _log("pin-warn", f"set_pin {r.status_code}: {r.text[:200]}")
+        else:
+            _log("pin-set", "ok")
     except Exception as exc:
         _log("pin-warn", f"set_pin call failed: {exc}")
+
 
     # Mark the profile as onboarded so AppShell's OnboardingModal (PIN/setup wizard)
     # doesn't cover the Confirm button. profiles.onboarded_at is the sole trigger.
