@@ -111,7 +111,48 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         src: "https://www.googletagmanager.com/gtag/js?id=G-PLBN4ZXTK6",
       },
       {
-        children: `window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'G-PLBN4ZXTK6');`,
+        children: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  ad_storage: 'denied',
+  ad_user_data: 'denied',
+  ad_personalization: 'denied',
+  analytics_storage: 'denied',
+  wait_for_update: 500
+});
+gtag('js', new Date());
+gtag('config', 'G-PLBN4ZXTK6');
+
+(function(){
+  function applyTCF(tcData){
+    try {
+      if (!tcData) return;
+      var googleVendor = tcData.vendor && tcData.vendor.consents && tcData.vendor.consents[755];
+      var p = (tcData.purpose && tcData.purpose.consents) || {};
+      var analytics = !!(p[1] && p[7] && p[8] && p[9] && p[10]);
+      var ads = !!(p[1] && p[2] && p[3] && p[4] && p[7]);
+      gtag('consent','update',{
+        analytics_storage: (googleVendor && analytics) ? 'granted' : 'denied',
+        ad_storage: (googleVendor && ads) ? 'granted' : 'denied',
+        ad_user_data: (googleVendor && ads) ? 'granted' : 'denied',
+        ad_personalization: (googleVendor && ads) ? 'granted' : 'denied'
+      });
+    } catch(e){}
+  }
+  function attach(){
+    if (typeof window.__tcfapi === 'function'){
+      window.__tcfapi('addEventListener', 2, function(tcData, success){
+        if (!success || !tcData) return;
+        if (tcData.eventStatus === 'tcloaded' || tcData.eventStatus === 'useractioncomplete' || tcData.eventStatus === 'cmpuishown'){
+          applyTCF(tcData);
+        }
+      });
+    } else {
+      setTimeout(attach, 200);
+    }
+  }
+  attach();
+})();`,
       },
       {
         type: "application/ld+json",
