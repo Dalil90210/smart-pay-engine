@@ -114,8 +114,20 @@ async def check_route(context, route: str) -> tuple[bool, str]:
 
 
 async def main() -> int:
+    exec_path = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
+    # Fall back to the sandbox's nix-provided chromium when the default
+    # PLAYWRIGHT_BROWSERS_PATH points at a stale version.
+    for candidate in (
+        exec_path,
+        "/nix/store/nw961dvpvik5m19kbay4cg27wxgl3sdv-playwright-chromium-headless-shell/chrome-linux/headless_shell",
+    ):
+        if candidate and Path(candidate).exists():
+            exec_path = candidate
+            break
+        exec_path = None
+
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=True, executable_path=exec_path) if exec_path else await p.chromium.launch(headless=True)
         context = await browser.new_context(viewport={"width": 1280, "height": 1800})
         results = []
         for route in ROUTES:
