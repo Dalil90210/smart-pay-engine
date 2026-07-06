@@ -241,6 +241,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <Toaster richColors position="top-right" />
+        <ConsentBanner />
       </AuthProvider>
     </QueryClientProvider>
   );
