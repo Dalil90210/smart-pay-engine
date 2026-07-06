@@ -93,11 +93,20 @@ async def _run_flow(page: Page, expected: dict) -> dict:
     result["steps"].append("hive-loaded")
 
     prompt = f"convert {AMOUNT_MAJOR:g} {FROM} to {TO}"
-    await composer.fill(prompt)
-    await page.keyboard.press("Enter")
-
     confirm = page.get_by_role("button", name=re.compile(r"^Confirm$"))
-    await confirm.first.wait_for(state="visible", timeout=20_000)
+    for attempt in range(6):
+        await composer.fill(prompt)
+        await page.keyboard.press("Enter")
+        try:
+            await confirm.first.wait_for(state="visible", timeout=5_000)
+            break
+        except PWTimeout:
+            not_ready = page.get_by_text(re.compile(r"Accounts not ready", re.I))
+            if await not_ready.count() == 0:
+                raise
+            _log("wait-accounts", f"attempt {attempt + 1}")
+            await page.wait_for_timeout(1_500)
+    await confirm.first.wait_for(state="visible", timeout=5_000)
     await page.screenshot(path=str(SCREENSHOTS / "01_quote.png"))
     result["steps"].append("quote-rendered")
 
