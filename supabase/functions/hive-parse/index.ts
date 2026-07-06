@@ -50,6 +50,27 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
+  // Reject anon callers — only real signed-in users (role=authenticated) may
+  // invoke this function, since it burns Anthropic quota on the project's key.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const jwt = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!jwt) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+  try {
+    const parts = jwt.split(".");
+    if (parts.length !== 3) throw new Error("malformed jwt");
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+    ) as { role?: string; sub?: string };
+    if (payload.role !== "authenticated" || !payload.sub) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+  } catch {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+
   try {
     const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!apiKey) {
