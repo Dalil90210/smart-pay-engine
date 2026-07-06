@@ -541,12 +541,12 @@ function HivePage() {
 
   // ---------- Auto-send ?q= ----------
   useEffect(() => {
-    if (q && !sentAuto.current && messages.length === 0) {
+    if (q && loaded && !sentAuto.current && messages.length === 0) {
       sentAuto.current = true;
       handleSend(q);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [q, loaded]);
 
   return (
     <div className="flex h-full flex-col">
