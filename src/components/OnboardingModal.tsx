@@ -2,11 +2,27 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Sparkles, Wallet, ArrowRight, Loader2, Check, Lock } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldCheck, Sparkles, Wallet, ArrowRight, Loader2, Check, Lock, AlertCircle, RotateCcw } from "lucide-react";
 import { setPin, hasPin } from "@/lib/ledger";
 import { useMarkOnboarded } from "@/hooks/useProfile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+function friendlySetupError(e: unknown): { title: string; message: string } {
+  const raw = e instanceof Error ? e.message : String(e ?? "");
+  const lower = raw.toLowerCase();
+  if (lower.includes("gen_salt") || lower.includes("crypt(") || lower.includes("function crypt") || lower.includes("does not exist")) {
+    return { title: "PIN service unavailable", message: "We couldn't save your PIN right now. Please try again in a moment." };
+  }
+  if (lower.includes("permission denied")) {
+    return { title: "Not authorized", message: "Your session doesn't have permission to save a PIN. Sign out and back in, then retry." };
+  }
+  if (lower.includes("network") || lower.includes("failed to fetch")) {
+    return { title: "Network problem", message: "We couldn't reach the server. Check your connection and try again." };
+  }
+  return { title: "Couldn't save your PIN", message: raw || "Something went wrong. Please try again." };
+}
 
 type Step = 0 | 1 | 2 | 3;
 
@@ -15,13 +31,21 @@ export function OnboardingModal({ open }: { open: boolean }) {
   const [pin, setPinValue] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
+  const [setupError, setSetupError] = useState<{ title: string; message: string } | null>(null);
   const mark = useMarkOnboarded();
 
   const next = () => setStep((s) => (Math.min(3, s + 1) as Step));
 
   const finish = async () => {
-    if (pin.length !== 4) return toast.error("PIN must be 4 digits");
-    if (pin !== confirm) return toast.error("PINs don't match");
+    setSetupError(null);
+    if (pin.length !== 4) {
+      setSetupError({ title: "PIN must be 4 digits", message: "Enter a 4-digit code in both fields." });
+      return;
+    }
+    if (pin !== confirm) {
+      setSetupError({ title: "PINs don't match", message: "The two PINs you entered are different. Try again." });
+      return;
+    }
     setSaving(true);
     try {
       const already = await hasPin();
@@ -29,7 +53,9 @@ export function OnboardingModal({ open }: { open: boolean }) {
       await mark.mutateAsync();
       setStep(3);
     } catch (e) {
-      toast.error((e as Error).message);
+      const err = friendlySetupError(e);
+      setSetupError(err);
+      toast.error(err.title);
     } finally {
       setSaving(false);
     }
@@ -139,6 +165,14 @@ export function OnboardingModal({ open }: { open: boolean }) {
               </InputOTP>
             </div>
 
+            {setupError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{setupError.title}</AlertTitle>
+                <AlertDescription>{setupError.message}</AlertDescription>
+              </Alert>
+            )}
+
             <Button
               size="lg"
               className="w-full gradient-brand text-white"
@@ -147,6 +181,8 @@ export function OnboardingModal({ open }: { open: boolean }) {
             >
               {saving ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Securing…</>
+              ) : setupError ? (
+                <><RotateCcw className="mr-1.5 h-4 w-4" /> Try again</>
               ) : (
                 <>Finish setup <ArrowRight className="ml-1 h-4 w-4" /></>
               )}
