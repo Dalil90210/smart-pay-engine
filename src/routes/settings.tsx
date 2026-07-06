@@ -212,9 +212,81 @@ function SettingsPage() {
         </div>
       </Card>
 
+      <PrivacyCard />
+
       <Button variant="outline" className="w-full" onClick={async () => { await signOut(); navigate({ to: "/auth" }); }}>
         <LogOut className="mr-2 h-4 w-4" /> Sign out
       </Button>
     </div>
+  );
+}
+
+function PrivacyCard() {
+  const [consent, setConsent] = useState<ConsentState | null>(() =>
+    typeof window === "undefined" ? null : readConsent(),
+  );
+
+  useEffect(() => {
+    setConsent(readConsent());
+    const onChange = (e: Event) => setConsent((e as CustomEvent<ConsentState>).detail ?? readConsent());
+    window.addEventListener(CONSENT_CHANGE_EVENT, onChange);
+    return () => window.removeEventListener(CONSENT_CHANGE_EVENT, onChange);
+  }, []);
+
+  const analytics = consent?.analytics ?? false;
+  const ads = consent?.ads ?? false;
+
+  const update = (patch: { analytics?: boolean; ads?: boolean }) => {
+    const next = writeConsent({
+      analytics: patch.analytics ?? analytics,
+      ads: patch.ads ?? ads,
+    });
+    setConsent(next);
+    toast.success("Privacy preferences saved");
+  };
+
+  return (
+    <Card className="card-glass space-y-4 p-6">
+      <div>
+        <Label className="flex items-center gap-2">
+          <Shield className="h-4 w-4 text-cyan" /> Privacy & cookies
+        </Label>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {consent
+            ? `Last updated ${new Date(consent.decidedAt).toLocaleString()}.`
+            : "You haven't set a preference yet — the banner will ask on your next visit."}
+        </p>
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium">Strictly necessary</div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Auth, security, and core app functionality. Always on.
+          </p>
+        </div>
+        <Switch checked disabled />
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium">Analytics</div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Anonymous usage metrics via Google Analytics 4.
+          </p>
+        </div>
+        <Switch checked={analytics} onCheckedChange={(v) => update({ analytics: v })} />
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium">Advertising</div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Not currently used. Kept off unless you opt in.
+          </p>
+        </div>
+        <Switch checked={ads} onCheckedChange={(v) => update({ ads: v })} />
+      </div>
+    </Card>
   );
 }
