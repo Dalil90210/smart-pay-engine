@@ -256,6 +256,27 @@ function PrivacyCard() {
             ? `Last updated ${new Date(consent.decidedAt).toLocaleString()}.`
             : "You haven't set a preference yet — the banner will ask on your next visit."}
         </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          See our{" "}
+          <a
+            href="https://smartpayengine.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan underline underline-offset-2 hover:opacity-80"
+          >
+            Privacy Policy
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://smartpayengine.com/cookies"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan underline underline-offset-2 hover:opacity-80"
+          >
+            Cookie Policy
+          </a>
+          .
+        </p>
       </div>
 
       <div className="flex items-start justify-between gap-3 rounded-lg border border-border/60 p-3">

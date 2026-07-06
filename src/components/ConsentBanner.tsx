@@ -52,6 +52,25 @@ export function ConsentBanner() {
           <p className="mt-1 text-xs text-muted-foreground">
             We use strictly necessary cookies to run Smart Pay Engine and, with your permission,
             analytics to understand how the app is used. You can change this anytime in Settings.
+            See our{" "}
+            <a
+              href="https://smartpayengine.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Privacy Policy
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://smartpayengine.com/cookies"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
+              Cookie Policy
+            </a>
+            .
           </p>
 
           {customize && (
