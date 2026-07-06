@@ -91,13 +91,10 @@ async def check_route(context, route: str) -> tuple[bool, str]:
         else None,
     )
 
-    await page.evaluate(
-        """() => {
-            if (typeof window.gtag === 'function') {
-                window.gtag('event','page_view',{ consent_test: true });
-            }
-        }"""
-    )
+    # Navigate to the sibling policy page so gtag re-issues page_view
+    # under the new consent state.
+    other = "/cookies" if route == "/privacy" else "/privacy"
+    await page.goto(f"{BASE_URL}{other}", wait_until="domcontentloaded")
     await page.mouse.move(300, 300)
     await page.wait_for_timeout(1800)
     await page.screenshot(path=str(SCREENSHOTS / f"post{route.replace('/', '_')}.png"))
