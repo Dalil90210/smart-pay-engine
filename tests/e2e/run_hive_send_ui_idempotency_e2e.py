@@ -120,8 +120,8 @@ async def _snapshot_home(page: Page) -> dict:
     text = await usd_card.inner_text()
     balance_minor = _money_text_to_minor(text)
 
-    # Count "To <payee>" rows under Recent activity heading (not "View all" link).
-    payee_rows = page.get_by_text(re.compile(rf"^To {re.escape(PAYEE)}$"))
+    # Count "To <payee>" rows under Recent activity heading.
+    payee_rows = page.get_by_text(re.compile(rf"To {re.escape(PAYEE)}", re.I))
     row_count = await payee_rows.count()
     return {"balance_minor": balance_minor, "row_count": row_count, "raw_card_text": text}
 
