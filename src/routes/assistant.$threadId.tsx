@@ -117,6 +117,7 @@ function HivePage() {
     persistedIds.current = new Set();
     titleSet.current = false;
     setMessages([]);
+    setLoaded(false);
     sentAuto.current = false;
     (async () => {
       const { data, error } = await supabase
@@ -124,13 +125,16 @@ function HivePage() {
         .select("message, created_at")
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true });
-      if (cancelled || error || !data) return;
-      const loaded = data
-        .map((r) => r.message as unknown as Msg)
-        .filter((m): m is Msg => !!m && typeof m === "object" && "id" in m && "role" in m);
-      for (const m of loaded) persistedIds.current.add(m.id);
-      if (loaded.some((m) => m.role === "user")) titleSet.current = true;
-      setMessages(loaded);
+      if (cancelled) return;
+      if (!error && data) {
+        const loadedMsgs = data
+          .map((r) => r.message as unknown as Msg)
+          .filter((m): m is Msg => !!m && typeof m === "object" && "id" in m && "role" in m);
+        for (const m of loadedMsgs) persistedIds.current.add(m.id);
+        if (loadedMsgs.some((m) => m.role === "user")) titleSet.current = true;
+        setMessages(loadedMsgs);
+      }
+      setLoaded(true);
     })();
     return () => {
       cancelled = true;
