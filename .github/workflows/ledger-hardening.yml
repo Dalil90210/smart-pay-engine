@@ -85,3 +85,8 @@ jobs:
       # and concurrent double-spend (exactly one wins, no negative balances).
       - name: Run ledger_invariants.sh (unbalanced scan + concurrency)
         run: bash tests/ledger/ledger_invariants.sh
+
+      # Focused audit-brief scenario: balance=100, two parallel 80-unit
+      # transfers, plus duplicate-idempotency-key submission.
+      - name: Run ledger_concurrency.py (lock + idempotency proof)
+        run: python tests/ledger/ledger_concurrency.py
