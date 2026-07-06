@@ -15,10 +15,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LedgerIntegrityRouteImport } from './routes/ledger-integrity'
 import { Route as InvoicesRouteImport } from './routes/invoices'
 import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ConvertRouteImport } from './routes/convert'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistantRouteImport } from './routes/assistant'
@@ -59,6 +61,11 @@ const ReversalsRoute = ReversalsRouteImport.update({
   path: '/reversals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LedgerIntegrityRoute = LedgerIntegrityRouteImport.update({
   id: '/ledger-integrity',
   path: '/ledger-integrity',
@@ -77,6 +84,11 @@ const InsightsRoute = InsightsRouteImport.update({
 const HiveRoute = HiveRouteImport.update({
   id: '/hive',
   path: '/hive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConvertRoute = ConvertRouteImport.update({
@@ -131,10 +143,12 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
+  '/privacy': typeof PrivacyRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -151,10 +165,12 @@ export interface FileRoutesByTo {
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
+  '/privacy': typeof PrivacyRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -173,10 +189,12 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
   '/convert': typeof ConvertRoute
+  '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
   '/insights': typeof InsightsRoute
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
+  '/privacy': typeof PrivacyRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -196,10 +214,12 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/auth'
     | '/convert'
+    | '/cookies'
     | '/hive'
     | '/insights'
     | '/invoices'
     | '/ledger-integrity'
+    | '/privacy'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -216,10 +236,12 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/auth'
     | '/convert'
+    | '/cookies'
     | '/hive'
     | '/insights'
     | '/invoices'
     | '/ledger-integrity'
+    | '/privacy'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -237,10 +259,12 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/auth'
     | '/convert'
+    | '/cookies'
     | '/hive'
     | '/insights'
     | '/invoices'
     | '/ledger-integrity'
+    | '/privacy'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -259,10 +283,12 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRouteWithChildren
   AuthRoute: typeof AuthRoute
   ConvertRoute: typeof ConvertRoute
+  CookiesRoute: typeof CookiesRoute
   HiveRoute: typeof HiveRoute
   InsightsRoute: typeof InsightsRoute
   InvoicesRoute: typeof InvoicesRoute
   LedgerIntegrityRoute: typeof LedgerIntegrityRoute
+  PrivacyRoute: typeof PrivacyRoute
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
@@ -317,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReversalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ledger-integrity': {
       id: '/ledger-integrity'
       path: '/ledger-integrity'
@@ -343,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/hive'
       fullPath: '/hive'
       preLoaderRoute: typeof HiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/convert': {
@@ -431,10 +471,12 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRouteWithChildren,
   AuthRoute: AuthRoute,
   ConvertRoute: ConvertRoute,
+  CookiesRoute: CookiesRoute,
   HiveRoute: HiveRoute,
   InsightsRoute: InsightsRoute,
   InvoicesRoute: InvoicesRoute,
   LedgerIntegrityRoute: LedgerIntegrityRoute,
+  PrivacyRoute: PrivacyRoute,
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,

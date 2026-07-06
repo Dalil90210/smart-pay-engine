@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -258,23 +258,19 @@ function PrivacyCard() {
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           See our{" "}
-          <a
-            href="https://smartpayengine.com/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/privacy"
             className="text-cyan underline underline-offset-2 hover:opacity-80"
           >
             Privacy Policy
-          </a>{" "}
+          </Link>{" "}
           and{" "}
-          <a
-            href="https://smartpayengine.com/cookies"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/cookies"
             className="text-cyan underline underline-offset-2 hover:opacity-80"
           >
             Cookie Policy
-          </a>
+          </Link>
           .
         </p>
       </div>
