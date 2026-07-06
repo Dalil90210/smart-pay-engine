@@ -151,23 +151,33 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
         return None
 
     # Ensure the test PIN is set so the Confirm → PIN dialog can succeed.
-    try:
-        r = requests.post(
-            f"{supabase_url}/rest/v1/rpc/set_pin",
-            headers={
-                "apikey": publishable,
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json",
-            },
-            json={"p_pin": PIN},
-            timeout=10,
-        )
-        if r.status_code >= 300:
-            _log("pin-warn", f"set_pin {r.status_code}: {r.text[:200]}")
-        else:
-            _log("pin-set", "ok")
-    except Exception as exc:
-        _log("pin-warn", f"set_pin call failed: {exc}")
+    # public.set_pin() uses gen_salt/crypt from pgcrypto which lives in the
+    # `extensions` schema, and the function's `SET search_path = public` hides
+    # it — the RPC returns 404. Write user_pins directly via psql, schema-
+    # qualifying the crypto calls.
+    user_id = (session.get("user") or {}).get("id")
+    db_url = os.environ.get("SUPABASE_DB_URL")
+    if user_id and db_url:
+        try:
+            import subprocess
+            sql = (
+                "INSERT INTO public.user_pins(user_id, pin_hash, updated_at) "
+                f"VALUES ('{user_id}'::uuid, extensions.crypt('{PIN}', extensions.gen_salt('bf')), now()) "
+                "ON CONFLICT (user_id) DO UPDATE SET pin_hash = EXCLUDED.pin_hash, updated_at = now();"
+            )
+            res = subprocess.run(
+                ["psql", db_url, "-v", "ON_ERROR_STOP=1", "-c", sql],
+                capture_output=True, text=True, timeout=15,
+            )
+            if res.returncode != 0:
+                _log("pin-warn", f"psql set_pin failed: {res.stderr[:200]}")
+            else:
+                _log("pin-set", "ok")
+        except Exception as exc:
+            _log("pin-warn", f"psql set_pin threw: {exc}")
+    else:
+        _log("pin-warn", "SUPABASE_DB_URL or user id missing — cannot seed PIN")
+
 
 
     # Mark the profile as onboarded so AppShell's OnboardingModal (PIN/setup wizard)
