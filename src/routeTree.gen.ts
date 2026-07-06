@@ -28,6 +28,7 @@ import { Route as AddFundsRouteImport } from './routes/add-funds'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssistantIndexRouteImport } from './routes/assistant.index'
 import { Route as ITokenRouteImport } from './routes/i.$token'
+import { Route as BlogIntelligentPaymentRoutingGuideRouteImport } from './routes/blog.intelligent-payment-routing-guide'
 import { Route as AssistantThreadIdRouteImport } from './routes/assistant.$threadId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
@@ -126,6 +127,12 @@ const ITokenRoute = ITokenRouteImport.update({
   path: '/i/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIntelligentPaymentRoutingGuideRoute =
+  BlogIntelligentPaymentRoutingGuideRouteImport.update({
+    id: '/blog/intelligent-payment-routing-guide',
+    path: '/blog/intelligent-payment-routing-guide',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AssistantThreadIdRoute = AssistantThreadIdRouteImport.update({
   id: '/$threadId',
   path: '/$threadId',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/blog/intelligent-payment-routing-guide': typeof BlogIntelligentPaymentRoutingGuideRoute
   '/i/$token': typeof ITokenRoute
   '/assistant/': typeof AssistantIndexRoute
 }
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/blog/intelligent-payment-routing-guide': typeof BlogIntelligentPaymentRoutingGuideRoute
   '/i/$token': typeof ITokenRoute
   '/assistant': typeof AssistantIndexRoute
 }
@@ -203,6 +212,7 @@ export interface FileRoutesById {
   '/transactions': typeof TransactionsRoute
   '/api/chat': typeof ApiChatRoute
   '/assistant/$threadId': typeof AssistantThreadIdRoute
+  '/blog/intelligent-payment-routing-guide': typeof BlogIntelligentPaymentRoutingGuideRoute
   '/i/$token': typeof ITokenRoute
   '/assistant/': typeof AssistantIndexRoute
 }
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
+    | '/blog/intelligent-payment-routing-guide'
     | '/i/$token'
     | '/assistant/'
   fileRoutesByTo: FileRoutesByTo
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
+    | '/blog/intelligent-payment-routing-guide'
     | '/i/$token'
     | '/assistant'
   id:
@@ -273,6 +285,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/api/chat'
     | '/assistant/$threadId'
+    | '/blog/intelligent-payment-routing-guide'
     | '/i/$token'
     | '/assistant/'
   fileRoutesById: FileRoutesById
@@ -296,6 +309,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TransactionsRoute: typeof TransactionsRoute
   ApiChatRoute: typeof ApiChatRoute
+  BlogIntelligentPaymentRoutingGuideRoute: typeof BlogIntelligentPaymentRoutingGuideRoute
   ITokenRoute: typeof ITokenRoute
 }
 
@@ -434,6 +448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ITokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/intelligent-payment-routing-guide': {
+      id: '/blog/intelligent-payment-routing-guide'
+      path: '/blog/intelligent-payment-routing-guide'
+      fullPath: '/blog/intelligent-payment-routing-guide'
+      preLoaderRoute: typeof BlogIntelligentPaymentRoutingGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assistant/$threadId': {
       id: '/assistant/$threadId'
       path: '/$threadId'
@@ -484,6 +505,8 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TransactionsRoute: TransactionsRoute,
   ApiChatRoute: ApiChatRoute,
+  BlogIntelligentPaymentRoutingGuideRoute:
+    BlogIntelligentPaymentRoutingGuideRoute,
   ITokenRoute: ITokenRoute,
 }
 export const routeTree = rootRouteImport
