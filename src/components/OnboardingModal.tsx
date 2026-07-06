@@ -31,13 +31,21 @@ export function OnboardingModal({ open }: { open: boolean }) {
   const [pin, setPinValue] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
+  const [setupError, setSetupError] = useState<{ title: string; message: string } | null>(null);
   const mark = useMarkOnboarded();
 
   const next = () => setStep((s) => (Math.min(3, s + 1) as Step));
 
   const finish = async () => {
-    if (pin.length !== 4) return toast.error("PIN must be 4 digits");
-    if (pin !== confirm) return toast.error("PINs don't match");
+    setSetupError(null);
+    if (pin.length !== 4) {
+      setSetupError({ title: "PIN must be 4 digits", message: "Enter a 4-digit code in both fields." });
+      return;
+    }
+    if (pin !== confirm) {
+      setSetupError({ title: "PINs don't match", message: "The two PINs you entered are different. Try again." });
+      return;
+    }
     setSaving(true);
     try {
       const already = await hasPin();
@@ -45,7 +53,9 @@ export function OnboardingModal({ open }: { open: boolean }) {
       await mark.mutateAsync();
       setStep(3);
     } catch (e) {
-      toast.error((e as Error).message);
+      const err = friendlySetupError(e);
+      setSetupError(err);
+      toast.error(err.title);
     } finally {
       setSaving(false);
     }
