@@ -2,11 +2,27 @@ import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Sparkles, Wallet, ArrowRight, Loader2, Check, Lock } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldCheck, Sparkles, Wallet, ArrowRight, Loader2, Check, Lock, AlertCircle, RotateCcw } from "lucide-react";
 import { setPin, hasPin } from "@/lib/ledger";
 import { useMarkOnboarded } from "@/hooks/useProfile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+function friendlySetupError(e: unknown): { title: string; message: string } {
+  const raw = e instanceof Error ? e.message : String(e ?? "");
+  const lower = raw.toLowerCase();
+  if (lower.includes("gen_salt") || lower.includes("crypt(") || lower.includes("function crypt") || lower.includes("does not exist")) {
+    return { title: "PIN service unavailable", message: "We couldn't save your PIN right now. Please try again in a moment." };
+  }
+  if (lower.includes("permission denied")) {
+    return { title: "Not authorized", message: "Your session doesn't have permission to save a PIN. Sign out and back in, then retry." };
+  }
+  if (lower.includes("network") || lower.includes("failed to fetch")) {
+    return { title: "Network problem", message: "We couldn't reach the server. Check your connection and try again." };
+  }
+  return { title: "Couldn't save your PIN", message: raw || "Something went wrong. Please try again." };
+}
 
 type Step = 0 | 1 | 2 | 3;
 
