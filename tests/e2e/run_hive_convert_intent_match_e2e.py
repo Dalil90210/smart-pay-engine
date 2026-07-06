@@ -168,9 +168,11 @@ def _compare(intent: dict, tx_meta: dict, expected: dict) -> dict:
         "from_amount_minor": intent["from_amount_minor"] == tx_meta.get("from_amount_minor"),
         "to_amount_minor": intent["to_amount_minor"] == tx_meta.get("to_amount_minor"),
         "fee_minor": intent["fee_minor"] == tx_meta.get("fee_minor"),
-        # Card renders a 4dp rate; server keeps full precision. Compare at 4dp.
-        "effective_rate": intent["effective_rate"] is not None
-            and round(float(tx_meta.get("effective_rate") or 0), 4) == intent["effective_rate"],
+        # Card renders a 4dp rate; server keeps full precision. Some post paths
+        # store this under `effective_rate`, others under `rate`. Compare at 4dp.
+        "effective_rate": intent["effective_rate"] is not None and round(
+            float(tx_meta.get("effective_rate") or tx_meta.get("rate") or 0), 4
+        ) == intent["effective_rate"],
         # Independent oracle: card values also match the mid × (1 - spread) quote.
         "matches_expected_to_minor": intent["to_amount_minor"] == expected["to_minor"],
         "matches_expected_fee_minor": intent["fee_minor"] == expected["fee_minor"],
