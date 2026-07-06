@@ -14,7 +14,14 @@ import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
 import { useProfile, useUpdateHomeCurrency } from "@/hooks/useProfile";
 import { CURRENCIES, CURRENCY_SYMBOL, type Currency } from "@/lib/money";
-import { Moon, Sun, LogOut, Loader2, PiggyBank, Globe2 } from "lucide-react";
+import { Moon, Sun, LogOut, Loader2, PiggyBank, Globe2, Shield } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  readConsent,
+  writeConsent,
+  CONSENT_CHANGE_EVENT,
+  type ConsentState,
+} from "@/lib/consent";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
