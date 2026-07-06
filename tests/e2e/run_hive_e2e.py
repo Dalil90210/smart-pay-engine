@@ -46,18 +46,27 @@ def _log(step: str, detail: str = "") -> None:
 
 
 async def _restore_session(context, page: Page) -> bool:
-    """Inject the Lovable-managed Supabase session, matching tests/e2e/fixtures.ts."""
-    status = os.environ.get("LOVABLE_BROWSER_AUTH_STATUS", "")
+    """Inject a Supabase session. Prefer the Lovable-managed one; if it's
+    absent (LOVABLE_BROWSER_AUTH_STATUS=signed_out), mint a session directly
+    against Supabase using a deterministic test account, so the runner is
+    self-sufficient inside CI/sandbox."""
     storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
     session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
     cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
 
     if not storage_key or not session_json:
-        _log("auth-skip", f"no session in env (LOVABLE_BROWSER_AUTH_STATUS={status!r})")
-        return False
+        minted = _mint_session_via_supabase()
+        if not minted:
+            return False
+        storage_key, session_json = minted
+        cookies_json = None
+        _log("auth-minted", "self-signed via Supabase publishable key")
+    else:
+        _log("auth-injected", "using Lovable-managed session")
 
     if cookies_json:
         try:
+
             cookies = json.loads(cookies_json)
             for c in cookies:
                 c["url"] = BASE_URL
