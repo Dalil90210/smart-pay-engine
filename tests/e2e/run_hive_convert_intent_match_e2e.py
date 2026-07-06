@@ -63,42 +63,35 @@ def _log(step: str, detail: str = "") -> None:
     print(f"[hive-convert-intent-match-e2e] {step}" + (f" — {detail}" if detail else ""), flush=True)
 
 
-def _parse_money(text: str, ccy: str) -> int | None:
-    """Return minor units of the first `<sym>N[.NN]` match for currency `ccy`."""
+def _row_money(text: str, label_pattern: str, ccy: str) -> int | None:
+    """Find `<label>\n<sym>N.NN` and return minor units."""
     sym = re.escape(CCY_SYMBOL[ccy])
-    # Accept both "$1,234.56" and "1,234.56 USD" phrasings.
-    m = re.search(rf"{sym}\s?([\d,]+\.\d{{2}})", text)
-    if not m:
-        m = re.search(rf"([\d,]+\.\d{{2}})\s*{ccy}\b", text)
+    m = re.search(rf"{label_pattern}\s*\n\s*{sym}\s?([\d,]+\.\d{{2}})", text, re.I)
     if not m:
         return None
     return round(float(m.group(1).replace(",", "")) * 100)
 
 
 async def _capture_intent_from_card(page: Page, from_ccy: str, to_ccy: str) -> dict:
-    """Read amount, currency pair, fee, and total from the visible confirmation card."""
-    # The Confirm button is rendered outside ConfirmationCard, so scope to the
-    # nearest ancestor that also contains the "Review" header rendered by
-    # ConfirmationCard. That ancestor holds both the card rows and the button.
+    """Read amount, currency pair, fee, and total from the confirmation card."""
+    # Scope to the ancestor of the Confirm button that also contains the "Review"
+    # header — that's the message bubble holding ConfirmationCard.
     confirm = page.get_by_role("button", name=re.compile(r"^Confirm$")).first
     card = confirm.locator(
         "xpath=ancestor::*[.//text()[contains(translate(., 'REVIEW', 'review'), 'review')]][1]"
     )
     text = await card.inner_text()
 
-    # The confirmation card shows amount lines like "$100.00 USD" and "€91.54 EUR".
-    from_amount = _parse_money(text, from_ccy)
-    to_amount = _parse_money(text, to_ccy)
+    # Parse each labeled row so the fee doesn't leak into the receive total.
+    from_amount = _row_money(text, r"From", from_ccy)
+    to_amount = _row_money(text, r"You receive", to_ccy)
+    fee_minor = _row_money(text, r"Spread fee", to_ccy)
 
-    # Fee shown in destination currency, first fee-labeled occurrence.
-    fee_match = re.search(
-        rf"(?:Fee|Spread)[^\n$€£]*({re.escape(CCY_SYMBOL[to_ccy])}\s?[\d,]+\.\d{{2}})",
-        text, re.I,
-    )
-    fee_minor = _parse_money(fee_match.group(1), to_ccy) if fee_match else None
-
-    rate_match = re.search(r"(\d+\.\d{4})", text)
+    rate_match = re.search(rf"1\s*{from_ccy}\s*=\s*(\d+\.\d{{4}})\s*{to_ccy}", text)
     rate = float(rate_match.group(1)) if rate_match else None
+
+    # Currency pair also appears as e.g. "USD → EUR" in the card title.
+    pair_ok = bool(re.search(rf"{from_ccy}\s*→\s*{to_ccy}", text))
 
     return {
         "from_currency": from_ccy,
@@ -107,6 +100,7 @@ async def _capture_intent_from_card(page: Page, from_ccy: str, to_ccy: str) -> d
         "to_amount_minor": to_amount,
         "fee_minor": fee_minor,
         "effective_rate": rate,
+        "pair_label_ok": pair_ok,
         "card_text": text,
     }
 
