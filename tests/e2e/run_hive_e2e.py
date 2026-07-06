@@ -144,9 +144,23 @@ async def _run_flow(page: Page) -> dict:
     return result
 
 
+def _find_chromium() -> str | None:
+    """Locate the sandbox-provided headless_shell; the docs say launch() finds
+    it automatically, but on this host PLAYWRIGHT_BROWSERS_PATH=/ points at
+    version-suffixed dirs that don't exist, so we glob the nix store fallback."""
+    import glob
+    hits = glob.glob("/nix/store/*-playwright-chromium-headless-shell/chrome-linux/headless_shell")
+    return hits[0] if hits else None
+
+
 async def main() -> int:
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=True)
+        launch_kwargs: dict = {"headless": True}
+        exe = _find_chromium()
+        if exe:
+            launch_kwargs["executable_path"] = exe
+            _log("chromium", exe)
+        browser = await pw.chromium.launch(**launch_kwargs)
         context = await browser.new_context(viewport={"width": 1280, "height": 1800})
         page = await context.new_page()
 
