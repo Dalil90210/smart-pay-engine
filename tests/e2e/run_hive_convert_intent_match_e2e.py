@@ -162,6 +162,7 @@ def _fetch_posted_fx(supabase_url: str, publishable: str, access_token: str) -> 
 
 def _compare(intent: dict, tx_meta: dict, expected: dict) -> dict:
     checks = {
+        "pair_label_ok": bool(intent.get("pair_label_ok")),
         "from_currency": intent["from_currency"] == tx_meta.get("from_currency"),
         "to_currency": intent["to_currency"] == tx_meta.get("to_currency"),
         "from_amount_minor": intent["from_amount_minor"] == tx_meta.get("from_amount_minor"),
