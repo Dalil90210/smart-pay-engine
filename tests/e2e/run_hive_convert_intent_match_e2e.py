@@ -77,10 +77,13 @@ def _parse_money(text: str, ccy: str) -> int | None:
 
 async def _capture_intent_from_card(page: Page, from_ccy: str, to_ccy: str) -> dict:
     """Read amount, currency pair, fee, and total from the visible confirmation card."""
-    # Scope to the container that holds the Confirm button so unrelated $/€/£ on
-    # the page (balance strip, side nav) cannot leak into the parse.
+    # The Confirm button is rendered outside ConfirmationCard, so scope to the
+    # nearest ancestor that also contains the "Review" header rendered by
+    # ConfirmationCard. That ancestor holds both the card rows and the button.
     confirm = page.get_by_role("button", name=re.compile(r"^Confirm$")).first
-    card = confirm.locator("xpath=ancestor::*[self::div or self::section][1]")
+    card = confirm.locator(
+        "xpath=ancestor::*[.//text()[contains(translate(., 'REVIEW', 'review'), 'review')]][1]"
+    )
     text = await card.inner_text()
 
     # The confirmation card shows amount lines like "$100.00 USD" and "€91.54 EUR".
