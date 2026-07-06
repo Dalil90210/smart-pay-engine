@@ -20,9 +20,17 @@ export const Route = createFileRoute("/add-funds")({
   head: () => ({
     meta: [
       { title: "Add funds — Smart Pay Engine" },
-      { name: "description", content: "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions." },
+      {
+        name: "description",
+        content:
+          "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions.",
+      },
       { property: "og:title", content: "Add funds — Smart Pay Engine" },
-      { property: "og:description", content: "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions." },
+      {
+        property: "og:description",
+        content:
+          "Top up your Smart Pay Engine sandbox wallet in USD, EUR or GBP to test transfers and conversions.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/add-funds" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/add-funds" }],
@@ -114,14 +122,24 @@ function AddFundsPage() {
         <div>
           <Label htmlFor="amt">Amount</Label>
           <div className="relative mt-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{CURRENCY_SYMBOL[currency]}</span>
-            <Input id="amt" inputMode="decimal" className="pl-8 font-display text-xl" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0.00" />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {CURRENCY_SYMBOL[currency]}
+            </span>
+            <Input
+              id="amt"
+              inputMode="decimal"
+              className="pl-8 font-display text-xl"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+              placeholder="0.00"
+            />
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {[100, 500, 1000, 5000].map((q) => (
             <Button key={q} variant="outline" size="sm" onClick={() => setAmount(String(q))}>
-              {CURRENCY_SYMBOL[currency]}{q}
+              {CURRENCY_SYMBOL[currency]}
+              {q}
             </Button>
           ))}
         </div>
@@ -130,17 +148,33 @@ function AddFundsPage() {
         <IdempotencyAuditHistory history={history} onClear={clearHistory} />
         <Button
           onClick={submit}
-          disabled={amountMinor <= 0 || busy || idemStatus === "duplicate" || idemStatus === "posted"}
+          disabled={
+            amountMinor <= 0 || busy || idemStatus === "duplicate" || idemStatus === "posted"
+          }
           className="w-full gradient-brand text-white border-0"
         >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="mr-2 h-4 w-4" /> Add {amountMinor > 0 ? formatMoney(amountMinor, currency) : "funds"}</>}
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Plus className="mr-2 h-4 w-4" /> Add{" "}
+              {amountMinor > 0 ? formatMoney(amountMinor, currency) : "funds"}
+            </>
+          )}
         </Button>
         {idemStatus === "duplicate" && (
-          <button type="button" onClick={resetKey} className="mx-auto block text-xs text-primary hover:underline">
+          <button
+            type="button"
+            onClick={resetKey}
+            className="mx-auto block text-xs text-primary hover:underline"
+          >
             Generate a new idempotency key
           </button>
         )}
-        <p className="text-center text-xs text-muted-foreground">Sandbox deposit — credits your wallet from a virtual funding source. No PIN required for deposits.</p>
+        <p className="text-center text-xs text-muted-foreground">
+          Sandbox deposit — credits your wallet from a virtual funding source. No PIN required for
+          deposits.
+        </p>
       </Card>
     </div>
   );

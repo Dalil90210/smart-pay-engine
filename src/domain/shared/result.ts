@@ -31,8 +31,7 @@ export class DomainError extends Error {
 
 /** Discriminated union representing either success or failure. */
 export type Result<T> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly error: DomainError };
+  { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: DomainError };
 
 export function ok<T>(value: T): Result<T> {
   return { ok: true, value };

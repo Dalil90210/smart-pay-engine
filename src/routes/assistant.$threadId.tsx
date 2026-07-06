@@ -76,11 +76,62 @@ type Intent = z.infer<typeof IntentSchema>;
 type Msg =
   | { id: string; role: "user"; text: string }
   | { id: string; role: "assistant"; kind: "text"; text: string }
-  | { id: string; role: "assistant"; kind: "balances"; balances: { currency: Currency; balance_minor: number }[] }
-  | { id: string; role: "assistant"; kind: "transactions"; rows: Array<{ id: string; type: string; state: string; created_at: string; description: string; currency: Currency; amount_minor: number }> }
-  | { id: string; role: "assistant"; kind: "confirm_send"; logId: string; payee: Payee; amountMinor: number; feeMinor: number; note: string | null; done?: { txId: string } | { error: string } }
-  | { id: string; role: "assistant"; kind: "confirm_fx"; logId: string; from: Currency; to: Currency; fromAmountMinor: number; toAmountMinor: number; feeMinor: number; rate: number; done?: { txId: string; toAmountMinor: number } | { error: string } }
-  | { id: string; role: "assistant"; kind: "invoice_draft"; clientName: string; clientEmail: string | null; amountMinor: number; currency: Currency; description: string; dueInDays: number; done?: { invoiceId: string } | { error: string } };
+  | {
+      id: string;
+      role: "assistant";
+      kind: "balances";
+      balances: { currency: Currency; balance_minor: number }[];
+    }
+  | {
+      id: string;
+      role: "assistant";
+      kind: "transactions";
+      rows: Array<{
+        id: string;
+        type: string;
+        state: string;
+        created_at: string;
+        description: string;
+        currency: Currency;
+        amount_minor: number;
+      }>;
+    }
+  | {
+      id: string;
+      role: "assistant";
+      kind: "confirm_send";
+      logId: string;
+      payee: Payee;
+      amountMinor: number;
+      feeMinor: number;
+      note: string | null;
+      done?: { txId: string } | { error: string };
+    }
+  | {
+      id: string;
+      role: "assistant";
+      kind: "confirm_fx";
+      logId: string;
+      from: Currency;
+      to: Currency;
+      fromAmountMinor: number;
+      toAmountMinor: number;
+      feeMinor: number;
+      rate: number;
+      done?: { txId: string; toAmountMinor: number } | { error: string };
+    }
+  | {
+      id: string;
+      role: "assistant";
+      kind: "invoice_draft";
+      clientName: string;
+      clientEmail: string | null;
+      amountMinor: number;
+      currency: Currency;
+      description: string;
+      dueInDays: number;
+      done?: { invoiceId: string } | { error: string };
+    };
 
 // ---------- Root component ----------
 
@@ -245,7 +296,9 @@ function HivePage() {
           .single();
         logId = log?.id ?? "";
       }
-    } catch { /* logging is best-effort */ }
+    } catch {
+      /* logging is best-effort */
+    }
 
     setParsing(false);
 
@@ -266,7 +319,12 @@ function HivePage() {
   const routeIntent = async (intent: Intent, logId: string) => {
     // Low confidence or explicit clarification → ask, don't act
     if (intent.clarification && (intent.confidence < 0.6 || intent.intent === "unknown")) {
-      append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: intent.clarification });
+      append({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        kind: "text",
+        text: intent.clarification,
+      });
       return;
     }
 
@@ -275,7 +333,9 @@ function HivePage() {
         id: crypto.randomUUID(),
         role: "assistant",
         kind: "text",
-        text: intent.clarification ?? "I can send money, check balances, convert currency, list transactions, explain fees, or draft an invoice. What would you like to do?",
+        text:
+          intent.clarification ??
+          "I can send money, check balances, convert currency, list transactions, explain fees, or draft an invoice. What would you like to do?",
       });
       return;
     }
@@ -312,9 +372,10 @@ function HivePage() {
       const ccy = (intent.currency ?? "USD") as Currency;
       const sample = intent.amount_minor && intent.amount_minor > 0 ? intent.amount_minor : 50000;
       const fee = getTransferFee(sample);
-      const fx = intent.to_currency && intent.to_currency !== ccy
-        ? getFxQuote(ccy, intent.to_currency as Currency, sample)
-        : null;
+      const fx =
+        intent.to_currency && intent.to_currency !== ccy
+          ? getFxQuote(ccy, intent.to_currency as Currency, sample)
+          : null;
       const parts = [
         `Transfers in this sandbox charge **0.5% + ${formatMoney(25, ccy)}** on the amount.`,
         `For ${formatMoney(sample, ccy)}, that's ${formatMoney(fee, ccy)}.`,
@@ -324,9 +385,16 @@ function HivePage() {
           `FX ${ccy}→${fx ? intent.to_currency : ""} uses a mid-market rate with a **0.5% spread** baked into the effective rate — so no separate fee line, just a slightly worse rate than mid.`,
         );
       } else {
-        parts.push("Currency conversions use a 0.5% spread against a mid-market rate — no separate fee line.");
+        parts.push(
+          "Currency conversions use a 0.5% spread against a mid-market rate — no separate fee line.",
+        );
       }
-      append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: parts.join("\n\n") });
+      append({
+        id: crypto.randomUUID(),
+        role: "assistant",
+        kind: "text",
+        text: parts.join("\n\n"),
+      });
       return;
     }
 
@@ -338,7 +406,12 @@ function HivePage() {
       const currency = intent.currency as Currency | null;
 
       if (!query) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: "Who should I send this to?" });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: "Who should I send this to?",
+        });
         return;
       }
       if (matches.length === 0) {
@@ -375,7 +448,12 @@ function HivePage() {
         return;
       }
       if (amountMinor <= 0) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: `How much should I send ${payee.name}?` });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: `How much should I send ${payee.name}?`,
+        });
         return;
       }
       const feeMinor = getTransferFee(amountMinor); // recomputed server-side — never trust the model
@@ -397,11 +475,21 @@ function HivePage() {
       const to = intent.to_currency as Currency | null;
       const amt = intent.amount_minor ?? 0;
       if (!from || !to || from === to) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: "Which currencies should I convert between?" });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: "Which currencies should I convert between?",
+        });
         return;
       }
       if (amt <= 0) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: `How much ${from} should I convert?` });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: `How much ${from} should I convert?`,
+        });
         return;
       }
       const quote = getFxQuote(from, to, amt); // recomputed locally; server also reprices at execution
@@ -426,11 +514,21 @@ function HivePage() {
       const currency = (intent.currency ?? "USD") as Currency;
       const amountMinor = intent.amount_minor ?? 0;
       if (!clientName) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: "Who's the invoice for?" });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: "Who's the invoice for?",
+        });
         return;
       }
       if (amountMinor <= 0) {
-        append({ id: crypto.randomUUID(), role: "assistant", kind: "text", text: `What amount should the ${clientName} invoice be for?` });
+        append({
+          id: crypto.randomUUID(),
+          role: "assistant",
+          kind: "text",
+          text: `What amount should the ${clientName} invoice be for?`,
+        });
         return;
       }
       append({
@@ -452,8 +550,12 @@ function HivePage() {
 
   const executeSend = async (msg: Extract<Msg, { kind: "confirm_send" }>, pin: string) => {
     try {
-      const checking = accounts.find((a) => a.currency === msg.payee.currency && a.type === "checking");
-      const funding = accounts.find((a) => a.currency === msg.payee.currency && a.type === "funding");
+      const checking = accounts.find(
+        (a) => a.currency === msg.payee.currency && a.type === "checking",
+      );
+      const funding = accounts.find(
+        (a) => a.currency === msg.payee.currency && a.type === "funding",
+      );
       if (!checking || !funding) throw new Error("Wallet not provisioned");
       const total = msg.amountMinor + msg.feeMinor;
       const txId = await postTransaction({
@@ -483,7 +585,9 @@ function HivePage() {
       }
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success(`Sent ${formatMoney(msg.amountMinor, msg.payee.currency)} to ${msg.payee.name}`);
+      toast.success(
+        `Sent ${formatMoney(msg.amountMinor, msg.payee.currency)} to ${msg.payee.name}`,
+      );
     } catch (e) {
       const err = (e as Error).message;
       updateMsg(msg.id, { done: { error: err } } as Partial<Msg>);
@@ -500,13 +604,20 @@ function HivePage() {
         fromAmountMinor: msg.fromAmountMinor,
         pin,
       });
-      updateMsg(msg.id, { done: { txId: result.transaction_id, toAmountMinor: result.to_amount_minor } } as Partial<Msg>);
+      updateMsg(msg.id, {
+        done: { txId: result.transaction_id, toAmountMinor: result.to_amount_minor },
+      } as Partial<Msg>);
       if (msg.logId) {
-        await supabase.from("hive_logs").update({ confirmed: true, result: result as unknown as never }).eq("id", msg.logId);
+        await supabase
+          .from("hive_logs")
+          .update({ confirmed: true, result: result as unknown as never })
+          .eq("id", msg.logId);
       }
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success(`Converted ${formatMoney(msg.fromAmountMinor, msg.from)} → ${formatMoney(result.to_amount_minor, msg.to)}`);
+      toast.success(
+        `Converted ${formatMoney(msg.fromAmountMinor, msg.from)} → ${formatMoney(result.to_amount_minor, msg.to)}`,
+      );
     } catch (e) {
       const err = (e as Error).message;
       updateMsg(msg.id, { done: { error: err } } as Partial<Msg>);
@@ -523,7 +634,9 @@ function HivePage() {
         p_client_email: msg.clientEmail ?? "",
         p_currency: msg.currency,
         p_due_date: due.toISOString().slice(0, 10),
-        p_items: [{ description: msg.description, quantity: 1, unit_price_minor: msg.amountMinor }] as never,
+        p_items: [
+          { description: msg.description, quantity: 1, unit_price_minor: msg.amountMinor },
+        ] as never,
         p_tax_setaside_percent: null as never,
         p_notes: null as never,
         p_send: false,
@@ -581,8 +694,8 @@ function HivePage() {
             <div className="space-y-1">
               <h2 className="font-display text-lg font-semibold">Talk money.</h2>
               <p className="text-xs text-muted-foreground">
-                Try "send 500 euros to Maria", "what's my balance", or "convert 200 quid to dollars".
-                I'll always show you a confirmation card before anything moves.
+                Try "send 500 euros to Maria", "what's my balance", or "convert 200 quid to
+                dollars". I'll always show you a confirmation card before anything moves.
               </p>
             </div>
           </div>
@@ -633,7 +746,12 @@ function HivePage() {
             }}
             disabled={parsing}
           />
-          <Button type="submit" size="icon" disabled={parsing || !input.trim()} className="shadow-md shadow-primary/20">
+          <Button
+            type="submit"
+            size="icon"
+            disabled={parsing || !input.trim()}
+            className="shadow-md shadow-primary/20"
+          >
             {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
@@ -685,7 +803,9 @@ function AssistantBubble({
   if (msg.kind === "text") {
     return (
       <AssistantShell>
-        <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{msg.text}</div>
+        <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+          {msg.text}
+        </div>
       </AssistantShell>
     );
   }
@@ -694,9 +814,16 @@ function AssistantBubble({
       <AssistantShell>
         <Card className="card-glass grid grid-cols-3 gap-3 p-4">
           {msg.balances.map((b) => (
-            <div key={b.currency} className="rounded-lg border border-border/60 bg-background/60 p-3">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{b.currency}</div>
-              <div className="mt-1 font-display text-lg font-bold">{formatMoney(b.balance_minor, b.currency)}</div>
+            <div
+              key={b.currency}
+              className="rounded-lg border border-border/60 bg-background/60 p-3"
+            >
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {b.currency}
+              </div>
+              <div className="mt-1 font-display text-lg font-bold">
+                {formatMoney(b.balance_minor, b.currency)}
+              </div>
             </div>
           ))}
         </Card>
@@ -707,8 +834,12 @@ function AssistantBubble({
     return (
       <AssistantShell>
         <Card className="card-glass overflow-hidden p-0">
-          <div className="border-b border-border px-4 py-2 text-xs font-medium">Recent transactions</div>
-          {msg.rows.length === 0 && <div className="p-4 text-xs text-muted-foreground">No transactions yet.</div>}
+          <div className="border-b border-border px-4 py-2 text-xs font-medium">
+            Recent transactions
+          </div>
+          {msg.rows.length === 0 && (
+            <div className="p-4 text-xs text-muted-foreground">No transactions yet.</div>
+          )}
           <ul className="divide-y divide-border">
             {msg.rows.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-2 text-xs">
@@ -757,11 +888,18 @@ function ConfirmSend({
         totalCurrency={msg.payee.currency}
       />
       {!done && (
-        <Button onClick={() => setPinOpen(true)} className="w-full gradient-brand text-white border-0">
+        <Button
+          onClick={() => setPinOpen(true)}
+          className="w-full gradient-brand text-white border-0"
+        >
           <ShieldCheck className="mr-2 h-4 w-4" /> Confirm & enter PIN
         </Button>
       )}
-      {done && "txId" in done && <ReceiptBanner text={`Sent ${formatMoney(msg.amountMinor, msg.payee.currency)} to ${msg.payee.name}`} />}
+      {done && "txId" in done && (
+        <ReceiptBanner
+          text={`Sent ${formatMoney(msg.amountMinor, msg.payee.currency)} to ${msg.payee.name}`}
+        />
+      )}
       {done && "error" in done && <ErrorBanner text={done.error} />}
       <PinModal
         open={pinOpen}
@@ -798,11 +936,18 @@ function ConfirmFx({
         totalCurrency={msg.to}
       />
       {!done && (
-        <Button onClick={() => setPinOpen(true)} className="w-full gradient-brand text-white border-0">
+        <Button
+          onClick={() => setPinOpen(true)}
+          className="w-full gradient-brand text-white border-0"
+        >
           <ShieldCheck className="mr-2 h-4 w-4" /> Confirm & enter PIN
         </Button>
       )}
-      {done && "txId" in done && <ReceiptBanner text={`Converted ${formatMoney(msg.fromAmountMinor, msg.from)} → ${formatMoney(done.toAmountMinor, msg.to)}`} />}
+      {done && "txId" in done && (
+        <ReceiptBanner
+          text={`Converted ${formatMoney(msg.fromAmountMinor, msg.from)} → ${formatMoney(done.toAmountMinor, msg.to)}`}
+        />
+      )}
       {done && "error" in done && <ErrorBanner text={done.error} />}
       <PinModal
         open={pinOpen}
@@ -832,7 +977,11 @@ function InvoiceDraft({
         <div className="grid gap-2 text-xs">
           <div>
             <Label className="text-[10px]">Client email (optional)</Label>
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="client@example.com" />
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="client@example.com"
+            />
           </div>
           <div>
             <Label className="text-[10px]">Description</Label>
@@ -855,7 +1004,9 @@ function InvoiceDraft({
             Save as draft invoice
           </Button>
         )}
-        {done && "invoiceId" in done && <ReceiptBanner text="Draft invoice created — open Invoices to send it." />}
+        {done && "invoiceId" in done && (
+          <ReceiptBanner text="Draft invoice created — open Invoices to send it." />
+        )}
         {done && "error" in done && <ErrorBanner text={done.error} />}
       </Card>
     </AssistantShell>

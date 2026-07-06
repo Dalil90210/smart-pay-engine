@@ -10,9 +10,17 @@ export const Route = createFileRoute("/assistant")({
   head: () => ({
     meta: [
       { title: "AI Assistant — Smart Pay Engine" },
-      { name: "description", content: "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route." },
+      {
+        name: "description",
+        content:
+          "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route.",
+      },
       { property: "og:title", content: "AI Assistant — Smart Pay Engine" },
-      { property: "og:description", content: "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route." },
+      {
+        property: "og:description",
+        content:
+          "Chat with Hive, the Smart Pay Engine AI, to draft payments, analyse reversals and pick the best FX route.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/assistant" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/assistant" }],
@@ -53,7 +61,9 @@ function AssistantLayout() {
         <div className="flex-1 space-y-1 overflow-y-auto">
           {threads.length === 0 && (
             <div className="px-2 py-6 text-center text-xs text-muted-foreground">
-              No chats yet.<br />Start one to plan a payment or open a reversal.
+              No chats yet.
+              <br />
+              Start one to plan a payment or open a reversal.
             </div>
           )}
           {threads.map((t) => {

@@ -28,7 +28,12 @@ export function BalanceCard({
       }
     >
       <div className="flex items-center justify-between">
-        <div className={cn("text-xs font-medium uppercase tracking-wider", highlight ? "text-white/80" : "text-muted-foreground")}>
+        <div
+          className={cn(
+            "text-xs font-medium uppercase tracking-wider",
+            highlight ? "text-white/80" : "text-muted-foreground",
+          )}
+        >
           {title ?? `${currency} Balance`}
         </div>
         <div

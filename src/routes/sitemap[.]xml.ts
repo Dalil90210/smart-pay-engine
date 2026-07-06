@@ -29,7 +29,11 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/settings", changefreq: "monthly", priority: "0.4" },
           { path: "/privacy", changefreq: "yearly", priority: "0.3" },
           { path: "/cookies", changefreq: "yearly", priority: "0.3" },
-          { path: "/blog/intelligent-payment-routing-guide", changefreq: "monthly", priority: "0.7" },
+          {
+            path: "/blog/intelligent-payment-routing-guide",
+            changefreq: "monthly",
+            priority: "0.7",
+          },
         ];
 
         const urls = entries.map((e) =>

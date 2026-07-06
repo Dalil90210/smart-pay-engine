@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PinModal } from "@/components/PinModal";
 
@@ -39,9 +39,7 @@ describe.each([
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />
-    );
+    render(<PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />);
 
     await waitFor(() => expect(hasPin).toHaveBeenCalled());
     await typePin(user, "1234");
@@ -58,53 +56,55 @@ describe.each([
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />
-    );
+    render(<PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />);
 
     await waitFor(() => expect(hasPin).toHaveBeenCalled());
     await typePin(user, "9999");
 
     await waitFor(() => expect(verifyPin).toHaveBeenCalledWith("9999"));
     expect(onSuccess).not.toHaveBeenCalled();
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Incorrect PIN"));
+    await waitFor(() => expect(screen.getByText("Incorrect PIN")).toBeInTheDocument());
+    expect(screen.getByText("That PIN didn't match. Please try again.")).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
     // Modal stays open so the user can retry.
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });
 
-  it("closes with an error when no PIN is set", async () => {
+  it("shows setup guidance when no PIN is set", async () => {
     (hasPin as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(false);
     const onSuccess = vi.fn();
     const onOpenChange = vi.fn();
 
-    render(
-      <PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />
-    );
+    render(<PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />);
 
-    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
-    expect(toast.error).toHaveBeenCalledWith(
-      expect.stringContaining("No PIN set")
-    );
+    await waitFor(() => expect(screen.getByText("No PIN set")).toBeInTheDocument());
+    expect(
+      screen.getByText(
+        "You need a 4-digit PIN before you can authorize transactions. Set one in Settings, then try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
     expect(verifyPin).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it("surfaces backend errors from verifyPin without calling onSuccess", async () => {
-    (verifyPin as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error("network down")
-    );
+  it("shows verify errors inline without calling onSuccess", async () => {
+    (verifyPin as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("network down"));
     const onSuccess = vi.fn();
     const onOpenChange = vi.fn();
     const user = userEvent.setup();
 
-    render(
-      <PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />
-    );
+    render(<PinModal open onOpenChange={onOpenChange} onSuccess={onSuccess} title={title} />);
 
     await waitFor(() => expect(hasPin).toHaveBeenCalled());
     await typePin(user, "1111");
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("network down"));
+    await waitFor(() => expect(screen.getByText("Network problem")).toBeInTheDocument());
+    expect(
+      screen.getByText("We couldn't reach the server. Check your connection and try again."),
+    ).toBeInTheDocument();
+    expect(toast.error).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
   });
 });

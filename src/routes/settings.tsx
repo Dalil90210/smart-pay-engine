@@ -16,20 +16,23 @@ import { useProfile, useUpdateHomeCurrency } from "@/hooks/useProfile";
 import { CURRENCIES, CURRENCY_SYMBOL, type Currency } from "@/lib/money";
 import { Moon, Sun, LogOut, Loader2, PiggyBank, Globe2, Shield } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import {
-  readConsent,
-  writeConsent,
-  CONSENT_CHANGE_EVENT,
-  type ConsentState,
-} from "@/lib/consent";
+import { readConsent, writeConsent, CONSENT_CHANGE_EVENT, type ConsentState } from "@/lib/consent";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Smart Pay Engine" },
-      { name: "description", content: "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place." },
+      {
+        name: "description",
+        content:
+          "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place.",
+      },
       { property: "og:title", content: "Settings — Smart Pay Engine" },
-      { property: "og:description", content: "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place." },
+      {
+        property: "og:description",
+        content:
+          "Manage your PIN, home currency, and Smart Pay Engine sandbox preferences from one place.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/settings" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/settings" }],
@@ -58,9 +61,24 @@ function SettingsPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await (supabase as unknown as {
-        from: (t: string) => { select: (s: string) => { eq: (c: string, v: string) => { maybeSingle: () => Promise<{ data: { tax_setaside_percent?: number } | null }> } } };
-      }).from("profiles").select("tax_setaside_percent").eq("id", user.id).maybeSingle();
+      const { data } = await (
+        supabase as unknown as {
+          from: (t: string) => {
+            select: (s: string) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => {
+                maybeSingle: () => Promise<{ data: { tax_setaside_percent?: number } | null }>;
+              };
+            };
+          };
+        }
+      )
+        .from("profiles")
+        .select("tax_setaside_percent")
+        .eq("id", user.id)
+        .maybeSingle();
       if (data?.tax_setaside_percent != null) setTaxPct(String(data.tax_setaside_percent));
     })();
   }, [user]);
@@ -94,9 +112,18 @@ function SettingsPage() {
     if (isNaN(pct) || pct < 0 || pct > 100) return toast.error("Enter 0-100");
     setSavingTax(true);
     try {
-      const { error } = await (supabase as unknown as {
-        from: (t: string) => { update: (v: Record<string, number>) => { eq: (c: string, v: string) => Promise<{ error: unknown }> } };
-      }).from("profiles").update({ tax_setaside_percent: pct }).eq("id", user.id);
+      const { error } = await (
+        supabase as unknown as {
+          from: (t: string) => {
+            update: (v: Record<string, number>) => {
+              eq: (c: string, v: string) => Promise<{ error: unknown }>;
+            };
+          };
+        }
+      )
+        .from("profiles")
+        .update({ tax_setaside_percent: pct })
+        .eq("id", user.id);
       if (error) throw error as Error;
       toast.success("Tax set-aside updated");
     } catch (e) {
@@ -117,7 +144,9 @@ function SettingsPage() {
 
       <Card className="card-glass space-y-3 p-6">
         <div>
-          <Label className="flex items-center gap-2"><Globe2 className="h-4 w-4 text-cyan" /> Home currency</Label>
+          <Label className="flex items-center gap-2">
+            <Globe2 className="h-4 w-4 text-cyan" /> Home currency
+          </Label>
           <p className="mt-1 text-xs text-muted-foreground">
             The dashboard combined total is shown in this currency (converted at sandbox mid rates).
           </p>
@@ -127,7 +156,11 @@ function SettingsPage() {
             <button
               key={c}
               disabled={updateHome.isPending}
-              onClick={() => updateHome.mutate(c as Currency, { onSuccess: () => toast.success(`Home currency set to ${c}`) })}
+              onClick={() =>
+                updateHome.mutate(c as Currency, {
+                  onSuccess: () => toast.success(`Home currency set to ${c}`),
+                })
+              }
               className={`rounded-xl border py-2.5 text-sm font-semibold transition-all disabled:opacity-40 ${homeCurrency === c ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"}`}
             >
               {CURRENCY_SYMBOL[c]} {c}
@@ -139,11 +172,19 @@ function SettingsPage() {
       <Card className="card-glass space-y-4 p-6">
         <div>
           <Label>Change PIN</Label>
-          <p className="mt-1 text-xs text-muted-foreground">A 4-digit code required to authorize transfers.</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            A 4-digit code required to authorize transfers.
+          </p>
         </div>
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">New PIN</label>
-          <InputOTP maxLength={4} value={pin} onChange={(v) => setPinValue(v.replace(/\D/g, ""))} inputMode="numeric" pattern="^[0-9]+$">
+          <InputOTP
+            maxLength={4}
+            value={pin}
+            onChange={(v) => setPinValue(v.replace(/\D/g, ""))}
+            inputMode="numeric"
+            pattern="^[0-9]+$"
+          >
             <InputOTPGroup>
               <InputOTPSlot index={0} className="h-12 w-12 text-xl" />
               <InputOTPSlot index={1} className="h-12 w-12 text-xl" />
@@ -154,7 +195,13 @@ function SettingsPage() {
         </div>
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground">Confirm new PIN</label>
-          <InputOTP maxLength={4} value={confirmPin} onChange={(v) => setConfirmPin(v.replace(/\D/g, ""))} inputMode="numeric" pattern="^[0-9]+$">
+          <InputOTP
+            maxLength={4}
+            value={confirmPin}
+            onChange={(v) => setConfirmPin(v.replace(/\D/g, ""))}
+            inputMode="numeric"
+            pattern="^[0-9]+$"
+          >
             <InputOTPGroup>
               <InputOTPSlot index={0} className="h-12 w-12 text-xl" />
               <InputOTPSlot index={1} className="h-12 w-12 text-xl" />
@@ -185,13 +232,25 @@ function SettingsPage() {
 
       <Card className="card-glass space-y-3 p-6">
         <div>
-          <Label className="flex items-center gap-2"><PiggyBank className="h-4 w-4 text-cyan" /> Tax set-aside</Label>
+          <Label className="flex items-center gap-2">
+            <PiggyBank className="h-4 w-4 text-cyan" /> Tax set-aside
+          </Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            Default % of every paid invoice routed into a separate tax jar (per currency). Applied to new invoices.
+            Default % of every paid invoice routed into a separate tax jar (per currency). Applied
+            to new invoices.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Input type="number" min={0} max={100} step={1} value={taxPct} onChange={(e) => setTaxPct(e.target.value)} placeholder="e.g. 25" className="max-w-[120px]" />
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={taxPct}
+            onChange={(e) => setTaxPct(e.target.value)}
+            placeholder="e.g. 25"
+            className="max-w-[120px]"
+          />
           <span className="text-sm text-muted-foreground">%</span>
           <Button onClick={saveTax} disabled={savingTax} size="sm" className="ml-auto">
             {savingTax ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
@@ -203,10 +262,16 @@ function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-medium">Theme</div>
-            <div className="text-xs text-muted-foreground">{theme === "dark" ? "Dark navy" : "Light"} mode</div>
+            <div className="text-xs text-muted-foreground">
+              {theme === "dark" ? "Dark navy" : "Light"} mode
+            </div>
           </div>
           <Button variant="outline" size="sm" onClick={toggle}>
-            {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+            {theme === "dark" ? (
+              <Sun className="mr-2 h-4 w-4" />
+            ) : (
+              <Moon className="mr-2 h-4 w-4" />
+            )}
             Switch
           </Button>
         </div>
@@ -214,7 +279,14 @@ function SettingsPage() {
 
       <PrivacyCard />
 
-      <Button variant="outline" className="w-full" onClick={async () => { await signOut(); navigate({ to: "/auth" }); }}>
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={async () => {
+          await signOut();
+          navigate({ to: "/auth" });
+        }}
+      >
         <LogOut className="mr-2 h-4 w-4" /> Sign out
       </Button>
     </div>
@@ -228,7 +300,8 @@ function PrivacyCard() {
 
   useEffect(() => {
     setConsent(readConsent());
-    const onChange = (e: Event) => setConsent((e as CustomEvent<ConsentState>).detail ?? readConsent());
+    const onChange = (e: Event) =>
+      setConsent((e as CustomEvent<ConsentState>).detail ?? readConsent());
     window.addEventListener(CONSENT_CHANGE_EVENT, onChange);
     return () => window.removeEventListener(CONSENT_CHANGE_EVENT, onChange);
   }, []);
@@ -258,17 +331,11 @@ function PrivacyCard() {
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           See our{" "}
-          <Link
-            to="/privacy"
-            className="text-cyan underline underline-offset-2 hover:opacity-80"
-          >
+          <Link to="/privacy" className="text-cyan underline underline-offset-2 hover:opacity-80">
             Privacy Policy
           </Link>{" "}
           and{" "}
-          <Link
-            to="/cookies"
-            className="text-cyan underline underline-offset-2 hover:opacity-80"
-          >
+          <Link to="/cookies" className="text-cyan underline underline-offset-2 hover:opacity-80">
             Cookie Policy
           </Link>
           .

@@ -65,7 +65,9 @@ export const Route = createFileRoute("/api/chat")({
             execute: async ({ limit }: { limit: number }) => {
               const { data, error } = await supabase
                 .from("transactions")
-                .select("id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction, account_id)")
+                .select(
+                  "id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction, account_id)",
+                )
                 .order("created_at", { ascending: false })
                 .limit(limit);
               if (error) return { error: error.message };
@@ -97,23 +99,52 @@ export const Route = createFileRoute("/api/chat")({
               from_currency: z.enum(["USD", "EUR", "GBP"]),
               to_currency: z.enum(["USD", "EUR", "GBP"]),
             }),
-            execute: async ({ payee_name, amount, from_currency, to_currency }: { payee_name: string; amount: number; from_currency: "USD"|"EUR"|"GBP"; to_currency: "USD"|"EUR"|"GBP" }) => {
+            execute: async ({
+              payee_name,
+              amount,
+              from_currency,
+              to_currency,
+            }: {
+              payee_name: string;
+              amount: number;
+              from_currency: "USD" | "EUR" | "GBP";
+              to_currency: "USD" | "EUR" | "GBP";
+            }) => {
               const amt = Math.round(amount * 100);
               const rates: Record<string, number> = {
-                "USD->EUR": 0.92, "EUR->USD": 1.087,
-                "USD->GBP": 0.79, "GBP->USD": 1.265,
-                "EUR->GBP": 0.86, "GBP->EUR": 1.163,
+                "USD->EUR": 0.92,
+                "EUR->USD": 1.087,
+                "USD->GBP": 0.79,
+                "GBP->USD": 1.265,
+                "EUR->GBP": 0.86,
+                "GBP->EUR": 1.163,
               };
-              const mid = from_currency === to_currency ? 1 : (rates[`${from_currency}->${to_currency}`] ?? 1);
-              const make = (name: string, spread: number, feeBps: number, etaHours: number, reliability: number) => ({
+              const mid =
+                from_currency === to_currency
+                  ? 1
+                  : (rates[`${from_currency}->${to_currency}`] ?? 1);
+              const make = (
+                name: string,
+                spread: number,
+                feeBps: number,
+                etaHours: number,
+                reliability: number,
+              ) => ({
                 route: name,
                 fx_rate: +(mid * (1 - spread)).toFixed(4),
-                fee_minor: Math.round(amt * feeBps / 10000) + 50,
-                arrives_in: etaHours <= 1 ? "≈1 hour" : etaHours <= 24 ? `${etaHours} hours` : `${Math.round(etaHours/24)} days`,
+                fee_minor: Math.round((amt * feeBps) / 10000) + 50,
+                arrives_in:
+                  etaHours <= 1
+                    ? "≈1 hour"
+                    : etaHours <= 24
+                      ? `${etaHours} hours`
+                      : `${Math.round(etaHours / 24)} days`,
                 reliability_score: reliability,
                 success_probability: +(reliability / 100).toFixed(2),
                 recipient_gets_minor: Math.round(amt * mid * (1 - spread)),
-                from_currency, to_currency, amount_minor: amt,
+                from_currency,
+                to_currency,
+                amount_minor: amt,
               });
               return {
                 payee: payee_name,
@@ -131,18 +162,21 @@ export const Route = createFileRoute("/api/chat")({
           // client-side PIN gating (PinModal + post_transaction with p_pin).
           // Server-side execution here would bypass the user's PIN.
 
-
-
           analyze_reversal: tool({
             description:
               "Analyze a transaction to estimate likelihood of a successful reversal, recommended amount, best reason code, and helpful evidence.",
             inputSchema: z.object({
-              transaction_id: z.string().uuid().describe("Transaction ID to analyze. Use list_recent_transactions to discover."),
+              transaction_id: z
+                .string()
+                .uuid()
+                .describe("Transaction ID to analyze. Use list_recent_transactions to discover."),
             }),
             execute: async ({ transaction_id }: { transaction_id: string }) => {
               const { data: tx, error } = await supabase
                 .from("transactions")
-                .select("id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction)")
+                .select(
+                  "id, type, state, metadata, created_at, ledger_entries(amount_minor, currency, direction)",
+                )
                 .eq("id", transaction_id)
                 .maybeSingle();
               if (error || !tx) return { error: error?.message ?? "Transaction not found" };
@@ -151,9 +185,16 @@ export const Route = createFileRoute("/api/chat")({
               const memo = String(meta.memo ?? "").toLowerCase();
               let reason = "service_not_rendered";
               let prob = 0.6;
-              if (flagged || memo.includes("duplicate")) { reason = "duplicate_charge"; prob = 0.86; }
-              else if (memo.includes("wrong")) { reason = "wrong_amount"; prob = 0.78; }
-              else if (memo.includes("fraud")) { reason = "unauthorized"; prob = 0.71; }
+              if (flagged || memo.includes("duplicate")) {
+                reason = "duplicate_charge";
+                prob = 0.86;
+              } else if (memo.includes("wrong")) {
+                reason = "wrong_amount";
+                prob = 0.78;
+              } else if (memo.includes("fraud")) {
+                reason = "unauthorized";
+                prob = 0.71;
+              }
               const first = tx.ledger_entries?.[0];
               return {
                 transaction_id: tx.id,
@@ -167,7 +208,9 @@ export const Route = createFileRoute("/api/chat")({
                 priority_score: Math.round(prob * 100),
                 evidence_needed: [
                   "Original invoice or receipt",
-                  reason === "duplicate_charge" ? "Both charge records side-by-side" : "Correspondence with counterparty",
+                  reason === "duplicate_charge"
+                    ? "Both charge records side-by-side"
+                    : "Correspondence with counterparty",
                   "Bank statement excerpt",
                 ],
                 recommendation:
@@ -189,7 +232,17 @@ export const Route = createFileRoute("/api/chat")({
               amount_minor: z.number().int().positive(),
               success_probability: z.number().min(0).max(1).default(0.7),
             }),
-            execute: async ({ transaction_id, reason_code, amount_minor, success_probability }: { transaction_id: string; reason_code: string; amount_minor: number; success_probability: number }) => {
+            execute: async ({
+              transaction_id,
+              reason_code,
+              amount_minor,
+              success_probability,
+            }: {
+              transaction_id: string;
+              reason_code: string;
+              amount_minor: number;
+              success_probability: number;
+            }) => {
               const { data: tx, error: txErr } = await supabase
                 .from("transactions")
                 .select("ledger_entries(currency)")
@@ -209,7 +262,13 @@ export const Route = createFileRoute("/api/chat")({
                   priority_score: Math.round(success_probability * 100),
                   status: "submitted",
                   ai_recommendation: "Opened via AI assistant.",
-                  timeline: [{ at: new Date().toISOString(), label: "Submitted", note: "Opened via AI assistant" }],
+                  timeline: [
+                    {
+                      at: new Date().toISOString(),
+                      label: "Submitted",
+                      note: "Opened via AI assistant",
+                    },
+                  ],
                 })
                 .select("id")
                 .single();
@@ -241,7 +300,10 @@ export const Route = createFileRoute("/api/chat")({
                 role: "assistant",
                 message: last as never,
               });
-              await supabase.from("chat_threads").update({ updated_at: new Date().toISOString() }).eq("id", threadId);
+              await supabase
+                .from("chat_threads")
+                .update({ updated_at: new Date().toISOString() })
+                .eq("id", threadId);
             } catch (e) {
               console.error("persist assistant msg failed", e);
             }

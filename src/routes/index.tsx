@@ -27,9 +27,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Dashboard — AI Payment Intelligence | Smart Pay Engine" },
-      { name: "description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP in one dashboard." },
+      {
+        name: "description",
+        content:
+          "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP in one dashboard.",
+      },
       { property: "og:title", content: "Dashboard — AI Payment Intelligence" },
-      { property: "og:description", content: "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP." },
+      {
+        property: "og:description",
+        content:
+          "Live multi-currency balances, AI-routed transfers, and reversal insights across USD, EUR and GBP.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/" },
       { property: "og:type", content: "website" },
     ],
@@ -42,7 +50,8 @@ export const Route = createFileRoute("/")({
           "@type": "FinancialService",
           name: "Smart Pay Engine",
           url: "https://app.smartpayengine.com/",
-          description: "AI-powered multi-currency payment intelligence, smart routing, and reversal analysis.",
+          description:
+            "AI-powered multi-currency payment intelligence, smart routing, and reversal analysis.",
         }),
       },
     ],
@@ -96,16 +105,26 @@ function Dashboard() {
   const totalMovedUsd = transferTxs
     .flatMap((t) => t.ledger_entries.filter((e) => e.direction === "debit" && e.currency === "USD"))
     .reduce((a, b) => a + b.amount_minor, 0);
-  const pendingCount = (txs ?? []).filter((t) => t.state === "processing" || t.state === "initiated").length;
+  const pendingCount = (txs ?? []).filter(
+    (t) => t.state === "processing" || t.state === "initiated",
+  ).length;
   const closed = reversals.filter((r) => r.status !== "submitted" && r.status !== "under_review");
   const winRate = closed.length
-    ? Math.round((closed.filter((r) => r.status === "approved" || r.status === "partially_approved").length / closed.length) * 100)
+    ? Math.round(
+        (closed.filter((r) => r.status === "approved" || r.status === "partially_approved").length /
+          closed.length) *
+          100,
+      )
     : 0;
 
   // Total holdings converted to the user's home currency (checking + fee revenue)
   const totalHomeMinor = (balances ?? [])
     .filter((b) => b.type === "checking" || b.type === "fee_revenue")
-    .reduce((sum, b) => sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1) * (USD_TO[homeCurrency] ?? 1)), 0);
+    .reduce(
+      (sum, b) =>
+        sum + Math.round(b.balance_minor * (TO_USD[b.currency] ?? 1) * (USD_TO[homeCurrency] ?? 1)),
+      0,
+    );
 
   return (
     <div className="space-y-8">
@@ -116,9 +135,13 @@ function Dashboard() {
             <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
               <Sparkles className="h-3.5 w-3.5" /> AI Payment Intelligence
             </div>
-            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Dashboard — AI Payment Intelligence</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+              Dashboard — AI Payment Intelligence
+            </h1>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              <span className="text-black">Smart Pay Engine</span> sits on top of your rails. Ask the assistant to send, plan, or reverse — it shows the smartest route and the success odds before anything moves.
+              <span className="text-black">Smart Pay Engine</span> sits on top of your rails. Ask
+              the assistant to send, plan, or reverse — it shows the smartest route and the success
+              odds before anything moves.
             </p>
           </div>
           <Link to="/assistant">
@@ -134,7 +157,12 @@ function Dashboard() {
         <Kpi icon={TrendingUp} label="Total moved" value={formatMoney(totalMovedUsd, "USD")} />
         <Kpi icon={Loader2} label="Pending" value={String(pendingCount)} />
         <Kpi icon={Shield} label="Reversal win rate" value={`${winRate}%`} accent />
-        <Kpi icon={Sparkles} label="Saved via smart routing" value="~$312" sub="vs. naive routing" />
+        <Kpi
+          icon={Sparkles}
+          label="Saved via smart routing"
+          value="~$312"
+          sub="vs. naive routing"
+        />
       </div>
 
       {/* Balances — multi-currency real-time */}
@@ -156,22 +184,36 @@ function Dashboard() {
                   {formatMoney(totalHomeMinor, homeCurrency)}
                 </span>
               </span>
-              <span>· as of {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              <span>
+                · as of {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
               <span className="hidden sm:inline">· auto-refresh on ledger change</span>
               <span className="hidden">{tick}</span>
             </div>
           </div>
-          <Link to="/convert" className="text-xs text-cyan hover:underline inline-flex items-center gap-1">
+          <Link
+            to="/convert"
+            className="text-xs text-cyan hover:underline inline-flex items-center gap-1"
+          >
             <ArrowRightLeft className="h-3 w-3" /> Convert
           </Link>
         </div>
         {isLoading ? (
-          <div className="flex h-32 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div className="flex h-32 items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CURRENCIES.map((ccy, i) => {
               const b = (balances || []).find((x) => x.currency === ccy && x.type === "checking");
-              return <BalanceCard key={ccy} currency={ccy} balanceMinor={b?.balance_minor ?? 0} highlight={i === 0} />;
+              return (
+                <BalanceCard
+                  key={ccy}
+                  currency={ccy}
+                  balanceMinor={b?.balance_minor ?? 0}
+                  highlight={i === 0}
+                />
+              );
             })}
           </div>
         )}
@@ -182,9 +224,14 @@ function Dashboard() {
         <div className="mb-3 flex items-end justify-between gap-2">
           <div>
             <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Fee revenue <span className="ml-1 rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">Sandbox</span>
+              Fee revenue{" "}
+              <span className="ml-1 rounded-full border border-border bg-muted/40 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                Sandbox
+              </span>
             </h2>
-            <div className="mt-1 text-xs text-muted-foreground">Spread booked from FX conversions.</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Spread booked from FX conversions.
+            </div>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -206,10 +253,20 @@ function Dashboard() {
       {/* Recent activity */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">Recent activity</h2>
+          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Recent activity
+          </h2>
           <div className="flex gap-2">
-            <Link to="/send"><Button size="sm" variant="outline" className="gap-1"><Send className="h-3.5 w-3.5" /> Send</Button></Link>
-            <Link to="/transactions"><Button size="sm" variant="ghost">View all</Button></Link>
+            <Link to="/send">
+              <Button size="sm" variant="outline" className="gap-1">
+                <Send className="h-3.5 w-3.5" /> Send
+              </Button>
+            </Link>
+            <Link to="/transactions">
+              <Button size="sm" variant="ghost">
+                View all
+              </Button>
+            </Link>
           </div>
         </div>
         <Card className="divide-y divide-border overflow-hidden p-0">
@@ -217,7 +274,9 @@ function Dashboard() {
             <TransactionRow key={tx.id} tx={tx} accounts={accounts || []} />
           ))}
           {(txs ?? []).length === 0 && (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">No transactions yet.</div>
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No transactions yet.
+            </div>
           )}
         </Card>
       </section>
@@ -226,14 +285,26 @@ function Dashboard() {
 }
 
 function Kpi({
-  icon: Icon, label, value, sub, accent,
-}: { icon: typeof Sparkles; label: string; value: string; sub?: string; accent?: boolean }) {
+  icon: Icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: typeof Sparkles;
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
   return (
     <Card className="p-4">
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
         <Icon className="h-3 w-3" /> {label}
       </div>
-      <div className={`mt-1 font-display text-2xl font-bold ${accent ? "text-cyan" : ""}`}>{value}</div>
+      <div className={`mt-1 font-display text-2xl font-bold ${accent ? "text-cyan" : ""}`}>
+        {value}
+      </div>
       {sub && <div className="text-[11px] text-muted-foreground">{sub}</div>}
     </Card>
   );

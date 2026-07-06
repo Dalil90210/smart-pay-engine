@@ -19,7 +19,11 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Login to Smart Pay Engine" },
-      { name: "description", content: "Sign in or create your Smart Pay Engine sandbox account to explore AI-powered multi-currency payments." },
+      {
+        name: "description",
+        content:
+          "Sign in or create your Smart Pay Engine sandbox account to explore AI-powered multi-currency payments.",
+      },
       { property: "og:title", content: "Login to Smart Pay Engine" },
       { property: "og:description", content: "Sign in to your Smart Pay Engine sandbox account." },
       { property: "og:url", content: "https://app.smartpayengine.com/auth" },
@@ -99,8 +103,14 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-3 h-48 w-auto object-contain sm:h-56" />
-          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Login to Smart Pay Engine</h1>
+          <img
+            src={logoUrl}
+            alt="Smart Pay Engine"
+            className="mx-auto mb-3 h-48 w-auto object-contain sm:h-56"
+          />
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Login to Smart Pay Engine
+          </h1>
           <a
             href="https://smartpayengine.com"
             target="_blank"
@@ -126,14 +136,39 @@ function AuthPage() {
                 <form onSubmit={submit} className="space-y-4">
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                   </div>
-                  <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account" : "Sign in"}
+                  <Button
+                    type="submit"
+                    className="w-full gradient-brand text-white border-0"
+                    disabled={busy}
+                  >
+                    {busy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : mode === "signup" ? (
+                      "Create account"
+                    ) : (
+                      "Sign in"
+                    )}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
                     No real money moves. Sandbox only.
@@ -145,7 +180,9 @@ function AuthPage() {
             <div className="space-y-5 text-center">
               <div>
                 <h2 className="font-display text-lg font-semibold">Set your PIN</h2>
-                <p className="mt-1 text-sm text-muted-foreground">A 4-digit code to confirm transactions.</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  A 4-digit code to confirm transactions.
+                </p>
               </div>
               <div className="flex justify-center">
                 <InputOTP maxLength={4} value={pin} onChange={setPinValue} inputMode="numeric">
@@ -157,7 +194,11 @@ function AuthPage() {
                   </InputOTPGroup>
                 </InputOTP>
               </div>
-              <Button onClick={submitPin} disabled={pin.length !== 4 || busy} className="w-full gradient-brand text-white border-0">
+              <Button
+                onClick={submitPin}
+                disabled={pin.length !== 4 || busy}
+                className="w-full gradient-brand text-white border-0"
+              >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save PIN & continue"}
               </Button>
             </div>

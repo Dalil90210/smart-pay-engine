@@ -7,7 +7,14 @@ import { Input } from "@/components/ui/input";
 import { parseIntent, type HiveIntent } from "@/lib/hive-parser";
 import { usePayees, type Payee } from "@/hooks/usePayees";
 import { useAccounts, useBalances } from "@/hooks/useAccounts";
-import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, getTransferFee, type Currency } from "@/lib/money";
+import {
+  CURRENCIES,
+  CURRENCY_SYMBOL,
+  formatMoney,
+  getFxQuote,
+  getTransferFee,
+  type Currency,
+} from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
 import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
@@ -25,9 +32,17 @@ export const Route = createFileRoute("/hive")({
   head: () => ({
     meta: [
       { title: "Assistant — Smart Pay Engine" },
-      { name: "description", content: "Ask Hive to send, convert or top up funds — every intent is previewed and PIN-confirmed before execution." },
+      {
+        name: "description",
+        content:
+          "Ask Hive to send, convert or top up funds — every intent is previewed and PIN-confirmed before execution.",
+      },
       { property: "og:title", content: "Assistant — Smart Pay Engine" },
-      { property: "og:description", content: "Ask Hive to send, convert or top up funds — every intent is previewed and PIN-confirmed before execution." },
+      {
+        property: "og:description",
+        content:
+          "Ask Hive to send, convert or top up funds — every intent is previewed and PIN-confirmed before execution.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/hive" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/hive" }],
@@ -41,7 +56,16 @@ export const Route = createFileRoute("/hive")({
 
 type Message =
   | { id: string; role: "user"; text: string }
-  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus; audit?: IdempotencyAuditResult | null };
+  | {
+      id: string;
+      role: "hive";
+      text: string;
+      intent?: HiveIntent;
+      resolvedPayee?: Payee | null;
+      pending?: PendingAction;
+      idemStatus?: IdempotencyStatus;
+      audit?: IdempotencyAuditResult | null;
+    };
 
 type PendingAction = {
   kind: "send" | "convert" | "deposit";
@@ -70,14 +94,22 @@ function HivePage() {
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState<Message[]>([
-    { id: "welcome", role: "hive", text: "Hi — I'm your Smart Pay Engine assistant. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens." },
+    {
+      id: "welcome",
+      role: "hive",
+      text: "Hi — I'm your Smart Pay Engine assistant. Tell me what you'd like to do, in your own words. I'll show you a confirmation before anything happens.",
+    },
   ]);
   const [input, setInput] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
   const [activeMsgId, setActiveMsgId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [thinking, setThinking] = useState(false);
-  const { history: auditHistory, runCheck, clear: clearAuditHistory } = useIdempotencyAuditHistory();
+  const {
+    history: auditHistory,
+    runCheck,
+    clear: clearAuditHistory,
+  } = useIdempotencyAuditHistory();
   const scrollRef = useRef<HTMLDivElement>(null);
   const callParse = useServerFn(parseHiveIntent);
 
@@ -88,41 +120,87 @@ function HivePage() {
   const mapParsedToIntent = (p: Awaited<ReturnType<typeof callParse>>): HiveIntent | null => {
     if (p.intent === "balance") return { kind: "balance" };
     if (p.intent === "send" && p.amount_minor && p.currency && p.payee_query) {
-      return { kind: "send", amountMinor: p.amount_minor, currency: p.currency, payeeQuery: p.payee_query };
+      return {
+        kind: "send",
+        amountMinor: p.amount_minor,
+        currency: p.currency,
+        payeeQuery: p.payee_query,
+      };
     }
-    if (p.intent === "convert" && p.amount_minor && p.currency && p.to_currency && p.currency !== p.to_currency) {
+    if (
+      p.intent === "convert" &&
+      p.amount_minor &&
+      p.currency &&
+      p.to_currency &&
+      p.currency !== p.to_currency
+    ) {
       return { kind: "convert", amountMinor: p.amount_minor, from: p.currency, to: p.to_currency };
     }
     if (p.intent === "deposit" && p.amount_minor && p.currency) {
       return { kind: "deposit", amountMinor: p.amount_minor, currency: p.currency };
     }
-    if (p.intent === "unknown" && p.clarification) return { kind: "unknown", reason: p.clarification };
+    if (p.intent === "unknown" && p.clarification)
+      return { kind: "unknown", reason: p.clarification };
     return null;
   };
 
-  type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
+  type HiveMsgFields = {
+    text: string;
+    intent?: HiveIntent;
+    resolvedPayee?: Payee | null;
+    pending?: PendingAction;
+  };
   const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
     if (intent.kind === "send") {
-      const matches = (payees ?? []).filter((p) => p.name.toLowerCase().includes(intent.payeeQuery.toLowerCase()));
+      const matches = (payees ?? []).filter((p) =>
+        p.name.toLowerCase().includes(intent.payeeQuery.toLowerCase()),
+      );
       const exactCurrency = matches.find((m) => m.currency === intent.currency);
       const payee = exactCurrency ?? matches[0];
       if (!payee) {
-        return { msg: { text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first.`, intent } };
+        return {
+          msg: {
+            text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first.`,
+            intent,
+          },
+        };
       }
       if (payee.currency !== intent.currency) {
-        return { msg: { text: `${payee.name} receives ${payee.currency}, but you asked for ${intent.currency}. Use Convert first or pick a matching payee.`, intent, resolvedPayee: payee } };
+        return {
+          msg: {
+            text: `${payee.name} receives ${payee.currency}, but you asked for ${intent.currency}. Use Convert first or pick a matching payee.`,
+            intent,
+            resolvedPayee: payee,
+          },
+        };
       }
-      const checking = accounts?.find((a) => a.currency === intent.currency && a.type === "checking");
+      const checking = accounts?.find(
+        (a) => a.currency === intent.currency && a.type === "checking",
+      );
       const funding = accounts?.find((a) => a.currency === intent.currency && a.type === "funding");
-      if (!checking || !funding) return { msg: { text: "Accounts not ready yet, please refresh.", intent } };
+      if (!checking || !funding)
+        return { msg: { text: "Accounts not ready yet, please refresh.", intent } };
       const balance = balances?.find((b) => b.account_id === checking.id)?.balance_minor ?? 0;
       const fee = getTransferFee(intent.amountMinor);
       const total = intent.amountMinor + fee;
-      if (total > balance) return { msg: { text: `Not enough ${intent.currency}. You have ${formatMoney(balance, intent.currency)} but need ${formatMoney(total, intent.currency)}.`, intent, resolvedPayee: payee } };
+      if (total > balance)
+        return {
+          msg: {
+            text: `Not enough ${intent.currency}. You have ${formatMoney(balance, intent.currency)} but need ${formatMoney(total, intent.currency)}.`,
+            intent,
+            resolvedPayee: payee,
+          },
+        };
       const pending: PendingAction = {
         kind: "send",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `Sent to ${payee.name} (via Smart Pay Engine)`, payee_id: payee.id, payee_name: payee.name, amount_minor: intent.amountMinor, fee_minor: fee },
+        meta: {
+          description: `Sent to ${payee.name} (via Smart Pay Engine)`,
+          payee_id: payee.id,
+          payee_name: payee.name,
+          amount_minor: intent.amountMinor,
+          fee_minor: fee,
+        },
         entries: [
           { account_id: checking.id, direction: "debit", amount_minor: total },
           { account_id: funding.id, direction: "credit", amount_minor: total },
@@ -130,21 +208,43 @@ function HivePage() {
         requiresPin: true,
         successMessage: `Sent ${formatMoney(intent.amountMinor, intent.currency)} to ${payee.name}.`,
       };
-      return { msg: { text: "Here's what I'll do. Confirm to authorize.", intent, resolvedPayee: payee, pending } };
+      return {
+        msg: {
+          text: "Here's what I'll do. Confirm to authorize.",
+          intent,
+          resolvedPayee: payee,
+          pending,
+        },
+      };
     }
     if (intent.kind === "convert") {
       const fromChk = accounts?.find((a) => a.currency === intent.from && a.type === "checking");
       const toChk = accounts?.find((a) => a.currency === intent.to && a.type === "checking");
       const fromFx = accounts?.find((a) => a.currency === intent.from && a.type === "fx_suspense");
       const toFx = accounts?.find((a) => a.currency === intent.to && a.type === "fx_suspense");
-      if (!fromChk || !toChk || !fromFx || !toFx) return { msg: { text: "Accounts not ready yet.", intent } };
+      if (!fromChk || !toChk || !fromFx || !toFx)
+        return { msg: { text: "Accounts not ready yet.", intent } };
       const balance = balances?.find((b) => b.account_id === fromChk.id)?.balance_minor ?? 0;
-      if (intent.amountMinor > balance) return { msg: { text: `Not enough ${intent.from}. Available: ${formatMoney(balance, intent.from)}.`, intent } };
+      if (intent.amountMinor > balance)
+        return {
+          msg: {
+            text: `Not enough ${intent.from}. Available: ${formatMoney(balance, intent.from)}.`,
+            intent,
+          },
+        };
       const q = getFxQuote(intent.from, intent.to, intent.amountMinor);
       const pending: PendingAction = {
         kind: "convert",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: `${intent.from} → ${intent.to} (via Smart Pay Engine)`, from_currency: intent.from, to_currency: intent.to, rate: q.rate, from_amount_minor: q.fromMinor, to_amount_minor: q.toMinor, fee_minor: q.feeMinor },
+        meta: {
+          description: `${intent.from} → ${intent.to} (via Smart Pay Engine)`,
+          from_currency: intent.from,
+          to_currency: intent.to,
+          rate: q.rate,
+          from_amount_minor: q.fromMinor,
+          to_amount_minor: q.toMinor,
+          fee_minor: q.feeMinor,
+        },
         entries: [
           { account_id: fromChk.id, direction: "debit", amount_minor: q.fromMinor },
           { account_id: fromFx.id, direction: "credit", amount_minor: q.fromMinor },
@@ -163,7 +263,10 @@ function HivePage() {
       const pending: PendingAction = {
         kind: "deposit",
         idempotencyKey: crypto.randomUUID(),
-        meta: { description: "Sandbox deposit (via Smart Pay Engine)", amount_minor: intent.amountMinor },
+        meta: {
+          description: "Sandbox deposit (via Smart Pay Engine)",
+          amount_minor: intent.amountMinor,
+        },
         entries: [
           { account_id: fnd.id, direction: "debit", amount_minor: intent.amountMinor },
           { account_id: chk.id, direction: "credit", amount_minor: intent.amountMinor },
@@ -202,7 +305,12 @@ function HivePage() {
       intent = parseIntent(text);
     }
     const { msg, payee } = buildPending(intent);
-    const hiveMsg: Message = { id: crypto.randomUUID(), role: "hive", ...msg, resolvedPayee: msg.resolvedPayee ?? payee };
+    const hiveMsg: Message = {
+      id: crypto.randomUUID(),
+      role: "hive",
+      ...msg,
+      resolvedPayee: msg.resolvedPayee ?? payee,
+    };
     setMessages((m) => [...m, hiveMsg]);
     setThinking(false);
   };
@@ -223,7 +331,13 @@ function HivePage() {
     const msg = messages.find((m) => m.id === msgId);
     if (!msg || msg.role !== "hive" || !msg.pending) return;
     // Guard against double-invocation (rapid Confirm clicks, PIN modal double-success)
-    if (busy || msg.idemStatus === "submitting" || msg.idemStatus === "posted" || msg.idemStatus === "duplicate") return;
+    if (
+      busy ||
+      msg.idemStatus === "submitting" ||
+      msg.idemStatus === "posted" ||
+      msg.idemStatus === "duplicate"
+    )
+      return;
     const p = msg.pending;
     setBusy(true);
     setIdemStatus(msgId, "submitting");
@@ -245,7 +359,11 @@ function HivePage() {
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       setMessages((all) => [
-        ...all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, pending: undefined, idemStatus: "posted" as IdempotencyStatus } : m)),
+        ...all.map((m) =>
+          m.id === msgId && m.role === "hive"
+            ? { ...m, pending: undefined, idemStatus: "posted" as IdempotencyStatus }
+            : m,
+        ),
         { id: crypto.randomUUID(), role: "hive", text: `✓ ${p.successMessage}` },
       ]);
       toast.success(p.successMessage);
@@ -257,7 +375,11 @@ function HivePage() {
         setAudit(msgId, postCheck);
         if (postCheck.used) {
           setIdemStatus(msgId, "posted");
-          setMessages((all) => all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, pending: undefined } : m)));
+          setMessages((all) =>
+            all.map((m) =>
+              m.id === msgId && m.role === "hive" ? { ...m, pending: undefined } : m,
+            ),
+          );
           toast.success(`${p.successMessage} (recovered)`);
           qc.invalidateQueries({ queryKey: ["balances"] });
           qc.invalidateQueries({ queryKey: ["transactions"] });
@@ -272,7 +394,6 @@ function HivePage() {
       setBusy(false);
     }
   };
-
 
   const handleConfirm = (msgId: string, requiresPin: boolean) => {
     if (requiresPin) {
@@ -291,15 +412,22 @@ function HivePage() {
         </div>
         <div>
           <h1 className="font-display text-2xl font-bold">Assistant</h1>
-          <p className="text-xs text-muted-foreground">Plain-language payments. Confirmation always required.</p>
+          <p className="text-xs text-muted-foreground">
+            Plain-language payments. Confirmation always required.
+          </p>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-border bg-background/40 p-4">
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-4 overflow-y-auto rounded-2xl border border-border bg-background/40 p-4"
+      >
         {messages.map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
-              <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">{m.text}</div>
+              <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+                {m.text}
+              </div>
             </div>
           ) : (
             <div key={m.id} className="flex gap-2">
@@ -307,11 +435,16 @@ function HivePage() {
                 <Sparkles className="h-3.5 w-3.5" />
               </div>
               <div className="max-w-[85%] space-y-3">
-                <div className="whitespace-pre-line rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm">{m.text}</div>
+                <div className="whitespace-pre-line rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm">
+                  {m.text}
+                </div>
                 {m.pending && (
                   <>
                     <IntentPreview msg={m} />
-                    <IdempotencyIndicator idempotencyKey={m.pending.idempotencyKey} status={m.idemStatus ?? "ready"} />
+                    <IdempotencyIndicator
+                      idempotencyKey={m.pending.idempotencyKey}
+                      status={m.idemStatus ?? "ready"}
+                    />
                     <IdempotencyAudit audit={m.audit ?? null} />
                     <div className="flex gap-2">
                       <Button
@@ -319,9 +452,26 @@ function HivePage() {
                         disabled={busy || m.idemStatus === "duplicate"}
                         className="gradient-brand text-white border-0"
                       >
-                        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="mr-2 h-3.5 w-3.5" /> Confirm</>}
+                        {busy ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-3.5 w-3.5" /> Confirm
+                          </>
+                        )}
                       </Button>
-                      <Button variant="ghost" onClick={() => setMessages((all) => all.map((x) => x.id === m.id && x.role === "hive" ? { ...x, pending: undefined, text: "Cancelled." } : x))}>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setMessages((all) =>
+                            all.map((x) =>
+                              x.id === m.id && x.role === "hive"
+                                ? { ...x, pending: undefined, text: "Cancelled." }
+                                : x,
+                            ),
+                          )
+                        }
+                      >
                         Cancel
                       </Button>
                     </div>
@@ -356,17 +506,27 @@ function HivePage() {
         ))}
       </div>
 
-
       <div className="mt-3 flex items-center gap-2">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") onSend(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSend();
+          }}
           placeholder='Try "send €500 to Maria"'
           className="h-12"
         />
-        <Button onClick={onSend} disabled={!input.trim() || thinking} size="icon" className="h-12 w-12 gradient-brand text-white border-0">
-          {thinking ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}
+        <Button
+          onClick={onSend}
+          disabled={!input.trim() || thinking}
+          size="icon"
+          className="h-12 w-12 gradient-brand text-white border-0"
+        >
+          {thinking ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <ArrowUp className="h-5 w-5" />
+          )}
         </Button>
       </div>
 
@@ -376,7 +536,15 @@ function HivePage() {
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={(v) => { setPinOpen(v); if (!v) setActiveMsgId(null); }} onSuccess={(pin) => activeMsgId && execute(activeMsgId, pin)} title="Authorize via Smart Pay Engine" />
+      <PinModal
+        open={pinOpen}
+        onOpenChange={(v) => {
+          setPinOpen(v);
+          if (!v) setActiveMsgId(null);
+        }}
+        onSuccess={(pin) => activeMsgId && execute(activeMsgId, pin)}
+        title="Authorize via Smart Pay Engine"
+      />
     </div>
   );
 }

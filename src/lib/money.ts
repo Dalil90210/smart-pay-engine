@@ -19,7 +19,11 @@ export function fromMinor(minor: number): number {
   return minor / 100;
 }
 
-export function formatMoney(minor: number, currency: Currency, opts?: { signed?: boolean }): string {
+export function formatMoney(
+  minor: number,
+  currency: Currency,
+  opts?: { signed?: boolean },
+): string {
   const v = fromMinor(Math.abs(minor));
   const formatted = new Intl.NumberFormat("en-US", {
     style: "currency",

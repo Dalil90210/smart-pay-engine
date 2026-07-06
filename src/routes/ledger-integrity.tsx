@@ -35,8 +35,18 @@ export const Route = createFileRoute("/ledger-integrity")({
   ),
 });
 
-type Tx = { id: string; state: "initiated" | "processing" | "completed" | "reversed" | "failed" | "confirmed"; type: string; created_at: string };
-type Entry = { transaction_id: string; direction: "debit" | "credit"; amount_minor: number; currency: Currency };
+type Tx = {
+  id: string;
+  state: "initiated" | "processing" | "completed" | "reversed" | "failed" | "confirmed";
+  type: string;
+  created_at: string;
+};
+type Entry = {
+  transaction_id: string;
+  direction: "debit" | "credit";
+  amount_minor: number;
+  currency: Currency;
+};
 
 function LedgerIntegrityPage() {
   const q = useQuery({
@@ -44,7 +54,10 @@ function LedgerIntegrityPage() {
     refetchInterval: 15_000,
     queryFn: async () => {
       const [txRes, entriesRes, balRes] = await Promise.all([
-        supabase.from("transactions").select("id, state, type, created_at").order("created_at", { ascending: false }),
+        supabase
+          .from("transactions")
+          .select("id, state, type, created_at")
+          .order("created_at", { ascending: false }),
         supabase.from("ledger_entries").select("transaction_id, direction, amount_minor, currency"),
         supabase.from("account_balances").select("currency, type, balance_minor"),
       ]);
@@ -53,8 +66,17 @@ function LedgerIntegrityPage() {
       if (balRes.error) throw balRes.error;
       return {
         transactions: (txRes.data ?? []) as Tx[],
-        entries: ((entriesRes.data ?? []) as unknown as Entry[]).map((e) => ({ ...e, amount_minor: Number(e.amount_minor) || 0 })),
-        balances: ((balRes.data ?? []) as { currency: Currency; type: string; balance_minor: number | string }[]).map((b) => ({
+        entries: ((entriesRes.data ?? []) as unknown as Entry[]).map((e) => ({
+          ...e,
+          amount_minor: Number(e.amount_minor) || 0,
+        })),
+        balances: (
+          (balRes.data ?? []) as {
+            currency: Currency;
+            type: string;
+            balance_minor: number | string;
+          }[]
+        ).map((b) => ({
           ...b,
           balance_minor: Number(b.balance_minor) || 0,
         })),
@@ -76,19 +98,23 @@ function LedgerIntegrityPage() {
     }
     const imbalanced: { txId: string; currency: Currency; delta: number }[] = [];
     for (const [txId, m] of byTx.entries()) {
-      for (const [ccy, d] of m.entries()) if (d !== 0) imbalanced.push({ txId, currency: ccy, delta: d });
+      for (const [ccy, d] of m.entries())
+        if (d !== 0) imbalanced.push({ txId, currency: ccy, delta: d });
     }
 
     // Per-currency totals
     const totals = CURRENCIES.map((ccy) => {
-      let debits = 0, credits = 0;
+      let debits = 0,
+        credits = 0;
       for (const e of entries) {
         if (e.currency !== ccy) continue;
         if (e.direction === "debit") debits += e.amount_minor;
         else credits += e.amount_minor;
       }
       const heldMinor = balances
-        .filter((b) => b.currency === ccy && ["checking", "tax_setaside", "fee_revenue"].includes(b.type))
+        .filter(
+          (b) => b.currency === ccy && ["checking", "tax_setaside", "fee_revenue"].includes(b.type),
+        )
         .reduce((a, b) => a + b.balance_minor, 0);
       return { currency: ccy, debits, credits, delta: credits - debits, heldMinor };
     });
@@ -127,7 +153,13 @@ function LedgerIntegrityPage() {
             Live double-entry audit across every transaction in your wallet. Read-only.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => q.refetch()} disabled={q.isFetching} className="gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => q.refetch()}
+          disabled={q.isFetching}
+          className="gap-2"
+        >
           <RefreshCw className={q.isFetching ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
           Refresh
         </Button>
@@ -139,7 +171,8 @@ function LedgerIntegrityPage() {
           <div>
             <div className="font-medium text-success">All transactions balance</div>
             <div className="text-xs text-muted-foreground">
-              Verified {audit.transactions.length} transactions · every currency nets to zero (debits = credits).
+              Verified {audit.transactions.length} transactions · every currency nets to zero
+              (debits = credits).
             </div>
           </div>
         </Card>
@@ -148,10 +181,12 @@ function LedgerIntegrityPage() {
           <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
           <div className="min-w-0">
             <div className="font-medium text-destructive">
-              Imbalance detected — {audit.imbalanced.length} entr{audit.imbalanced.length === 1 ? "y" : "ies"} out of balance
+              Imbalance detected — {audit.imbalanced.length} entr
+              {audit.imbalanced.length === 1 ? "y" : "ies"} out of balance
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              The ledger has drifted. Investigate the transactions listed below before trusting any balance.
+              The ledger has drifted. Investigate the transactions listed below before trusting any
+              balance.
             </div>
           </div>
         </Card>
@@ -179,13 +214,21 @@ function LedgerIntegrityPage() {
                         : "border-destructive/40 bg-destructive/10 text-destructive")
                     }
                   >
-                    {balanced ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                    {balanced ? (
+                      <CheckCircle2 className="h-3 w-3" />
+                    ) : (
+                      <AlertTriangle className="h-3 w-3" />
+                    )}
                     {balanced ? "balanced" : "imbalanced"}
                   </span>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Held (wallet + reserves)</div>
-                  <div className="font-display text-2xl font-bold">{formatMoney(t.heldMinor, t.currency)}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Held (wallet + reserves)
+                  </div>
+                  <div className="font-display text-2xl font-bold">
+                    {formatMoney(t.heldMinor, t.currency)}
+                  </div>
                 </div>
                 <div className="space-y-1 border-t border-border pt-2 text-xs">
                   <Row label="Total debits" value={formatMoney(t.debits, t.currency)} />
@@ -230,7 +273,8 @@ function LedgerIntegrityPage() {
         </Card>
         {anyStuck && (
           <p className="mt-2 text-xs text-amber-500">
-            These transactions never reached a terminal state. In production this would page the ops team.
+            These transactions never reached a terminal state. In production this would page the ops
+            team.
           </p>
         )}
       </section>
@@ -257,7 +301,9 @@ function LedgerIntegrityPage() {
                   return (
                     <tr key={t.id} className={bad ? "bg-destructive/5" : undefined}>
                       <td className="px-3 py-2 font-mono text-xs">{t.id.slice(0, 8)}…</td>
-                      <td className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground">{t.type}</td>
+                      <td className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground">
+                        {t.type}
+                      </td>
                       <td className="px-3 py-2 text-xs text-muted-foreground">
                         {new Date(t.created_at).toLocaleString()}
                       </td>

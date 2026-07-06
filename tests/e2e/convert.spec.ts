@@ -20,7 +20,10 @@ test.describe("Convert currency — PIN authorization", () => {
 
   test("wrong PIN shows Incorrect PIN and keeps dialog open", async ({ page }) => {
     await reachReviewStep(page);
-    await page.getByRole("button", { name: /Confirm|Convert/i }).last().click();
+    await page
+      .getByRole("button", { name: /Confirm|Convert/i })
+      .last()
+      .click();
     await expect(page.getByRole("dialog", { name: /Authorize conversion/i })).toBeVisible();
     await typePin(page, WRONG_PIN);
     await expectToast(page, /Incorrect PIN/i);
@@ -29,15 +32,26 @@ test.describe("Convert currency — PIN authorization", () => {
 
   test("correct PIN authorizes the conversion", async ({ page }) => {
     await reachReviewStep(page);
-    await page.getByRole("button", { name: /Confirm|Convert/i }).last().click();
+    await page
+      .getByRole("button", { name: /Confirm|Convert/i })
+      .last()
+      .click();
     await typePin(page, CORRECT_PIN);
-    await expect(page.getByRole("dialog", { name: /Authorize conversion/i })).toBeHidden({ timeout: 10_000 });
+    await expect(page.getByRole("dialog", { name: /Authorize conversion/i })).toBeHidden({
+      timeout: 10_000,
+    });
     await expect
-      .poll(async () => {
-        return (
-          (await page.locator("[data-sonner-toast]").filter({ hasText: /Converted|success/i }).count()) > 0
-        );
-      }, { timeout: 10_000 })
+      .poll(
+        async () => {
+          return (
+            (await page
+              .locator("[data-sonner-toast]")
+              .filter({ hasText: /Converted|success/i })
+              .count()) > 0
+          );
+        },
+        { timeout: 10_000 },
+      )
       .toBeTruthy();
   });
 });

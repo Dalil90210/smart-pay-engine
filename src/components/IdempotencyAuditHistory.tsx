@@ -68,17 +68,13 @@ export function IdempotencyAuditHistory({
         <ul className="mt-2 divide-y divide-border/60">
           {items.map((h, i) => {
             const Icon = h.used ? ShieldAlert : ShieldCheck;
-            const tone = h.used
-              ? "text-amber-500"
-              : "text-emerald-500";
+            const tone = h.used ? "text-amber-500" : "text-emerald-500";
             return (
               <li key={`${h.key}-${h.checkedAt}-${i}`} className="flex items-start gap-2 py-2">
                 <Icon className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone}`} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className={`font-medium ${tone}`}>
-                      {h.used ? "Duplicate" : "Unique"}
-                    </span>
+                    <span className={`font-medium ${tone}`}>{h.used ? "Duplicate" : "Unique"}</span>
                     <span className="font-mono text-[10px] text-muted-foreground">
                       {h.key.slice(0, 8)}…{h.key.slice(-4)}
                     </span>
@@ -92,12 +88,11 @@ export function IdempotencyAuditHistory({
                       <span className="font-mono text-foreground/80">
                         {h.match.id.slice(0, 8)}…
                       </span>
-                      <span className="text-muted-foreground capitalize">
-                        · {h.match.type}
-                      </span>
+                      <span className="text-muted-foreground capitalize">· {h.match.type}</span>
                       <span
                         className={`inline-flex rounded-full border px-1.5 py-0.5 text-[10px] font-medium capitalize ${
-                          STATE_TONE[h.match.state] ?? "bg-muted/40 text-muted-foreground border-border"
+                          STATE_TONE[h.match.state] ??
+                          "bg-muted/40 text-muted-foreground border-border"
                         }`}
                       >
                         {h.match.state}

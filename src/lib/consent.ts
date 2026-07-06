@@ -43,7 +43,9 @@ export function readConsent(): ConsentState | null {
   }
 }
 
-export function writeConsent(next: Omit<ConsentState, "necessary" | "decidedAt" | "version">): ConsentState {
+export function writeConsent(
+  next: Omit<ConsentState, "necessary" | "decidedAt" | "version">,
+): ConsentState {
   const state: ConsentState = {
     necessary: true,
     analytics: !!next.analytics,

@@ -22,7 +22,9 @@ export function useTransactions(limit?: number) {
     queryFn: async () => {
       let q = supabase
         .from("transactions")
-        .select("id, type, state, metadata, created_at, ledger_entries(id, direction, amount_minor, currency, account_id)")
+        .select(
+          "id, type, state, metadata, created_at, ledger_entries(id, direction, amount_minor, currency, account_id)",
+        )
         .order("created_at", { ascending: false });
       if (limit) q = q.limit(limit);
       const { data, error } = await q;
