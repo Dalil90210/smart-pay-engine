@@ -83,6 +83,93 @@ async def _restore_session(context, page: Page) -> bool:
     return True
 
 
+def _mint_session_via_supabase() -> tuple[str, str] | None:
+    """Sign in (or bootstrap + sign in) a deterministic test account against
+    Supabase Auth and return (storage_key, session_json) shaped exactly like
+    supabase-js writes to localStorage. Also ensures the test PIN is set so
+    the Hive Confirm → PIN → post flow can complete."""
+    import urllib.parse
+    try:
+        import requests
+    except Exception as exc:
+        _log("mint-skip", f"requests unavailable: {exc}")
+        return None
+
+    supabase_url = os.environ.get("SUPABASE_URL")
+    publishable = os.environ.get("SUPABASE_PUBLISHABLE_KEY") or os.environ.get("VITE_SUPABASE_PUBLISHABLE_KEY")
+    service_role = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    project_id = (
+        os.environ.get("SUPABASE_PROJECT_ID")
+        or os.environ.get("VITE_SUPABASE_PROJECT_ID")
+        or ""
+    )
+    if not project_id and supabase_url:
+        # extract from https://<ref>.supabase.co
+        host = urllib.parse.urlparse(supabase_url).hostname or ""
+        project_id = host.split(".")[0]
+
+    if not supabase_url or not publishable or not project_id:
+        _log("mint-skip", "SUPABASE_URL / PUBLISHABLE_KEY / PROJECT_ID missing")
+        return None
+
+    email = os.environ.get("HIVE_TEST_EMAIL", "hive-e2e@test.smartpay.local")
+    password = os.environ.get("HIVE_TEST_PASSWORD", "hive-e2e-Passw0rd!")
+
+    def token_password_grant() -> dict | None:
+        r = requests.post(
+            f"{supabase_url}/auth/v1/token?grant_type=password",
+            headers={"apikey": publishable, "Content-Type": "application/json"},
+            json={"email": email, "password": password},
+            timeout=15,
+        )
+        return r.json() if r.status_code == 200 else None
+
+    session = token_password_grant()
+    if not session:
+        # Bootstrap via service role admin API (email pre-confirmed so signIn works immediately).
+        if not service_role:
+            _log("mint-skip", "no session and no SUPABASE_SERVICE_ROLE_KEY to bootstrap")
+            return None
+        r = requests.post(
+            f"{supabase_url}/auth/v1/admin/users",
+            headers={"apikey": service_role, "Authorization": f"Bearer {service_role}", "Content-Type": "application/json"},
+            json={"email": email, "password": password, "email_confirm": True},
+            timeout=15,
+        )
+        if r.status_code not in (200, 201, 422):
+            _log("mint-fail", f"admin create-user {r.status_code}: {r.text[:200]}")
+            return None
+        # 422 means user already exists — fine, we'll sign in below.
+        session = token_password_grant()
+        if not session:
+            _log("mint-fail", "password grant still failed after bootstrap")
+            return None
+
+    access_token = session.get("access_token")
+    if not access_token:
+        _log("mint-fail", f"no access_token in session response: {list(session)}")
+        return None
+
+    # Ensure the test PIN is set so the Confirm → PIN dialog can succeed.
+    try:
+        requests.post(
+            f"{supabase_url}/rest/v1/rpc/set_pin",
+            headers={
+                "apikey": publishable,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            json={"p_pin": PIN},
+            timeout=10,
+        )
+    except Exception as exc:
+        _log("pin-warn", f"set_pin call failed: {exc}")
+
+    storage_key = f"sb-{project_id}-auth-token"
+    return storage_key, json.dumps(session)
+
+
+
 async def _type_pin(page: Page, pin: str) -> None:
     dialog = page.get_by_role("dialog")
     await dialog.wait_for(state="visible", timeout=10_000)
