@@ -20,7 +20,13 @@ export function TransactionRow({ tx, accounts }: { tx: TxRow; accounts: Account[
   const meta = (tx.metadata ?? {}) as Record<string, unknown>;
   const desc =
     (meta.description as string) ||
-    (tx.type === "deposit" ? "Sandbox deposit" : tx.type === "fx" ? "Currency exchange" : tx.type === "transfer" ? `To ${meta.payee_name ?? "payee"}` : "Withdrawal");
+    (tx.type === "deposit"
+      ? "Sandbox deposit"
+      : tx.type === "fx"
+        ? "Currency exchange"
+        : tx.type === "transfer"
+          ? `To ${meta.payee_name ?? "payee"}`
+          : "Withdrawal");
 
   // Net direction for primary display: pick first checking entry
   const primary = checkingEntries[0];

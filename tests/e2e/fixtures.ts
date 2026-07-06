@@ -48,7 +48,9 @@ export async function typePin(page: Page, pin: string) {
 }
 
 export async function expectToast(page: Page, text: string | RegExp) {
-  await expect(page.locator("li[data-sonner-toast], [data-sonner-toast]").filter({ hasText: text })).toBeVisible({
+  await expect(
+    page.locator("li[data-sonner-toast], [data-sonner-toast]").filter({ hasText: text }),
+  ).toBeVisible({
     timeout: 5_000,
   });
 }
@@ -58,7 +60,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  authed: async ({ context, page }, use) => {
+  authed: async ({ context, page }, useFixture) => {
     const ok = await restoreSupabaseSession(context, page);
     if (!ok) {
       test.skip(
@@ -67,7 +69,7 @@ export const test = base.extend<Fixtures>({
           "Sign in to the preview so the sandbox session is minted, then re-run.",
       );
     }
-    await use({ skip: !ok });
+    await useFixture({ skip: !ok });
   },
 });
 

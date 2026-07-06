@@ -7,7 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getFxQuote, toMinor, type Currency } from "@/lib/money";
+import {
+  CURRENCIES,
+  CURRENCY_SYMBOL,
+  formatMoney,
+  getFxQuote,
+  toMinor,
+  type Currency,
+} from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
 import { postFxConversion, type IdempotencyAuditResult } from "@/lib/ledger";
@@ -23,9 +30,17 @@ export const Route = createFileRoute("/convert")({
   head: () => ({
     meta: [
       { title: "Convert currency — Smart Pay Engine" },
-      { name: "description", content: "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts." },
+      {
+        name: "description",
+        content:
+          "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts.",
+      },
       { property: "og:title", content: "Convert currency — Smart Pay Engine" },
-      { property: "og:description", content: "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts." },
+      {
+        property: "og:description",
+        content:
+          "Convert between USD, EUR and GBP with live mid-market rates, a transparent 0.5% spread and audit-ready receipts.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/convert" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/convert" }],
@@ -66,7 +81,11 @@ function ConvertPage() {
     return () => clearInterval(id);
   }, []);
   const quotedAt = useMemo(() => new Date(now), [from, to, amountMinor, now]);
-  const quotedAtTime = quotedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const quotedAtTime = quotedAt.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
   const quotedAtIso = quotedAt.toISOString();
 
   const fromChecking = accounts?.find((a) => a.currency === from && a.type === "checking");
@@ -102,7 +121,9 @@ function ConvertPage() {
         pin,
       });
       setIdemStatus("posted");
-      toast.success(`Converted ${formatMoney(res.from_amount_minor, from)} → ${formatMoney(res.to_amount_minor, to)}`);
+      toast.success(
+        `Converted ${formatMoney(res.from_amount_minor, from)} → ${formatMoney(res.to_amount_minor, to)}`,
+      );
       qc.invalidateQueries({ queryKey: ["balances"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       navigate({ to: "/" });
@@ -118,7 +139,9 @@ function ConvertPage() {
     <div className="mx-auto max-w-lg space-y-6">
       <div className="flex items-center gap-3">
         {step === "review" && (
-          <Button variant="ghost" size="icon" onClick={() => setStep("form")}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setStep("form")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
         )}
         <div>
           <h1 className="font-display text-2xl font-bold">Convert currency</h1>
@@ -132,37 +155,86 @@ function ConvertPage() {
           <div>
             <Label htmlFor="amt">Amount</Label>
             <div className="relative mt-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{CURRENCY_SYMBOL[from]}</span>
-              <Input id="amt" inputMode="decimal" className="pl-8 font-display text-xl" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0.00" />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {CURRENCY_SYMBOL[from]}
+              </span>
+              <Input
+                id="amt"
+                inputMode="decimal"
+                className="pl-8 font-display text-xl"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                placeholder="0.00"
+              />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">Available: {formatMoney(fromBalance, from)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Available: {formatMoney(fromBalance, from)}
+            </p>
           </div>
           <div className="flex justify-center">
-            <Button variant="outline" size="icon" onClick={swap} className="rounded-full"><ArrowDown className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={swap} className="rounded-full">
+              <ArrowDown className="h-4 w-4" />
+            </Button>
           </div>
           <CurrencySelectRow label="To" value={to} onChange={setTo} exclude={from} />
           {amountMinor > 0 && from !== to && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm space-y-2">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium text-foreground">
-                <span>You send <b className="font-display">{formatMoney(quote.fromMinor, from)}</b></span>
+                <span>
+                  You send <b className="font-display">{formatMoney(quote.fromMinor, from)}</b>
+                </span>
                 <span className="text-muted-foreground">·</span>
-                <span>Rate <b className="font-display">{quote.rate.toFixed(4)}</b></span>
+                <span>
+                  Rate <b className="font-display">{quote.rate.toFixed(4)}</b>
+                </span>
                 <span className="text-muted-foreground">·</span>
-                <span>Fee <b className="font-display">{formatMoney(quote.feeMinor, to)}</b></span>
+                <span>
+                  Fee <b className="font-display">{formatMoney(quote.feeMinor, to)}</b>
+                </span>
                 <span className="text-muted-foreground">·</span>
-                <span>You get <b className="font-display text-primary">{formatMoney(quote.toMinor, to)}</b></span>
+                <span>
+                  You get{" "}
+                  <b className="font-display text-primary">{formatMoney(quote.toMinor, to)}</b>
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 border-t border-border/60 pt-2 text-xs text-muted-foreground">
-                <div className="flex justify-between"><span>Mid-market rate</span><span className="tabular-nums">1 {from} = {quote.mid.toFixed(4)} {to}</span></div>
-                <div className="flex justify-between"><span>Spread</span><span className="tabular-nums">0.50%</span></div>
-                <div className="flex justify-between"><span>Effective rate</span><span className="tabular-nums">1 {from} = {quote.rate.toFixed(4)} {to}</span></div>
-                <div className="flex justify-between"><span>Inverse</span><span className="tabular-nums">1 {to} = {inverseRate.toFixed(4)} {from}</span></div>
-                <div className="flex justify-between"><span>Fee revenue</span><span className="tabular-nums">{formatMoney(quote.feeMinor, to)}</span></div>
-                <div className="flex justify-between"><span>Quoted at</span><span className="tabular-nums" title={quotedAtIso}>{quotedAtTime}</span></div>
+                <div className="flex justify-between">
+                  <span>Mid-market rate</span>
+                  <span className="tabular-nums">
+                    1 {from} = {quote.mid.toFixed(4)} {to}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Spread</span>
+                  <span className="tabular-nums">0.50%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Effective rate</span>
+                  <span className="tabular-nums">
+                    1 {from} = {quote.rate.toFixed(4)} {to}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Inverse</span>
+                  <span className="tabular-nums">
+                    1 {to} = {inverseRate.toFixed(4)} {from}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Fee revenue</span>
+                  <span className="tabular-nums">{formatMoney(quote.feeMinor, to)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Quoted at</span>
+                  <span className="tabular-nums" title={quotedAtIso}>
+                    {quotedAtTime}
+                  </span>
+                </div>
               </div>
               <div className="flex items-center justify-between gap-2 pt-1">
                 <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-cyan">
-                  <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on confirm
+                  <ShieldCheck className="h-3 w-3" /> Server-priced · booked to fee_revenue on
+                  confirm
                 </div>
                 <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                   <Clock className="h-3 w-3" /> Refreshes every 15s
@@ -173,9 +245,18 @@ function ConvertPage() {
           <Button
             className="w-full gradient-brand text-white border-0"
             disabled={amountMinor <= 0 || from === to || insufficient}
-            onClick={() => { setIdempotencyKey(crypto.randomUUID()); setIdemStatus("ready"); setAudit(null); setStep("review"); }}
+            onClick={() => {
+              setIdempotencyKey(crypto.randomUUID());
+              setIdemStatus("ready");
+              setAudit(null);
+              setStep("review");
+            }}
           >
-            {from === to ? "Pick different currencies" : insufficient ? "Insufficient balance" : "Review"}
+            {from === to
+              ? "Pick different currencies"
+              : insufficient
+                ? "Insufficient balance"
+                : "Review"}
           </Button>
         </Card>
       )}
@@ -188,7 +269,11 @@ function ConvertPage() {
               { label: "You send", value: formatMoney(quote.fromMinor, from) },
               { label: "Mid rate", value: `1 ${from} = ${quote.mid.toFixed(4)} ${to}` },
               { label: "Spread (0.5%)", value: formatMoney(quote.feeMinor, to) },
-              { label: "Effective rate", value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}`, emphasis: true },
+              {
+                label: "Effective rate",
+                value: `1 ${from} = ${quote.rate.toFixed(4)} ${to}`,
+                emphasis: true,
+              },
               { label: "Inverse rate", value: `1 ${to} = ${inverseRate.toFixed(4)} ${from}` },
               { label: "Quoted at", value: `${quotedAtTime} · ${quotedAtIso.slice(0, 10)}` },
             ]}
@@ -204,17 +289,38 @@ function ConvertPage() {
             disabled={busy || idemStatus === "duplicate" || idemStatus === "posted"}
             className="w-full gradient-brand text-white border-0 h-12 text-base"
           >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><ArrowRightLeft className="mr-2 h-4 w-4" /> Confirm & convert</>}
+            {busy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <ArrowRightLeft className="mr-2 h-4 w-4" /> Confirm & convert
+              </>
+            )}
           </Button>
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={execute} title="Authorize conversion" />
+      <PinModal
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onSuccess={execute}
+        title="Authorize conversion"
+      />
     </div>
   );
 }
 
-function CurrencySelectRow({ label, value, onChange, exclude }: { label: string; value: Currency; onChange: (v: Currency) => void; exclude?: Currency }) {
+function CurrencySelectRow({
+  label,
+  value,
+  onChange,
+  exclude,
+}: {
+  label: string;
+  value: Currency;
+  onChange: (v: Currency) => void;
+  exclude?: Currency;
+}) {
   return (
     <div>
       <Label>{label}</Label>

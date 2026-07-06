@@ -34,9 +34,12 @@ function AssistantIndex() {
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-brand">
           <Sparkles className="h-7 w-7 text-white" />
         </div>
-        <h1 className="font-display text-2xl font-bold tracking-tight"><span className="text-black">Smart Pay Engine</span> Assistant</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">
+          <span className="text-black">Smart Pay Engine</span> Assistant
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          The intelligent layer on top of your payment rails. Ask in plain English — I'll plan routes, run reversals, and show you exactly what will happen before anything moves.
+          The intelligent layer on top of your payment rails. Ask in plain English — I'll plan
+          routes, run reversals, and show you exactly what will happen before anything moves.
         </p>
         <div className="mt-6 grid gap-2 sm:grid-cols-3">
           {[

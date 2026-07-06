@@ -4,16 +4,32 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useReversals } from "@/hooks/useReversals";
 import { Card } from "@/components/ui/card";
 import { formatMoney, type Currency } from "@/lib/money";
-import { Sparkles, TrendingUp, Shield, Zap, Loader2, PiggyBank, Route as RouteIcon } from "lucide-react";
+import {
+  Sparkles,
+  TrendingUp,
+  Shield,
+  Zap,
+  Loader2,
+  PiggyBank,
+  Route as RouteIcon,
+} from "lucide-react";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/insights")({
   head: () => ({
     meta: [
       { title: "Insights — Smart Pay Engine" },
-      { name: "description", content: "See how much smart routing has saved, average arrival times and reversal recovery trends in real time." },
+      {
+        name: "description",
+        content:
+          "See how much smart routing has saved, average arrival times and reversal recovery trends in real time.",
+      },
       { property: "og:title", content: "Insights — Smart Pay Engine" },
-      { property: "og:description", content: "See how much smart routing has saved, average arrival times and reversal recovery trends in real time." },
+      {
+        property: "og:description",
+        content:
+          "See how much smart routing has saved, average arrival times and reversal recovery trends in real time.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/insights" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/insights" }],
@@ -44,7 +60,9 @@ function InsightsPage() {
   const computed = useMemo(() => {
     const usdMoved = txs
       .filter((t) => t.type === "transfer")
-      .flatMap((t) => t.ledger_entries.filter((e) => e.direction === "debit" && e.currency === "USD"))
+      .flatMap((t) =>
+        t.ledger_entries.filter((e) => e.direction === "debit" && e.currency === "USD"),
+      )
       .reduce((a, b) => a + b.amount_minor, 0);
 
     const routeUsage: Record<string, { count: number; volumeMinor: number; ccy: Currency }> = {};
@@ -58,7 +76,11 @@ function InsightsPage() {
       const bps = ROUTE_BPS[route];
       const debit = t.ledger_entries.find((e) => e.direction === "debit");
       if (!debit) continue;
-      const u = (routeUsage[route] ||= { count: 0, volumeMinor: 0, ccy: debit.currency as Currency });
+      const u = (routeUsage[route] ||= {
+        count: 0,
+        volumeMinor: 0,
+        ccy: debit.currency as Currency,
+      });
       u.count++;
       u.volumeMinor += debit.amount_minor;
       if (bps != null) {
@@ -78,18 +100,32 @@ function InsightsPage() {
 
     const avgArrivalHours =
       txs
-        .filter((t) => t.type === "transfer" && (t.metadata as Record<string, unknown> | null)?.route)
+        .filter(
+          (t) => t.type === "transfer" && (t.metadata as Record<string, unknown> | null)?.route,
+        )
         .reduce((acc, t) => {
           const r = String((t.metadata as Record<string, unknown>).route ?? "");
           const eta = r.includes("Express") ? 1 : r.includes("Cost") ? 48 : 4;
           return acc + eta;
         }, 0) / Math.max(smartCount, 1);
 
-    return { usdMoved, routeUsage, topRoute, savedMinor, smartCount, reversedAmount, avgArrivalHours };
+    return {
+      usdMoved,
+      routeUsage,
+      topRoute,
+      savedMinor,
+      smartCount,
+      reversedAmount,
+      avgArrivalHours,
+    };
   }, [txs, reversals]);
 
   if (isLoading) {
-    return <div className="flex h-40 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    );
   }
 
   const savingsPct = computed.usdMoved
@@ -125,9 +161,12 @@ function InsightsPage() {
         <div className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-cyan">
           <TrendingUp className="h-3.5 w-3.5" /> Analytics & Insights
         </div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Money saved by <span className="text-black">Smart Pay Engine</span></h1>
+        <h1 className="font-display text-3xl font-bold tracking-tight">
+          Money saved by <span className="text-black">Smart Pay Engine</span>
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          What smart routing, reversals, and AI prioritization are actually doing for your bottom line.
+          What smart routing, reversals, and AI prioritization are actually doing for your bottom
+          line.
         </p>
       </div>
 
@@ -141,7 +180,8 @@ function InsightsPage() {
             {formatMoney(computed.savedMinor, "USD")}
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
-            {savingsPct.toFixed(2)}% of {formatMoney(computed.usdMoved, "USD")} routed · vs. naive 80 bps baseline
+            {savingsPct.toFixed(2)}% of {formatMoney(computed.usdMoved, "USD")} routed · vs. naive
+            80 bps baseline
           </div>
         </div>
       </Card>
@@ -182,7 +222,9 @@ function InsightsPage() {
               );
             })}
           {computed.smartCount === 0 && (
-            <div className="text-xs text-muted-foreground">No routed transactions yet — send a payment via the assistant to see route mix.</div>
+            <div className="text-xs text-muted-foreground">
+              No routed transactions yet — send a payment via the assistant to see route mix.
+            </div>
           )}
         </div>
       </Card>

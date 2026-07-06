@@ -39,7 +39,10 @@ async function collectPings(page: import("@playwright/test").Page, action: () =>
 
 test.describe("Analytics consent gating on policy pages", () => {
   for (const route of POLICY_ROUTES) {
-    test(`${route} — pings are consent-denied (gcs=G100) before opt-in`, async ({ page, context }) => {
+    test(`${route} — pings are consent-denied (gcs=G100) before opt-in`, async ({
+      page,
+      context,
+    }) => {
       // Ensure a completely fresh consent state.
       await context.clearCookies();
       await page.addInitScript(() => {
@@ -63,7 +66,10 @@ test.describe("Analytics consent gating on policy pages", () => {
       }
     });
 
-    test(`${route} — pings become granted (gcs=G101) after analytics opt-in`, async ({ page, context }) => {
+    test(`${route} — pings become granted (gcs=G101) after analytics opt-in`, async ({
+      page,
+      context,
+    }) => {
       await context.clearCookies();
       await page.addInitScript(() => {
         try {
@@ -109,7 +115,9 @@ test.describe("Analytics consent gating on policy pages", () => {
         await page.mouse.move(300, 300);
       });
 
-      expect(pings.length, `expected /g/collect pings after consent on ${route}`).toBeGreaterThan(0);
+      expect(pings.length, `expected /g/collect pings after consent on ${route}`).toBeGreaterThan(
+        0,
+      );
       const granted = pings.filter((p) => p.gcs === "G101");
       expect(
         granted.length,

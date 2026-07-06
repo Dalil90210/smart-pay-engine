@@ -60,9 +60,10 @@ Deno.serve(async (req) => {
   try {
     const parts = jwt.split(".");
     if (parts.length !== 3) throw new Error("malformed jwt");
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
-    ) as { role?: string; sub?: string };
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"))) as {
+      role?: string;
+      sub?: string;
+    };
     if (payload.role !== "authenticated" || !payload.sub) {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
@@ -70,14 +71,13 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
-
   try {
     const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
     if (!apiKey) {
       return jsonResponse({ error: "ANTHROPIC_API_KEY not configured" }, 500);
     }
 
-    const body = await req.json().catch(() => null) as {
+    const body = (await req.json().catch(() => null)) as {
       message?: unknown;
       payees?: unknown;
       currencies?: unknown;
@@ -138,7 +138,11 @@ Deno.serve(async (req) => {
     } catch {
       const m = cleaned.match(/\{[\s\S]*\}/);
       if (m) {
-        try { parsed = JSON.parse(m[0]); } catch { parsed = null; }
+        try {
+          parsed = JSON.parse(m[0]);
+        } catch {
+          parsed = null;
+        }
       }
     }
 

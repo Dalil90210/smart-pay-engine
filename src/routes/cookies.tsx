@@ -39,9 +39,8 @@ function CookiesPage() {
 
       <div className="text-sm leading-relaxed text-muted-foreground">
         <p>
-          Smart Pay Engine uses a small number of cookies and similar technologies. Google
-          Analytics only fires after you grant analytics consent — either via the in-app
-          banner or from{" "}
+          Smart Pay Engine uses a small number of cookies and similar technologies. Google Analytics
+          only fires after you grant analytics consent — either via the in-app banner or from{" "}
           <Link to="/settings" className="text-cyan underline underline-offset-2">
             Settings → Privacy &amp; cookies
           </Link>
@@ -87,9 +86,7 @@ function CookiesPage() {
           </table>
         </div>
 
-        <h2 className="mt-8 text-base font-semibold text-foreground">
-          Managing your preferences
-        </h2>
+        <h2 className="mt-8 text-base font-semibold text-foreground">Managing your preferences</h2>
         <p className="mt-2">
           You can change your choice at any time from the consent banner or from{" "}
           <Link to="/settings" className="text-cyan underline underline-offset-2">

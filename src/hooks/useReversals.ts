@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Currency } from "@/lib/money";
 
-export type ReversalStatus = "submitted" | "under_review" | "approved" | "partially_approved" | "rejected";
+export type ReversalStatus =
+  "submitted" | "under_review" | "approved" | "partially_approved" | "rejected";
 
 export type Reversal = {
   id: string;
@@ -71,15 +72,30 @@ export function useCreateReversal() {
 export function useUpdateReversal() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { id: string; status?: ReversalStatus; addEvidence?: string; addTimeline?: { label: string; note?: string } }) => {
-      const { data: existing } = await supabase.from("reversals").select("evidence, timeline").eq("id", args.id).single();
-      const evidence = (existing?.evidence as unknown as { name: string; uploaded_at: string }[]) ?? [];
-      const timeline = (existing?.timeline as unknown as { at: string; label: string; note?: string }[]) ?? [];
-      if (args.addEvidence) evidence.push({ name: args.addEvidence, uploaded_at: new Date().toISOString() });
+    mutationFn: async (args: {
+      id: string;
+      status?: ReversalStatus;
+      addEvidence?: string;
+      addTimeline?: { label: string; note?: string };
+    }) => {
+      const { data: existing } = await supabase
+        .from("reversals")
+        .select("evidence, timeline")
+        .eq("id", args.id)
+        .single();
+      const evidence =
+        (existing?.evidence as unknown as { name: string; uploaded_at: string }[]) ?? [];
+      const timeline =
+        (existing?.timeline as unknown as { at: string; label: string; note?: string }[]) ?? [];
+      if (args.addEvidence)
+        evidence.push({ name: args.addEvidence, uploaded_at: new Date().toISOString() });
       if (args.addTimeline) timeline.push({ at: new Date().toISOString(), ...args.addTimeline });
       const update: Record<string, unknown> = { evidence, timeline };
       if (args.status) update.status = args.status;
-      const { error } = await supabase.from("reversals").update(update as never).eq("id", args.id);
+      const { error } = await supabase
+        .from("reversals")
+        .update(update as never)
+        .eq("id", args.id);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["reversals"] });
     },

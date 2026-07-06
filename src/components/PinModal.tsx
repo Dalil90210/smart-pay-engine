@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -20,17 +26,24 @@ function toPinError(e: unknown, phase: "check" | "verify"): PinError {
   const lower = raw.toLowerCase();
 
   // Missing pgcrypto / search_path bugs seen in monitoring: crypt/gen_salt "does not exist"
-  if (lower.includes("gen_salt") || lower.includes("crypt(") || lower.includes("function crypt") || lower.includes("does not exist")) {
+  if (
+    lower.includes("gen_salt") ||
+    lower.includes("crypt(") ||
+    lower.includes("function crypt") ||
+    lower.includes("does not exist")
+  ) {
     return {
       title: "PIN service unavailable",
-      message: "We couldn't reach the PIN service. Please try again in a moment — your transaction has not been submitted.",
+      message:
+        "We couldn't reach the PIN service. Please try again in a moment — your transaction has not been submitted.",
       retryable: true,
     };
   }
   if (lower.includes("permission denied")) {
     return {
       title: "Not authorized",
-      message: "You don't have permission to verify a PIN on this account. Sign out and sign back in, then try again.",
+      message:
+        "You don't have permission to verify a PIN on this account. Sign out and sign back in, then try again.",
       retryable: false,
     };
   }
@@ -170,7 +183,8 @@ export function PinModal({
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>No PIN set</AlertTitle>
                 <AlertDescription>
-                  You need a 4-digit PIN before you can authorize transactions. Set one in Settings, then try again.
+                  You need a 4-digit PIN before you can authorize transactions. Set one in Settings,
+                  then try again.
                 </AlertDescription>
               </Alert>
               <div className="flex gap-2">

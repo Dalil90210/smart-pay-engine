@@ -5,9 +5,7 @@ export function useTheme() {
 
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem("spe-theme")) as
-      | "dark"
-      | "light"
-      | null;
+      "dark" | "light" | null;
     const initial = stored ?? "dark";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");

@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { useReversals, useUpdateReversal, type Reversal, type ReversalStatus } from "@/hooks/useReversals";
+import {
+  useReversals,
+  useUpdateReversal,
+  type Reversal,
+  type ReversalStatus,
+} from "@/hooks/useReversals";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
@@ -30,9 +35,17 @@ export const Route = createFileRoute("/reversals")({
   head: () => ({
     meta: [
       { title: "Reversals — Smart Pay Engine" },
-      { name: "description", content: "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps." },
+      {
+        name: "description",
+        content:
+          "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps.",
+      },
       { property: "og:title", content: "Reversals — Smart Pay Engine" },
-      { property: "og:description", content: "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps." },
+      {
+        property: "og:description",
+        content:
+          "AI-scored reversal cases with success probability, recommended amount, best reason code and next steps.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/reversals" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/reversals" }],
@@ -44,42 +57,77 @@ export const Route = createFileRoute("/reversals")({
   ),
 });
 
-const STATUS_META: Record<ReversalStatus, { label: string; cls: string; icon: typeof ShieldCheck }> = {
+const STATUS_META: Record<
+  ReversalStatus,
+  { label: string; cls: string; icon: typeof ShieldCheck }
+> = {
   submitted: { label: "Submitted", cls: "bg-muted text-muted-foreground", icon: FileText },
   under_review: { label: "Under review", cls: "bg-cyan/15 text-cyan", icon: Loader2 },
   approved: { label: "Approved", cls: "bg-success/15 text-success", icon: CheckCircle2 },
-  partially_approved: { label: "Partially approved", cls: "bg-success/10 text-success", icon: CheckCircle2 },
+  partially_approved: {
+    label: "Partially approved",
+    cls: "bg-success/10 text-success",
+    icon: CheckCircle2,
+  },
   rejected: { label: "Rejected", cls: "bg-destructive/15 text-destructive", icon: XCircle },
 };
 
 type Tier = "High" | "Medium" | "Low";
 const tierFor = (score: number): Tier => (score >= 75 ? "High" : score >= 50 ? "Medium" : "Low");
 const TIER_META: Record<Tier, { cls: string; icon: typeof Flame; ring: string }> = {
-  High: { cls: "bg-destructive/15 text-destructive border-destructive/30", icon: Flame, ring: "ring-destructive/40" },
-  Medium: { cls: "bg-amber-500/15 text-amber-400 border-amber-500/30", icon: AlertTriangle, ring: "ring-amber-500/40" },
+  High: {
+    cls: "bg-destructive/15 text-destructive border-destructive/30",
+    icon: Flame,
+    ring: "ring-destructive/40",
+  },
+  Medium: {
+    cls: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    icon: AlertTriangle,
+    ring: "ring-amber-500/40",
+  },
   Low: { cls: "bg-muted text-muted-foreground border-border", icon: Gauge, ring: "ring-border" },
 };
 
 const REASON_META: Record<string, { label: string; rationale: string; evidence: string[] }> = {
   duplicate_charge: {
     label: "Duplicate charge",
-    rationale: "Two identical charges from the same merchant within a short window — among the strongest dispute categories with banks.",
-    evidence: ["Both transaction records side-by-side", "Original invoice/receipt", "Bank statement excerpt"],
+    rationale:
+      "Two identical charges from the same merchant within a short window — among the strongest dispute categories with banks.",
+    evidence: [
+      "Both transaction records side-by-side",
+      "Original invoice/receipt",
+      "Bank statement excerpt",
+    ],
   },
   wrong_amount: {
     label: "Wrong amount",
-    rationale: "Amount differs materially from the agreed invoice. Counterparties usually concede quickly with a written quote.",
-    evidence: ["Signed quote or invoice", "Email confirming agreed amount", "Comparison screenshot"],
+    rationale:
+      "Amount differs materially from the agreed invoice. Counterparties usually concede quickly with a written quote.",
+    evidence: [
+      "Signed quote or invoice",
+      "Email confirming agreed amount",
+      "Comparison screenshot",
+    ],
   },
   unauthorized: {
     label: "Unauthorized / fraud",
-    rationale: "User did not authorize the charge. Strong protections under card network rules and EU PSD2.",
-    evidence: ["ID verification", "Police report or fraud report", "Device location at time of charge"],
+    rationale:
+      "User did not authorize the charge. Strong protections under card network rules and EU PSD2.",
+    evidence: [
+      "ID verification",
+      "Police report or fraud report",
+      "Device location at time of charge",
+    ],
   },
   service_not_rendered: {
     label: "Service not rendered",
-    rationale: "Goods or services were not delivered as promised. Requires proof of attempted contact.",
-    evidence: ["Written communications with counterparty", "Proof of non-delivery", "Original order confirmation"],
+    rationale:
+      "Goods or services were not delivered as promised. Requires proof of attempted contact.",
+    evidence: [
+      "Written communications with counterparty",
+      "Proof of non-delivery",
+      "Original order confirmation",
+    ],
   },
 };
 
@@ -88,7 +136,11 @@ function reasonInfo(code: string) {
     REASON_META[code] ?? {
       label: code.replace(/_/g, " "),
       rationale: "Standard dispute pathway. Provide clear documentation to maximize odds.",
-      evidence: ["Original invoice or receipt", "Correspondence with counterparty", "Bank statement excerpt"],
+      evidence: [
+        "Original invoice or receipt",
+        "Correspondence with counterparty",
+        "Bank statement excerpt",
+      ],
     }
   );
 }
@@ -103,7 +155,11 @@ function nextSteps(r: Reversal): { label: string; tone: "primary" | "muted" }[] 
       ];
     case "under_review":
       return [
-        { label: r.success_probability >= 0.8 ? "Push for full refund" : "Negotiate partial settlement", tone: "primary" },
+        {
+          label:
+            r.success_probability >= 0.8 ? "Push for full refund" : "Negotiate partial settlement",
+          tone: "primary",
+        },
         { label: "Await counterparty response (24–48h)", tone: "muted" },
         { label: "Escalate to card network if no reply", tone: "muted" },
       ];
@@ -130,13 +186,18 @@ function ReversalsPage() {
   const stats = useMemo(() => {
     const successRate = reversals.length
       ? Math.round(
-          (reversals.filter((r) => r.status === "approved" || r.status === "partially_approved").length /
-            reversals.length) * 100,
+          (reversals.filter((r) => r.status === "approved" || r.status === "partially_approved")
+            .length /
+            reversals.length) *
+            100,
         )
       : 0;
     const tiers = { High: 0, Medium: 0, Low: 0 } as Record<Tier, number>;
     for (const r of open) tiers[tierFor(r.priority_score)]++;
-    const recoverable = open.reduce((sum, r) => sum + Math.round(r.amount_minor * r.success_probability), 0);
+    const recoverable = open.reduce(
+      (sum, r) => sum + Math.round(r.amount_minor * r.success_probability),
+      0,
+    );
     const recoverableCcy = open[0]?.currency ?? "USD";
     const avgProb = open.length
       ? Math.round((open.reduce((s, r) => s + r.success_probability, 0) / open.length) * 100)
@@ -156,7 +217,9 @@ function ReversalsPage() {
             </span>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Recover funds faster than Stripe Disputes. <span className="text-black">Smart Pay Engine</span> Intelligence scores every case, picks the strongest reason code, and surfaces what evidence wins.
+            Recover funds faster than Stripe Disputes.{" "}
+            <span className="text-black">Smart Pay Engine</span> Intelligence scores every case,
+            picks the strongest reason code, and surfaces what evidence wins.
           </p>
         </div>
       </div>
@@ -198,7 +261,11 @@ function ReversalsPage() {
         </div>
       ) : (
         <>
-          <Section title="Open cases" items={open} empty="No open reversal cases — you're all caught up." />
+          <Section
+            title="Open cases"
+            items={open}
+            empty="No open reversal cases — you're all caught up."
+          />
           <Section title="Resolved" items={closed} empty="No resolved cases yet." />
         </>
       )}
@@ -251,7 +318,9 @@ function DashStat({
 function Section({ title, items, empty }: { title: string; items: Reversal[]; empty: string }) {
   return (
     <section className="space-y-3">
-      <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">{title}</h2>
+      <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h2>
       {items.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">{empty}</Card>
       ) : (
@@ -282,7 +351,11 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
 
   const advance = (next: ReversalStatus, note: string) => {
     update.mutate(
-      { id: r.id, status: next, addTimeline: { label: status.label === "Under review" ? "Decision" : "Under review", note } },
+      {
+        id: r.id,
+        status: next,
+        addTimeline: { label: status.label === "Under review" ? "Decision" : "Under review", note },
+      },
       { onSuccess: () => toast.success(`Reversal updated to ${next.replace("_", " ")}`) },
     );
   };
@@ -290,16 +363,33 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
   const isOpen = r.status === "submitted" || r.status === "under_review";
 
   return (
-    <Card className={cn("overflow-hidden p-0", isOpen && tier === "High" && "ring-1", isOpen && tier === "High" && tierMeta.ring)}>
+    <Card
+      className={cn(
+        "overflow-hidden p-0",
+        isOpen && tier === "High" && "ring-1",
+        isOpen && tier === "High" && tierMeta.ring,
+      )}
+    >
       {/* Header strip */}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border bg-gradient-to-r from-card to-card/40 p-5">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider", status.cls)}>
-              <Icon className={cn("h-3 w-3", r.status === "under_review" && "animate-spin")} /> {status.label}
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider",
+                status.cls,
+              )}
+            >
+              <Icon className={cn("h-3 w-3", r.status === "under_review" && "animate-spin")} />{" "}
+              {status.label}
             </span>
             {isOpen && (
-              <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider", tierMeta.cls)}>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                  tierMeta.cls,
+                )}
+              >
                 <TierIcon className="h-3 w-3" /> {tier} priority
               </span>
             )}
@@ -318,7 +408,9 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
 
         {/* Probability gauge */}
         <div className="flex flex-col items-end">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">AI success probability</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            AI success probability
+          </div>
           <div className="mt-1 flex items-baseline gap-1">
             <div className="font-display text-3xl font-bold text-cyan">{probPct}</div>
             <div className="text-sm text-cyan/70">%</div>
@@ -346,16 +438,25 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
           <div className="rounded-lg border border-cyan/20 bg-cyan/5 p-3 text-xs">
             <div className="flex items-center gap-1.5 font-semibold text-foreground">
               <Lightbulb className="h-3.5 w-3.5 text-cyan" />
-              Recommended: file for {recommendation === "full" ? "FULL refund" : "PARTIAL settlement"}
+              Recommended: file for{" "}
+              {recommendation === "full" ? "FULL refund" : "PARTIAL settlement"}
             </div>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Claim amount</div>
-                <div className="font-semibold text-foreground">{formatMoney(r.amount_minor, r.currency)}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Claim amount
+                </div>
+                <div className="font-semibold text-foreground">
+                  {formatMoney(r.amount_minor, r.currency)}
+                </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Projected recovery</div>
-                <div className="font-semibold text-success">{formatMoney(projected, r.currency)}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Projected recovery
+                </div>
+                <div className="font-semibold text-success">
+                  {formatMoney(projected, r.currency)}
+                </div>
               </div>
             </div>
             {r.ai_recommendation && (
@@ -389,16 +490,26 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
                     ) : (
                       <div className="h-3.5 w-3.5 shrink-0 rounded-full border border-border" />
                     )}
-                    <span className={cn(done ? "text-foreground line-through" : "text-muted-foreground")}>{item}</span>
+                    <span
+                      className={cn(
+                        done ? "text-foreground line-through" : "text-muted-foreground",
+                      )}
+                    >
+                      {item}
+                    </span>
                   </li>
                 );
               })}
-              {(r.evidence ?? []).filter((e) => !reason.evidence.some((s) => s.toLowerCase() === e.name.toLowerCase())).map((e) => (
-                <li key={e.name} className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
-                  <span className="text-foreground">{e.name}</span>
-                </li>
-              ))}
+              {(r.evidence ?? [])
+                .filter(
+                  (e) => !reason.evidence.some((s) => s.toLowerCase() === e.name.toLowerCase()),
+                )
+                .map((e) => (
+                  <li key={e.name} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" />
+                    <span className="text-foreground">{e.name}</span>
+                  </li>
+                ))}
             </ul>
           </div>
 
@@ -412,12 +523,20 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
                   <span
                     className={cn(
                       "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold",
-                      s.tone === "primary" ? "bg-cyan text-background" : "bg-muted text-muted-foreground",
+                      s.tone === "primary"
+                        ? "bg-cyan text-background"
+                        : "bg-muted text-muted-foreground",
                     )}
                   >
                     {i + 1}
                   </span>
-                  <span className={cn(s.tone === "primary" ? "font-medium text-foreground" : "text-muted-foreground")}>
+                  <span
+                    className={cn(
+                      s.tone === "primary"
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
                     {s.label}
                   </span>
                 </li>
@@ -439,7 +558,9 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
                 <div className="h-1.5 w-1.5 rounded-full bg-cyan" />
                 <span className="font-medium">{t.label}</span>
                 {t.note && <span className="text-muted-foreground">— {t.note}</span>}
-                <span className="ml-auto text-muted-foreground">{new Date(t.at).toLocaleString()}</span>
+                <span className="ml-auto text-muted-foreground">
+                  {new Date(t.at).toLocaleString()}
+                </span>
               </div>
             ))}
           </div>
@@ -461,27 +582,54 @@ function ReversalCard({ reversal: r }: { reversal: Reversal }) {
             disabled={!evidenceName.trim()}
             onClick={() => {
               update.mutate(
-                { id: r.id, addEvidence: evidenceName.trim(), addTimeline: { label: "Evidence added", note: evidenceName.trim() } },
-                { onSuccess: () => { toast.success("Evidence uploaded (sandbox)"); setEvidenceName(""); } },
+                {
+                  id: r.id,
+                  addEvidence: evidenceName.trim(),
+                  addTimeline: { label: "Evidence added", note: evidenceName.trim() },
+                },
+                {
+                  onSuccess: () => {
+                    toast.success("Evidence uploaded (sandbox)");
+                    setEvidenceName("");
+                  },
+                },
               );
             }}
           >
             Upload evidence
           </Button>
           {r.status === "submitted" && (
-            <Button size="sm" variant="secondary" onClick={() => advance("under_review", "Routed to review queue")}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => advance("under_review", "Routed to review queue")}
+            >
               Mark under review
             </Button>
           )}
           {r.status === "under_review" && (
             <>
-              <Button size="sm" onClick={() => advance("approved", "Counterparty approved full refund")}>
+              <Button
+                size="sm"
+                onClick={() => advance("approved", "Counterparty approved full refund")}
+              >
                 Approve
               </Button>
-              <Button size="sm" variant="outline" onClick={() => advance("partially_approved", "Counterparty agreed to partial refund")}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  advance("partially_approved", "Counterparty agreed to partial refund")
+                }
+              >
                 Partial
               </Button>
-              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => advance("rejected", "Counterparty declined")}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => advance("rejected", "Counterparty declined")}
+              >
                 Reject
               </Button>
             </>

@@ -10,7 +10,12 @@ describe("hive-parser", () => {
 
     it("parses word currency + decimal", () => {
       const r = parseIntent("pay 25.50 usd to Acme Inc");
-      expect(r).toEqual({ kind: "send", amountMinor: 2550, currency: "USD", payeeQuery: "Acme Inc" });
+      expect(r).toEqual({
+        kind: "send",
+        amountMinor: 2550,
+        currency: "USD",
+        payeeQuery: "Acme Inc",
+      });
     });
 
     it("parses '£' + pounds", () => {
