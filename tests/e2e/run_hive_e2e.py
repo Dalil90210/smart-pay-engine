@@ -46,18 +46,27 @@ def _log(step: str, detail: str = "") -> None:
 
 
 async def _restore_session(context, page: Page) -> bool:
-    """Inject the Lovable-managed Supabase session, matching tests/e2e/fixtures.ts."""
-    status = os.environ.get("LOVABLE_BROWSER_AUTH_STATUS", "")
+    """Inject a Supabase session. Prefer the Lovable-managed one; if it's
+    absent (LOVABLE_BROWSER_AUTH_STATUS=signed_out), mint a session directly
+    against Supabase using a deterministic test account, so the runner is
+    self-sufficient inside CI/sandbox."""
     storage_key = os.environ.get("LOVABLE_BROWSER_SUPABASE_STORAGE_KEY")
     session_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_SESSION_JSON")
     cookies_json = os.environ.get("LOVABLE_BROWSER_SUPABASE_COOKIES_JSON")
 
     if not storage_key or not session_json:
-        _log("auth-skip", f"no session in env (LOVABLE_BROWSER_AUTH_STATUS={status!r})")
-        return False
+        minted = _mint_session_via_supabase()
+        if not minted:
+            return False
+        storage_key, session_json = minted
+        cookies_json = None
+        _log("auth-minted", "self-signed via Supabase publishable key")
+    else:
+        _log("auth-injected", "using Lovable-managed session")
 
     if cookies_json:
         try:
+
             cookies = json.loads(cookies_json)
             for c in cookies:
                 c["url"] = BASE_URL
@@ -72,6 +81,120 @@ async def _restore_session(context, page: Page) -> bool:
     )
     _log("auth-injected")
     return True
+
+
+def _mint_session_via_supabase() -> tuple[str, str] | None:
+    """Sign in (or bootstrap + sign in) a deterministic test account against
+    Supabase Auth and return (storage_key, session_json) shaped exactly like
+    supabase-js writes to localStorage. Also ensures the test PIN is set so
+    the Hive Confirm → PIN → post flow can complete."""
+    import urllib.parse
+    try:
+        import requests
+    except Exception as exc:
+        _log("mint-skip", f"requests unavailable: {exc}")
+        return None
+
+    supabase_url = os.environ.get("SUPABASE_URL")
+    publishable = os.environ.get("SUPABASE_PUBLISHABLE_KEY") or os.environ.get("VITE_SUPABASE_PUBLISHABLE_KEY")
+    service_role = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    project_id = (
+        os.environ.get("SUPABASE_PROJECT_ID")
+        or os.environ.get("VITE_SUPABASE_PROJECT_ID")
+        or ""
+    )
+    if not project_id and supabase_url:
+        # extract from https://<ref>.supabase.co
+        host = urllib.parse.urlparse(supabase_url).hostname or ""
+        project_id = host.split(".")[0]
+
+    if not supabase_url or not publishable or not project_id:
+        _log("mint-skip", "SUPABASE_URL / PUBLISHABLE_KEY / PROJECT_ID missing")
+        return None
+
+    email = os.environ.get("HIVE_TEST_EMAIL", "hive-e2e@test.smartpay.local")
+    password = os.environ.get("HIVE_TEST_PASSWORD", "hive-e2e-Passw0rd!")
+
+    def token_password_grant() -> dict | None:
+        r = requests.post(
+            f"{supabase_url}/auth/v1/token?grant_type=password",
+            headers={"apikey": publishable, "Content-Type": "application/json"},
+            json={"email": email, "password": password},
+            timeout=15,
+        )
+        return r.json() if r.status_code == 200 else None
+
+    session = token_password_grant()
+    if not session:
+        # Bootstrap via service role admin API (email pre-confirmed so signIn works immediately).
+        if not service_role:
+            _log("mint-skip", "no session and no SUPABASE_SERVICE_ROLE_KEY to bootstrap")
+            return None
+        r = requests.post(
+            f"{supabase_url}/auth/v1/admin/users",
+            headers={"apikey": service_role, "Authorization": f"Bearer {service_role}", "Content-Type": "application/json"},
+            json={"email": email, "password": password, "email_confirm": True},
+            timeout=15,
+        )
+        if r.status_code not in (200, 201, 422):
+            _log("mint-fail", f"admin create-user {r.status_code}: {r.text[:200]}")
+            return None
+        # 422 means user already exists — fine, we'll sign in below.
+        session = token_password_grant()
+        if not session:
+            _log("mint-fail", "password grant still failed after bootstrap")
+            return None
+
+    access_token = session.get("access_token")
+    if not access_token:
+        _log("mint-fail", f"no access_token in session response: {list(session)}")
+        return None
+
+    # Seed the test PIN via the app's own set_pin RPC so the hash is produced
+    # by the same pgcrypto build that verify_pin/post_transaction will call.
+    try:
+        r = requests.post(
+            f"{supabase_url}/rest/v1/rpc/set_pin",
+            headers={
+                "apikey": publishable,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+            },
+            json={"p_pin": PIN},
+            timeout=10,
+        )
+        if r.status_code >= 300:
+            _log("pin-warn", f"set_pin {r.status_code}: {r.text[:200]}")
+        else:
+            _log("pin-set", "ok")
+    except Exception as exc:
+        _log("pin-warn", f"set_pin call failed: {exc}")
+
+
+
+
+
+    # Mark the profile as onboarded so AppShell's OnboardingModal (PIN/setup wizard)
+    # doesn't cover the Confirm button. profiles.onboarded_at is the sole trigger.
+    try:
+        requests.patch(
+            f"{supabase_url}/rest/v1/profiles?id=eq.{session.get('user', {}).get('id')}",
+            headers={
+                "apikey": publishable,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+            },
+            json={"onboarded_at": "now()"},
+            timeout=10,
+        )
+    except Exception as exc:
+        _log("onboard-warn", f"profiles patch failed: {exc}")
+
+
+    storage_key = f"sb-{project_id}-auth-token"
+    return storage_key, json.dumps(session)
+
 
 
 async def _type_pin(page: Page, pin: str) -> None:
@@ -94,8 +217,27 @@ async def _run_flow(page: Page) -> dict:
     await page.goto(f"{BASE_URL}/hive", wait_until="domcontentloaded")
     composer = page.get_by_placeholder(__import__("re").compile(r"send .* to ", __import__("re").I))
     await composer.wait_for(state="visible", timeout=15_000)
+
+    # First-run onboarding modal covers the Confirm button; dismiss it if present.
+    try:
+        get_started = page.get_by_role("button", name=__import__("re").compile(r"Get started", __import__("re").I))
+        await get_started.first.click(timeout=1_500)
+        # Click through any remaining onboarding steps.
+        for _ in range(4):
+            nxt = page.get_by_role("button", name=__import__("re").compile(r"^(Next|Finish|Done|Continue)$", __import__("re").I))
+            if await nxt.count() == 0:
+                break
+            try:
+                await nxt.first.click(timeout=1_000)
+            except PWTimeout:
+                break
+        result["steps"].append("onboarding-dismissed")
+    except PWTimeout:
+        pass
+
     await page.screenshot(path=str(SCREENSHOTS / "01_hive_loaded.png"))
     result["steps"].append("hive-loaded")
+
 
     # 2. Type prompt → parsed intent.
     await composer.fill(PROMPT)
