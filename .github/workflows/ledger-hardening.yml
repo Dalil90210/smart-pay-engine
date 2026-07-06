@@ -29,8 +29,11 @@ jobs:
       PGPASSWORD: ${{ secrets.PGPASSWORD }}
       PGDATABASE: ${{ secrets.PGDATABASE }}
       PGSSLMODE: require
-      LEDGER_FUZZ_ITERATIONS: "4"
-      LEDGER_FUZZ_OPS_PER_ITER: "50"
+      # Run the fuzz many times with up to 200 ops each to catch rare
+      # invariant breaks. Each iteration reseeds and re-asserts the 3
+      # invariants (no unbalanced tx, no negative user cash, value conserved).
+      LEDGER_FUZZ_ITERATIONS: "20"
+      LEDGER_FUZZ_OPS_PER_ITER: "200"
 
     steps:
       - name: Checkout
