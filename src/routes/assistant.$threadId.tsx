@@ -99,6 +99,8 @@ function HivePage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sentAuto = useRef(false);
+  const persistedIds = useRef<Set<string>>(new Set());
+  const titleSet = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -108,9 +110,88 @@ function HivePage() {
     textareaRef.current?.focus();
   }, [threadId, parsing]);
 
-  const append = (m: Msg) => setMessages((prev) => [...prev, m]);
+  // Load persisted conversation whenever the thread changes.
+  useEffect(() => {
+    let cancelled = false;
+    persistedIds.current = new Set();
+    titleSet.current = false;
+    setMessages([]);
+    sentAuto.current = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("message, created_at")
+        .eq("thread_id", threadId)
+        .order("created_at", { ascending: true });
+      if (cancelled || error || !data) return;
+      const loaded = data
+        .map((r) => r.message as unknown as Msg)
+        .filter((m): m is Msg => !!m && typeof m === "object" && "id" in m && "role" in m);
+      for (const m of loaded) persistedIds.current.add(m.id);
+      if (loaded.some((m) => m.role === "user")) titleSet.current = true;
+      setMessages(loaded);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [threadId]);
+
+  const persistMsg = async (m: Msg) => {
+    if (persistedIds.current.has(m.id)) return;
+    persistedIds.current.add(m.id);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      await supabase.from("chat_messages").insert({
+        thread_id: threadId,
+        user_id: u.user.id,
+        role: m.role,
+        message: m as unknown as never,
+      });
+      // Set thread title from first user message
+      if (m.role === "user" && !titleSet.current) {
+        titleSet.current = true;
+        const title = m.text.slice(0, 60);
+        await supabase
+          .from("chat_threads")
+          .update({ title, updated_at: new Date().toISOString() })
+          .eq("id", threadId)
+          .eq("title", "New conversation");
+        qc.invalidateQueries({ queryKey: ["threads"] });
+      } else {
+        await supabase
+          .from("chat_threads")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", threadId);
+      }
+    } catch {
+      /* persistence is best-effort */
+    }
+  };
+
+  const updatePersisted = async (m: Msg) => {
+    try {
+      await supabase
+        .from("chat_messages")
+        .update({ message: m as unknown as never })
+        .eq("thread_id", threadId)
+        .eq("message->>id", m.id);
+    } catch {
+      /* best-effort */
+    }
+  };
+
+  const append = (m: Msg) => {
+    setMessages((prev) => [...prev, m]);
+    void persistMsg(m);
+  };
   const updateMsg = (id: string, patch: Partial<Msg>) =>
-    setMessages((prev) => prev.map((m) => (m.id === id ? ({ ...m, ...patch } as Msg) : m)));
+    setMessages((prev) => {
+      const next = prev.map((m) => (m.id === id ? ({ ...m, ...patch } as Msg) : m));
+      const updated = next.find((m) => m.id === id);
+      if (updated) void updatePersisted(updated);
+      return next;
+    });
 
   const handleSend = async (raw: string) => {
     const text = raw.trim();
