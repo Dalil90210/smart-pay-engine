@@ -165,6 +165,24 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
     except Exception as exc:
         _log("pin-warn", f"set_pin call failed: {exc}")
 
+    # Mark the profile as onboarded so AppShell's OnboardingModal (PIN/setup wizard)
+    # doesn't cover the Confirm button. profiles.onboarded_at is the sole trigger.
+    try:
+        requests.patch(
+            f"{supabase_url}/rest/v1/profiles?id=eq.{session.get('user', {}).get('id')}",
+            headers={
+                "apikey": publishable,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+            },
+            json={"onboarded_at": "now()"},
+            timeout=10,
+        )
+    except Exception as exc:
+        _log("onboard-warn", f"profiles patch failed: {exc}")
+
+
     storage_key = f"sb-{project_id}-auth-token"
     return storage_key, json.dumps(session)
 
