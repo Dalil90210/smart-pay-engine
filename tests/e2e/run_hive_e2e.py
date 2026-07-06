@@ -151,32 +151,36 @@ def _mint_session_via_supabase() -> tuple[str, str] | None:
         return None
 
     # Ensure the test PIN is set so the Confirm → PIN dialog can succeed.
-    # public.set_pin() uses gen_salt/crypt from pgcrypto which lives in the
-    # `extensions` schema, and the function's `SET search_path = public` hides
-    # it — the RPC returns 404. Write user_pins directly via psql, schema-
-    # qualifying the crypto calls.
+    # public.set_pin() uses gen_salt/crypt from pgcrypto (in the `extensions`
+    # schema), and its `SET search_path = public` hides them — the RPC 404s.
+    # Bypass by writing user_pins directly via PostgREST as service_role
+    # (RLS-bypass), with a bcrypt hash computed here that the SQL verifier
+    # (extensions.crypt) will accept at PIN-check time.
     user_id = (session.get("user") or {}).get("id")
-    db_url = os.environ.get("SUPABASE_DB_URL")
-    if user_id and db_url:
+    if user_id and service_role:
         try:
-            import subprocess
-            sql = (
-                "INSERT INTO public.user_pins(user_id, pin_hash, updated_at) "
-                f"VALUES ('{user_id}'::uuid, extensions.crypt('{PIN}', extensions.gen_salt('bf')), now()) "
-                "ON CONFLICT (user_id) DO UPDATE SET pin_hash = EXCLUDED.pin_hash, updated_at = now();"
+            import bcrypt
+            pin_hash = bcrypt.hashpw(PIN.encode(), bcrypt.gensalt()).decode()
+            r = requests.post(
+                f"{supabase_url}/rest/v1/user_pins",
+                headers={
+                    "apikey": service_role,
+                    "Authorization": f"Bearer {service_role}",
+                    "Content-Type": "application/json",
+                    "Prefer": "resolution=merge-duplicates,return=minimal",
+                },
+                json={"user_id": user_id, "pin_hash": pin_hash},
+                timeout=10,
             )
-            res = subprocess.run(
-                ["psql", db_url, "-v", "ON_ERROR_STOP=1", "-c", sql],
-                capture_output=True, text=True, timeout=15,
-            )
-            if res.returncode != 0:
-                _log("pin-warn", f"psql set_pin failed: {res.stderr[:200]}")
+            if r.status_code >= 300:
+                _log("pin-warn", f"user_pins upsert {r.status_code}: {r.text[:200]}")
             else:
                 _log("pin-set", "ok")
         except Exception as exc:
-            _log("pin-warn", f"psql set_pin threw: {exc}")
+            _log("pin-warn", f"user_pins upsert threw: {exc}")
     else:
-        _log("pin-warn", "SUPABASE_DB_URL or user id missing — cannot seed PIN")
+        _log("pin-warn", "SUPABASE_SERVICE_ROLE_KEY or user id missing — cannot seed PIN")
+
 
 
 
