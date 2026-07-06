@@ -60,7 +60,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  authed: async ({ context, page }, useFixture) => {
+  authed: async ({ context, page }, runFixture) => {
     const ok = await restoreSupabaseSession(context, page);
     if (!ok) {
       test.skip(
@@ -69,7 +69,7 @@ export const test = base.extend<Fixtures>({
           "Sign in to the preview so the sandbox session is minted, then re-run.",
       );
     }
-    await useFixture({ skip: !ok });
+    await runFixture({ skip: !ok });
   },
 });
 
