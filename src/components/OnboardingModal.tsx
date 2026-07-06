@@ -165,6 +165,14 @@ export function OnboardingModal({ open }: { open: boolean }) {
               </InputOTP>
             </div>
 
+            {setupError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{setupError.title}</AlertTitle>
+                <AlertDescription>{setupError.message}</AlertDescription>
+              </Alert>
+            )}
+
             <Button
               size="lg"
               className="w-full gradient-brand text-white"
@@ -173,6 +181,8 @@ export function OnboardingModal({ open }: { open: boolean }) {
             >
               {saving ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Securing…</>
+              ) : setupError ? (
+                <><RotateCcw className="mr-1.5 h-4 w-4" /> Try again</>
               ) : (
                 <>Finish setup <ArrowRight className="ml-1 h-4 w-4" /></>
               )}
