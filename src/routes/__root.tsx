@@ -15,6 +15,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import faviconIco from "@/assets/favicon.ico.asset.json";
 import faviconPng from "@/assets/favicon-512.png.asset.json";
+import { ConsentBanner } from "@/components/ConsentBanner";
+import { CONSENT_STORAGE_KEY } from "@/lib/consent";
 
 function NotFoundComponent() {
   return (
@@ -124,7 +126,25 @@ gtag('js', new Date());
 gtag('config', 'G-PLBN4ZXTK6');
 
 (function(){
+  var STORAGE_KEY = ${JSON.stringify(CONSENT_STORAGE_KEY)};
+  function hasLocalChoice(){
+    try { return !!window.localStorage.getItem(STORAGE_KEY); } catch(e){ return false; }
+  }
+  function applyLocal(){
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      gtag('consent','update',{
+        analytics_storage: s && s.analytics ? 'granted' : 'denied',
+        ad_storage: s && s.ads ? 'granted' : 'denied',
+        ad_user_data: s && s.ads ? 'granted' : 'denied',
+        ad_personalization: s && s.ads ? 'granted' : 'denied'
+      });
+    } catch(e){}
+  }
   function applyTCF(tcData){
+    if (hasLocalChoice()) return; // local first-party choice wins
     try {
       if (!tcData) return;
       var googleVendor = tcData.vendor && tcData.vendor.consents && tcData.vendor.consents[755];
@@ -139,6 +159,7 @@ gtag('config', 'G-PLBN4ZXTK6');
       });
     } catch(e){}
   }
+  applyLocal();
   function attach(){
     if (typeof window.__tcfapi === 'function'){
       window.__tcfapi('addEventListener', 2, function(tcData, success){
@@ -220,6 +241,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <Toaster richColors position="top-right" />
+        <ConsentBanner />
       </AuthProvider>
     </QueryClientProvider>
   );
