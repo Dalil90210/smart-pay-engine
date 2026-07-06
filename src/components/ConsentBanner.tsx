@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -53,23 +54,19 @@ export function ConsentBanner() {
             We use strictly necessary cookies to run Smart Pay Engine and, with your permission,
             analytics to understand how the app is used. You can change this anytime in Settings.
             See our{" "}
-            <a
-              href="https://smartpayengine.com/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/privacy"
               className="underline underline-offset-2 hover:text-foreground"
             >
               Privacy Policy
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a
-              href="https://smartpayengine.com/cookies"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/cookies"
               className="underline underline-offset-2 hover:text-foreground"
             >
               Cookie Policy
-            </a>
+            </Link>
             .
           </p>
 
