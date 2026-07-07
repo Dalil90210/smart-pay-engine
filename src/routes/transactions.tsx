@@ -14,9 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Shield, Sparkles, Search } from "lucide-react";
+import { Loader2, Shield, Sparkles, Search, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useCreateThread } from "@/hooks/useThreads";
 import { toast } from "sonner";
+import { useAnalyzeReversal } from "@/hooks/useReversalEngine";
+import { ReversalAnalysisPanel } from "@/components/ReversalAnalysisPanel";
+import type { AnalyzeRequest, TransactionDto } from "@/lib/reversalEngineApi";
 
 export const Route = createFileRoute("/transactions")({
   head: () => ({
@@ -138,6 +142,34 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   const createThread = useCreateThread();
   const canReverse = tx.type === "transfer" && tx.state === "completed";
 
+  const analyze = useAnalyzeReversal();
+
+  // Build the credit ledger entry to get the canonical amount / currency.
+  const creditEntry = tx.ledger_entries.find((e) => e.direction === "credit");
+  const amount = creditEntry ? creditEntry.amount_minor / 100 : 0;
+  const currency = creditEntry?.currency ?? "USD";
+
+  const buildAnalyzePayload = (): AnalyzeRequest => {
+    const dto: TransactionDto = {
+      id: tx.id,
+      amount,
+      fromCurrency: currency,
+      toCurrency: currency,
+      provider: "InternalLedger",
+      status: tx.state === "completed" ? "Completed" : "Processing",
+      createdAt: tx.created_at,
+    };
+    return { transaction: dto, requestedAmount: amount };
+  };
+
+  const handleAnalyze = async () => {
+    try {
+      await analyze.mutateAsync(buildAnalyzePayload());
+    } catch {
+      // error displayed in panel
+    }
+  };
+
   const askAssistant = async () => {
     const t = await createThread.mutateAsync(undefined);
     const prompt = `Analyze a reversal for transaction ${tx.id}. The recipient was ${meta.payee ?? "unknown"}, memo: "${meta.memo ?? ""}".`;
@@ -150,7 +182,10 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
-      <Card className="w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+      <Card
+        className="w-full max-w-xl max-h-[90dvh] overflow-y-auto p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="mb-4 flex items-start justify-between">
           <div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -165,6 +200,7 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
             Close
           </Button>
         </div>
+
         <div className="grid gap-3 rounded-lg border border-border bg-background/50 p-3 text-sm">
           {meta.payee != null && <Row label="Payee" value={String(meta.payee)} />}
           {meta.memo != null && <Row label="Memo" value={String(meta.memo)} />}
@@ -172,6 +208,7 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
           <Row label="State" value={tx.state} />
           <Row label="ID" value={tx.id.slice(0, 12)} mono />
         </div>
+
         <div className="mt-3 space-y-1.5">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Ledger</div>
           {tx.ledger_entries.map((e) => (
@@ -184,14 +221,63 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
             </div>
           ))}
         </div>
+
         {canReverse && (
-          <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
-            <Button className="flex-1 gap-2" onClick={askAssistant}>
-              <Sparkles className="h-4 w-4" /> Analyze with AI
-            </Button>
-            <Button variant="outline" className="flex-1 gap-2" onClick={askAssistant}>
-              <Shield className="h-4 w-4" /> Request Reversal
-            </Button>
+          <div className="mt-5 border-t border-border pt-4">
+            {/* Analysis result */}
+            {analyze.data && (
+              <div className="mb-4">
+                <ReversalAnalysisPanel
+                  analysis={analyze.data}
+                  analyzePayload={buildAnalyzePayload()}
+                  onDismiss={() => analyze.reset()}
+                  onSubmitted={() => {
+                    toast.success("Reversal request filed — check the Reversals page.");
+                    onClose();
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Analyze error (engine not reachable) */}
+            {analyze.error && !analyze.data && (
+              <Alert variant="destructive" className="mb-3">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Engine not reachable</AlertTitle>
+                <AlertDescription>
+                  {analyze.error instanceof Error ? analyze.error.message : "Unexpected error."}
+                  <br />
+                  <span className="text-[11px]">
+                    Start the C# backend locally:{" "}
+                    <code className="rounded bg-muted px-1">cd backend && dotnet run</code>
+                  </span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* CTA buttons (shown when no analysis yet) */}
+            {!analyze.data && (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  className="flex-1 gap-2 gradient-brand text-white"
+                  disabled={analyze.isPending}
+                  onClick={handleAnalyze}
+                >
+                  {analyze.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Analyzing…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" /> Analyze with Reversal Engine
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" className="flex-1 gap-2" onClick={askAssistant}>
+                  <Shield className="h-4 w-4" /> Ask AI Assistant
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>

@@ -32,6 +32,29 @@ else
     builder.Services.AddInMemoryPersistence();
 }
 
+// CORS: allow the React frontend (any localhost port in dev, plus the configured
+// AllowedOrigins in production) to call the API. The origins are read from
+// configuration so staging/prod can tighten them without code changes.
+var allowedOrigins = builder.Configuration
+    .GetSection("AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        // Always allow typical local dev ports.
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:4173",
+                "http://localhost:8080")
+            .WithOrigins(allowedOrigins)
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Apply EF Core migrations at startup so the schema is ready in the sandbox.
@@ -49,6 +72,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 app.UseAuthorization();
 app.MapControllers();
 
