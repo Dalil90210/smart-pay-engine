@@ -59,7 +59,10 @@ function PublicInvoicePage() {
   const q = useQuery({
     queryKey: ["public-invoice", token],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_invoice_by_token" as never, { p_token: token } as never);
+      const { data, error } = await supabase.rpc(
+        "get_invoice_by_token" as never,
+        { p_token: token } as never,
+      );
       if (error) throw error;
       if (!data) throw new Error("not_found");
       return data as unknown as PublicInvoice;
@@ -69,10 +72,13 @@ function PublicInvoicePage() {
 
   const pay = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("pay_invoice_by_token" as never, {
-        p_token: token,
-        p_idempotency_key: idempotencyKey,
-      } as never);
+      const { data, error } = await supabase.rpc(
+        "pay_invoice_by_token" as never,
+        {
+          p_token: token,
+          p_idempotency_key: idempotencyKey,
+        } as never,
+      );
       if (error) throw error;
       return data;
     },
@@ -101,7 +107,11 @@ function PublicInvoicePage() {
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="Smart Pay Engine" className="h-10 w-auto object-contain" />
+            <img
+              src={logoAsset.url}
+              alt="Smart Pay Engine"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
           <SandboxBadge />
         </div>
@@ -129,18 +139,26 @@ function PublicInvoicePage() {
           <div className="space-y-5 p-6">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">From</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  From
+                </div>
                 <div className="mt-1 font-medium">{inv.biller_name}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Billed to</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Billed to
+                </div>
                 <div className="mt-1 font-medium">{inv.client_name}</div>
-                {inv.client_email && <div className="text-xs text-muted-foreground">{inv.client_email}</div>}
+                {inv.client_email && (
+                  <div className="text-xs text-muted-foreground">{inv.client_email}</div>
+                )}
               </div>
             </div>
 
             <div>
-              <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Items</div>
+              <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                Items
+              </div>
               <div className="overflow-hidden rounded-lg border border-border">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-xs text-muted-foreground">
@@ -156,9 +174,14 @@ function PublicInvoicePage() {
                       <tr key={idx}>
                         <td className="px-3 py-2">{it.description}</td>
                         <td className="px-3 py-2 text-right">{Number(it.quantity)}</td>
-                        <td className="px-3 py-2 text-right">{formatMoney(it.unit_price_minor, inv.currency)}</td>
+                        <td className="px-3 py-2 text-right">
+                          {formatMoney(it.unit_price_minor, inv.currency)}
+                        </td>
                         <td className="px-3 py-2 text-right font-medium">
-                          {formatMoney(Math.round(Number(it.quantity) * it.unit_price_minor), inv.currency)}
+                          {formatMoney(
+                            Math.round(Number(it.quantity) * it.unit_price_minor),
+                            inv.currency,
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -168,7 +191,9 @@ function PublicInvoicePage() {
             </div>
 
             {inv.notes && (
-              <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">{inv.notes}</div>
+              <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                {inv.notes}
+              </div>
             )}
 
             <div className="space-y-1 border-t border-border pt-4 text-sm">
@@ -176,28 +201,33 @@ function PublicInvoicePage() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatMoney(inv.subtotal_minor, inv.currency)}</span>
               </div>
-              {inv.tax_setaside_percent > 0 && (() => {
-                const setaside = Math.round((inv.subtotal_minor * inv.tax_setaside_percent) / 100);
-                const net = inv.subtotal_minor - setaside;
-                return (
-                  <>
-                    <div className="flex items-center justify-between text-cyan">
-                      <span className="flex items-center gap-1.5">
-                        <PiggyBank className="h-3.5 w-3.5" />
-                        Tax reserve ({Number(inv.tax_setaside_percent)}%)
-                      </span>
-                      <span>{formatMoney(setaside, inv.currency)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Net to {inv.biller_name}</span>
-                      <span>{formatMoney(net, inv.currency)}</span>
-                    </div>
-                  </>
-                );
-              })()}
+              {inv.tax_setaside_percent > 0 &&
+                (() => {
+                  const setaside = Math.round(
+                    (inv.subtotal_minor * inv.tax_setaside_percent) / 100,
+                  );
+                  const net = inv.subtotal_minor - setaside;
+                  return (
+                    <>
+                      <div className="flex items-center justify-between text-cyan">
+                        <span className="flex items-center gap-1.5">
+                          <PiggyBank className="h-3.5 w-3.5" />
+                          Tax reserve ({Number(inv.tax_setaside_percent)}%)
+                        </span>
+                        <span>{formatMoney(setaside, inv.currency)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Net to {inv.biller_name}</span>
+                        <span>{formatMoney(net, inv.currency)}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               <div className="flex items-center justify-between pt-2">
                 <span className="font-medium">Amount due</span>
-                <span className="font-display text-2xl font-bold">{formatMoney(inv.subtotal_minor, inv.currency)}</span>
+                <span className="font-display text-2xl font-bold">
+                  {formatMoney(inv.subtotal_minor, inv.currency)}
+                </span>
               </div>
             </div>
 
@@ -211,8 +241,13 @@ function PublicInvoicePage() {
                 disabled={pay.isPending}
                 className="gradient-brand h-12 w-full border-0 text-base font-semibold text-white"
               >
-                {pay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                  <><Sparkles className="mr-2 h-4 w-4" /> Pay {formatMoney(inv.subtotal_minor, inv.currency)} (Sandbox)</>
+                {pay.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" /> Pay{" "}
+                    {formatMoney(inv.subtotal_minor, inv.currency)} (Sandbox)
+                  </>
                 )}
               </Button>
             )}
@@ -220,20 +255,22 @@ function PublicInvoicePage() {
             <Button
               variant="outline"
               className="w-full gap-2"
-              onClick={() => downloadInvoicePdf({
-                number: inv.number,
-                biller_name: inv.biller_name,
-                client_name: inv.client_name,
-                client_email: inv.client_email,
-                currency: inv.currency,
-                due_date: inv.due_date,
-                status: isPaid ? "paid" : inv.status,
-                subtotal_minor: inv.subtotal_minor,
-                tax_setaside_percent: Number(inv.tax_setaside_percent) || 0,
-                notes: inv.notes,
-                items: inv.items,
-                share_url: typeof window !== "undefined" ? window.location.href : "",
-              })}
+              onClick={() =>
+                downloadInvoicePdf({
+                  number: inv.number,
+                  biller_name: inv.biller_name,
+                  client_name: inv.client_name,
+                  client_email: inv.client_email,
+                  currency: inv.currency,
+                  due_date: inv.due_date,
+                  status: isPaid ? "paid" : inv.status,
+                  subtotal_minor: inv.subtotal_minor,
+                  tax_setaside_percent: Number(inv.tax_setaside_percent) || 0,
+                  notes: inv.notes,
+                  items: inv.items,
+                  share_url: typeof window !== "undefined" ? window.location.href : "",
+                })
+              }
             >
               <Download className="h-4 w-4" /> Download PDF
             </Button>

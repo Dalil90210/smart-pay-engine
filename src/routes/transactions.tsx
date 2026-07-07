@@ -6,7 +6,13 @@ import { useTransactions, type TxRow } from "@/hooks/useTransactions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionRow } from "@/components/TransactionRow";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Loader2, Shield, Sparkles, Search } from "lucide-react";
 import { useCreateThread } from "@/hooks/useThreads";
@@ -16,9 +22,17 @@ export const Route = createFileRoute("/transactions")({
   head: () => ({
     meta: [
       { title: "Activity — Smart Pay Engine" },
-      { name: "description", content: "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates." },
+      {
+        name: "description",
+        content:
+          "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates.",
+      },
       { property: "og:title", content: "Activity — Smart Pay Engine" },
-      { property: "og:description", content: "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates." },
+      {
+        property: "og:description",
+        content:
+          "Browse every send, conversion and reversal across your Smart Pay Engine accounts, with live ledger updates.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/transactions" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/transactions" }],
@@ -53,15 +67,24 @@ function ActivityPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold">Activity</h1>
-        <p className="mt-1 text-sm text-muted-foreground">All your sandbox transactions, double-entry verified.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          All your sandbox transactions, double-entry verified.
+        </p>
       </div>
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search payee or memo" className="pl-9" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search payee or memo"
+            className="pl-9"
+          />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
             <SelectItem value="deposit">Deposit</SelectItem>
@@ -71,7 +94,9 @@ function ActivityPage() {
           </SelectContent>
         </Select>
         <Select value={stateFilter} onValueChange={setStateFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="State" /></SelectTrigger>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="State" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All states</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
@@ -84,9 +109,13 @@ function ActivityPage() {
 
       <Card className="card-glass overflow-hidden p-0">
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <div className="flex h-40 items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">No transactions match these filters.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No transactions match these filters.
+          </div>
         ) : (
           <div className="divide-y divide-border">
             {filtered.map((tx) => (
@@ -117,15 +146,24 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
       <Card className="w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Transaction</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Transaction
+            </div>
             <div className="font-display text-lg font-semibold capitalize">{tx.type}</div>
-            <div className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground">
+              {new Date(tx.created_at).toLocaleString()}
+            </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            Close
+          </Button>
         </div>
         <div className="grid gap-3 rounded-lg border border-border bg-background/50 p-3 text-sm">
           {meta.payee != null && <Row label="Payee" value={String(meta.payee)} />}
@@ -140,7 +178,8 @@ function TxDetail({ tx, onClose }: { tx: TxRow; onClose: () => void }) {
             <div key={e.id} className="flex justify-between text-xs">
               <span className="text-muted-foreground capitalize">{e.direction}</span>
               <span className={e.direction === "credit" ? "text-success" : "text-foreground"}>
-                {e.direction === "credit" ? "+" : "−"}{(e.amount_minor / 100).toFixed(2)} {e.currency}
+                {e.direction === "credit" ? "+" : "−"}
+                {(e.amount_minor / 100).toFixed(2)} {e.currency}
               </span>
             </div>
           ))}
@@ -168,4 +207,3 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
     </div>
   );
 }
-

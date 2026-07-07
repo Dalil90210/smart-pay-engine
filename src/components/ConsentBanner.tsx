@@ -54,17 +54,11 @@ export function ConsentBanner() {
             We use strictly necessary cookies to run Smart Pay Engine and, with your permission,
             analytics to understand how the app is used. You can change this anytime in Settings.
             See our{" "}
-            <Link
-              to="/privacy"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
+            <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground">
               Privacy Policy
             </Link>{" "}
             and{" "}
-            <Link
-              to="/cookies"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
+            <Link to="/cookies" className="underline underline-offset-2 hover:text-foreground">
               Cookie Policy
             </Link>
             .
@@ -97,7 +91,11 @@ export function ConsentBanner() {
           <div className="mt-3 flex flex-wrap gap-2">
             {customize ? (
               <>
-                <Button size="sm" onClick={saveChoice} className="gradient-brand text-white border-0">
+                <Button
+                  size="sm"
+                  onClick={saveChoice}
+                  className="gradient-brand text-white border-0"
+                >
                   Save choices
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setCustomize(false)}>
@@ -106,7 +104,11 @@ export function ConsentBanner() {
               </>
             ) : (
               <>
-                <Button size="sm" onClick={acceptAll} className="gradient-brand text-white border-0">
+                <Button
+                  size="sm"
+                  onClick={acceptAll}
+                  className="gradient-brand text-white border-0"
+                >
                   Accept all
                 </Button>
                 <Button size="sm" variant="outline" onClick={rejectAll}>

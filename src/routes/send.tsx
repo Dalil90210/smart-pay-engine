@@ -7,7 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CURRENCIES, CURRENCY_SYMBOL, formatMoney, getTransferFee, toMinor, type Currency } from "@/lib/money";
+import {
+  CURRENCIES,
+  CURRENCY_SYMBOL,
+  formatMoney,
+  getTransferFee,
+  toMinor,
+  type Currency,
+} from "@/lib/money";
 import { ConfirmationCard } from "@/components/ConfirmationCard";
 import { PinModal } from "@/components/PinModal";
 import { postTransaction, type IdempotencyAuditResult } from "@/lib/ledger";
@@ -23,9 +30,17 @@ export const Route = createFileRoute("/send")({
   head: () => ({
     meta: [
       { title: "Send money — Smart Pay Engine" },
-      { name: "description", content: "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution." },
+      {
+        name: "description",
+        content:
+          "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution.",
+      },
       { property: "og:title", content: "Send money — Smart Pay Engine" },
-      { property: "og:description", content: "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution." },
+      {
+        property: "og:description",
+        content:
+          "Send funds to any payee with AI-recommended routes, fee previews and PIN-confirmed execution.",
+      },
       { property: "og:url", content: "https://app.smartpayengine.com/send" },
     ],
     links: [{ rel: "canonical", href: "https://app.smartpayengine.com/send" }],
@@ -116,7 +131,9 @@ function SendPage() {
     <div className="mx-auto max-w-lg space-y-6">
       <div className="flex items-center gap-3">
         {step === "review" && (
-          <Button variant="ghost" size="icon" onClick={() => setStep("form")}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setStep("form")}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
         )}
         <h1 className="font-display text-2xl font-bold">Send money</h1>
       </div>
@@ -132,8 +149,17 @@ function SendPage() {
               <div>
                 <Label htmlFor="amt">Amount ({currency})</Label>
                 <div className="relative mt-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{CURRENCY_SYMBOL[currency]}</span>
-                  <Input id="amt" inputMode="decimal" className="pl-8 font-display text-xl" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))} placeholder="0.00" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {CURRENCY_SYMBOL[currency]}
+                  </span>
+                  <Input
+                    id="amt"
+                    inputMode="decimal"
+                    className="pl-8 font-display text-xl"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                    placeholder="0.00"
+                  />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Available: {formatMoney(balance, currency)}
@@ -141,13 +167,28 @@ function SendPage() {
               </div>
               <div>
                 <Label htmlFor="note">Note (optional)</Label>
-                <Input id="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="What's this for?" maxLength={120} />
+                <Input
+                  id="note"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="What's this for?"
+                  maxLength={120}
+                />
               </div>
               {amountMinor > 0 && (
                 <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span>{formatMoney(amountMinor, currency)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Fee</span><span>{formatMoney(feeMinor, currency)}</span></div>
-                  <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{formatMoney(totalMinor, currency)}</span></div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span>{formatMoney(amountMinor, currency)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Fee</span>
+                    <span>{formatMoney(feeMinor, currency)}</span>
+                  </div>
+                  <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold">
+                    <span>Total</span>
+                    <span>{formatMoney(totalMinor, currency)}</span>
+                  </div>
                 </div>
               )}
               <Button
@@ -185,18 +226,40 @@ function SendPage() {
             disabled={submitting || idemStatus === "duplicate" || idemStatus === "posted"}
             className="w-full gradient-brand text-white border-0 h-12 text-base"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="mr-2 h-4 w-4" /> Confirm & send</>}
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" /> Confirm & send
+              </>
+            )}
           </Button>
-          <p className="text-center text-xs text-muted-foreground">Sandbox — no real money will be moved.</p>
+          <p className="text-center text-xs text-muted-foreground">
+            Sandbox — no real money will be moved.
+          </p>
         </div>
       )}
 
-      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={handleExecute} title="Authorize transfer" description="Enter your 4-digit PIN to send this payment." />
+      <PinModal
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onSuccess={handleExecute}
+        title="Authorize transfer"
+        description="Enter your 4-digit PIN to send this payment."
+      />
     </div>
   );
 }
 
-function PayeePicker({ payees, value, onChange }: { payees: Payee[]; value: string; onChange: (v: string) => void }) {
+function PayeePicker({
+  payees,
+  value,
+  onChange,
+}: {
+  payees: Payee[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
   const grouped = useMemo(() => {
     return CURRENCIES.map((c) => ({ currency: c, items: payees.filter((p) => p.currency === c) }));
   }, [payees]);
@@ -206,7 +269,9 @@ function PayeePicker({ payees, value, onChange }: { payees: Payee[]; value: stri
       {grouped.map((g) =>
         g.items.length ? (
           <div key={g.currency}>
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{g.currency}</div>
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {g.currency}
+            </div>
             <div className="grid gap-2">
               {g.items.map((p) => (
                 <button
@@ -216,7 +281,11 @@ function PayeePicker({ payees, value, onChange }: { payees: Payee[]; value: stri
                   className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-all ${value === p.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full gradient-brand text-xs font-bold text-white">
-                    {p.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    {p.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium">{p.name}</div>

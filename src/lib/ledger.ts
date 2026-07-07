@@ -70,7 +70,12 @@ export async function auditIdempotencyKey(key: string): Promise<IdempotencyAudit
     checkedAt: new Date().toISOString(),
     used: !!data,
     match: data
-      ? { id: data.id, type: String(data.type), state: String(data.state), created_at: data.created_at }
+      ? {
+          id: data.id,
+          type: String(data.type),
+          state: String(data.state),
+          created_at: data.created_at,
+        }
       : null,
   };
 }
@@ -103,12 +108,14 @@ export async function postFxConversion(args: {
   fromAmountMinor: number;
   pin?: string;
 }): Promise<FxConversionResult> {
-  const rpc = (supabase as unknown as {
-    rpc: (
-      name: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  }).rpc;
+  const rpc = (
+    supabase as unknown as {
+      rpc: (
+        name: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    }
+  ).rpc;
   const { data, error } = await rpc("post_fx_conversion", {
     p_idempotency_key: args.idempotencyKey,
     p_from_currency: args.fromCurrency,

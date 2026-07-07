@@ -24,10 +24,14 @@ test.describe("Hive assistant — PIN authorization on confirmations", () => {
   test("wrong PIN blocks the Hive-proposed transfer", async ({ page }) => {
     const confirmBtn = await askHiveToSend(page);
     await confirmBtn.click();
-    await expect(page.getByRole("dialog", { name: /Authorize via Smart Pay Engine/i })).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: /Authorize via Smart Pay Engine/i }),
+    ).toBeVisible();
     await typePin(page, WRONG_PIN);
     await expectToast(page, /Incorrect PIN/i);
-    await expect(page.getByRole("dialog", { name: /Authorize via Smart Pay Engine/i })).toBeVisible();
+    await expect(
+      page.getByRole("dialog", { name: /Authorize via Smart Pay Engine/i }),
+    ).toBeVisible();
   });
 
   test("correct PIN executes the Hive-proposed transfer", async ({ page }) => {

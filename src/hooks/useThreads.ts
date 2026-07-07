@@ -72,7 +72,10 @@ export async function persistUserMessage(threadId: string, message: UIMessage) {
     role: "user",
     message: message as never,
   });
-  const text = message.parts?.map((p: { type: string; text?: string }) => (p.type === "text" ? p.text ?? "" : "")).join("").trim();
+  const text = message.parts
+    ?.map((p: { type: string; text?: string }) => (p.type === "text" ? (p.text ?? "") : ""))
+    .join("")
+    .trim();
   if (text) {
     const title = text.slice(0, 60);
     await supabase

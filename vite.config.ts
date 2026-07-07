@@ -17,9 +17,7 @@ export default defineConfig({
     server: { entry: "server" },
     // Mobile only: prerender a static SPA shell so the APK can bundle assets offline.
     // Emit the shell as index.html (default is _shell.html) so Capacitor's webDir has an entry point.
-    ...(isMobileBuild
-      ? { spa: { enabled: true, prerender: { outputPath: "/index.html" } } }
-      : {}),
+    ...(isMobileBuild ? { spa: { enabled: true, prerender: { outputPath: "/index.html" } } } : {}),
   },
   // Mobile only: disable the Nitro/Cloudflare deploy plugin. SPA mode must own the build —
   // its prerender preview-server expects the server at dist/server/server.js, which the

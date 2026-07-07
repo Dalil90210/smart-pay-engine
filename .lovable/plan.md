@@ -62,6 +62,7 @@ TanStack-style file routes (React Router in this template — using react-router
 ## 5. Hive Parser (MVP, client-side)
 
 Pattern-match common phrasings:
+
 - `send <amount> <currency> to <payee>` / `send <currency-symbol><amount> to <payee>`
 - `convert <amount> <ccy> to <ccy>`
 - `add <amount> <ccy>`

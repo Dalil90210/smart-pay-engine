@@ -38,14 +38,25 @@ test.describe("Send money — PIN authorization", () => {
     await reachReviewStep(page);
     await page.getByRole("button", { name: /Confirm & send/i }).click();
     await typePin(page, CORRECT_PIN);
-    await expect(page.getByRole("dialog", { name: /Authorize transfer/i })).toBeHidden({ timeout: 10_000 });
+    await expect(page.getByRole("dialog", { name: /Authorize transfer/i })).toBeHidden({
+      timeout: 10_000,
+    });
     // Either success toast or navigation away from review step.
     await expect
-      .poll(async () => {
-        const toast = await page.locator("[data-sonner-toast]").filter({ hasText: /sent|posted|success/i }).count();
-        const stillOnReview = await page.getByRole("button", { name: /Confirm & send/i }).isVisible().catch(() => false);
-        return toast > 0 || !stillOnReview;
-      }, { timeout: 10_000 })
+      .poll(
+        async () => {
+          const toast = await page
+            .locator("[data-sonner-toast]")
+            .filter({ hasText: /sent|posted|success/i })
+            .count();
+          const stillOnReview = await page
+            .getByRole("button", { name: /Confirm & send/i })
+            .isVisible()
+            .catch(() => false);
+          return toast > 0 || !stillOnReview;
+        },
+        { timeout: 10_000 },
+      )
       .toBeTruthy();
   });
 });

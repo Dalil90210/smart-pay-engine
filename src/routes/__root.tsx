@@ -94,8 +94,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Smart Pay Engine" },
       { name: "twitter:description", content: "Multi-currency smart payments — sandbox" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/KrYXZ3KTlITZD5yl09Po3t7CHvc2/social-images/social-1781769879021-SMPE.logo.webp",
+      },
       { property: "og:site_name", content: "Smart Pay Engine" },
       { property: "og:url", content: "https://app.smartpayengine.com/" },
     ],

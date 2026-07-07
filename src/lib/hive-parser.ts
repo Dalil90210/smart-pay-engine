@@ -8,16 +8,24 @@ export type HiveIntent =
   | { kind: "balance" }
   | { kind: "unknown"; reason: string };
 
-const SYMBOL_TO_CCY: Record<string, Currency> = { "$": "USD", "€": "EUR", "£": "GBP" };
+const SYMBOL_TO_CCY: Record<string, Currency> = { $: "USD", "€": "EUR", "£": "GBP" };
 const WORDS: Record<string, Currency> = {
-  usd: "USD", dollar: "USD", dollars: "USD",
-  eur: "EUR", euro: "EUR", euros: "EUR",
-  gbp: "GBP", pound: "GBP", pounds: "GBP", sterling: "GBP",
+  usd: "USD",
+  dollar: "USD",
+  dollars: "USD",
+  eur: "EUR",
+  euro: "EUR",
+  euros: "EUR",
+  gbp: "GBP",
+  pound: "GBP",
+  pounds: "GBP",
+  sterling: "GBP",
 };
 
 function detectCurrency(text: string): { currency?: Currency; cleaned: string } {
   for (const sym of Object.keys(SYMBOL_TO_CCY)) {
-    if (text.includes(sym)) return { currency: SYMBOL_TO_CCY[sym], cleaned: text.replace(sym, " ") };
+    if (text.includes(sym))
+      return { currency: SYMBOL_TO_CCY[sym], cleaned: text.replace(sym, " ") };
   }
   const lower = text.toLowerCase();
   for (const w of Object.keys(WORDS)) {
@@ -42,7 +50,10 @@ export function parseIntent(input: string): HiveIntent {
   if (/\b(balance|how much|what.?s my)\b/.test(lower)) return { kind: "balance" };
 
   // Convert: "convert 100 usd to eur", "exchange 50 € to gbp"
-  if (/\b(convert|exchange|swap|change)\b/.test(lower) || /\bto\s+(usd|eur|gbp|dollars|euros|pounds|\$|€|£)/i.test(text)) {
+  if (
+    /\b(convert|exchange|swap|change)\b/.test(lower) ||
+    /\bto\s+(usd|eur|gbp|dollars|euros|pounds|\$|€|£)/i.test(text)
+  ) {
     const toMatch = text.match(/to\s+(usd|eur|gbp|dollars?|euros?|pounds?|\$|€|£)/i);
     let toC: Currency | undefined;
     if (toMatch) {
@@ -69,9 +80,13 @@ export function parseIntent(input: string): HiveIntent {
   // Send: "send €500 to Maria", "pay 200 gbp to james"
   if (/\b(send|pay|transfer|wire)\b/.test(lower)) {
     const toIdx = lower.search(/\bto\b/);
-    if (toIdx === -1) return { kind: "unknown", reason: "Who should I send to? Try: 'send 100 USD to Acme'" };
+    if (toIdx === -1)
+      return { kind: "unknown", reason: "Who should I send to? Try: 'send 100 USD to Acme'" };
     const before = text.slice(0, toIdx);
-    const after = text.slice(toIdx + 2).trim().replace(/^[,\s]+/, "");
+    const after = text
+      .slice(toIdx + 2)
+      .trim()
+      .replace(/^[,\s]+/, "");
     const payeeQuery = after.replace(/[.!?]$/, "").trim();
     const { currency, cleaned } = detectCurrency(before);
     const { amountMinor } = parseAmount(cleaned);
@@ -79,11 +94,16 @@ export function parseIntent(input: string): HiveIntent {
       return { kind: "send", amountMinor, currency, payeeQuery };
     }
     if (!amountMinor) return { kind: "unknown", reason: "How much? Try: 'send €500 to Maria'" };
-    if (!currency) return { kind: "unknown", reason: "Which currency? Add USD, EUR, or GBP (or use $ € £)" };
+    if (!currency)
+      return { kind: "unknown", reason: "Which currency? Add USD, EUR, or GBP (or use $ € £)" };
     return { kind: "unknown", reason: "Try: 'send €500 to Maria'" };
   }
 
-  return { kind: "unknown", reason: "I can send money, convert currencies, add funds, or check balances. Try: 'send €500 to Maria'." };
+  return {
+    kind: "unknown",
+    reason:
+      "I can send money, convert currencies, add funds, or check balances. Try: 'send €500 to Maria'.",
+  };
 }
 
 export function describeIntent(intent: HiveIntent): string {

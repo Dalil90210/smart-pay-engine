@@ -76,9 +76,7 @@ export function IdempotencyIndicator({
       <span
         className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-medium ${meta.tone}`}
       >
-        <Icon
-          className={`h-3 w-3 ${status === "submitting" ? "animate-spin" : ""}`}
-        />
+        <Icon className={`h-3 w-3 ${status === "submitting" ? "animate-spin" : ""}`} />
         {meta.label}
       </span>
     </div>

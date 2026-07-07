@@ -14,17 +14,17 @@ all inside one atomic Postgres transaction.
 
 Client callers (`src/**`) that move money:
 
-| Feature | Client entry point | Server RPC | Goes through `post_transaction`? |
-|---|---|---|---|
-| Send money | `src/routes/send.tsx` → `postTransaction()` (`src/lib/ledger.ts`) | `post_transaction` | ✅ direct |
-| Add funds (deposit) | `src/routes/add-funds.tsx` → `postTransaction()` | `post_transaction` | ✅ direct |
-| Convert / FX | `src/routes/convert.tsx` → `postFxConversion()` | `post_fx_conversion` → `post_transaction` (with `spe.internal='yes'` GUC set to skip the *client* PIN re-check only; lock & balance checks still run) | ✅ via wrapper |
-| Hive assistant Send | `src/routes/hive.tsx`, `src/routes/assistant.$threadId.tsx` → `postTransaction()` | `post_transaction` | ✅ direct |
-| Hive assistant Convert | `src/routes/assistant.$threadId.tsx` → `postFxConversion()` | `post_fx_conversion` → `post_transaction` | ✅ via wrapper |
-| Invoice payment (public share link) | `src/routes/i.$token.tsx` → `pay_invoice_by_token` RPC | `pay_invoice_by_token` (`SECURITY DEFINER`) | ⚠️ **writes `ledger_entries` directly — see finding F1** |
-| Reversals (case-management UI) | `src/hooks/useReversals.ts` | `reversals` table CRUD only — does **not** post ledger entries | N/A (no money movement) |
-| Signup seed balance | trigger `handle_new_user` on `auth.users` | inserts into `transactions` + `ledger_entries` directly inside the trigger | 🟡 **seed only** — see finding F2 |
-| Demo reversals seed | migration `20260617131651…` | inserts ledger rows directly | 🟡 **one-time migration seed** — see finding F2 |
+| Feature                             | Client entry point                                                                | Server RPC                                                                                                                                            | Goes through `post_transaction`?                         |
+| ----------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Send money                          | `src/routes/send.tsx` → `postTransaction()` (`src/lib/ledger.ts`)                 | `post_transaction`                                                                                                                                    | ✅ direct                                                |
+| Add funds (deposit)                 | `src/routes/add-funds.tsx` → `postTransaction()`                                  | `post_transaction`                                                                                                                                    | ✅ direct                                                |
+| Convert / FX                        | `src/routes/convert.tsx` → `postFxConversion()`                                   | `post_fx_conversion` → `post_transaction` (with `spe.internal='yes'` GUC set to skip the _client_ PIN re-check only; lock & balance checks still run) | ✅ via wrapper                                           |
+| Hive assistant Send                 | `src/routes/hive.tsx`, `src/routes/assistant.$threadId.tsx` → `postTransaction()` | `post_transaction`                                                                                                                                    | ✅ direct                                                |
+| Hive assistant Convert              | `src/routes/assistant.$threadId.tsx` → `postFxConversion()`                       | `post_fx_conversion` → `post_transaction`                                                                                                             | ✅ via wrapper                                           |
+| Invoice payment (public share link) | `src/routes/i.$token.tsx` → `pay_invoice_by_token` RPC                            | `pay_invoice_by_token` (`SECURITY DEFINER`)                                                                                                           | ⚠️ **writes `ledger_entries` directly — see finding F1** |
+| Reversals (case-management UI)      | `src/hooks/useReversals.ts`                                                       | `reversals` table CRUD only — does **not** post ledger entries                                                                                        | N/A (no money movement)                                  |
+| Signup seed balance                 | trigger `handle_new_user` on `auth.users`                                         | inserts into `transactions` + `ledger_entries` directly inside the trigger                                                                            | 🟡 **seed only** — see finding F2                        |
+| Demo reversals seed                 | migration `20260617131651…`                                                       | inserts ledger rows directly                                                                                                                          | 🟡 **one-time migration seed** — see finding F2          |
 
 RLS on `ledger_entries` denies all direct client `INSERT` (`WITH CHECK (false)` policy, proven by
 `tests/ledger/ledger_hardening.py` §A). So the only way rows can appear in the
@@ -36,6 +36,7 @@ and `pay_invoice_by_token`.
 ## 2. Lock coverage per RPC
 
 ### `post_transaction` — ✅ locks
+
 Source: `supabase/migrations/20260705123216_662e0ebb-….sql` (current definition
 also embedded in `<db-functions>`).
 
@@ -56,7 +57,7 @@ PERFORM 1 FROM public.accounts
 All of this executes inside the caller's implicit transaction — PL/pgSQL
 `SECURITY DEFINER` functions do not commit mid-function. The row lock held
 by `FOR UPDATE` is released only when that transaction commits or rolls
-back, which happens *after* the `INSERT`s. There is no window between
+back, which happens _after_ the `INSERT`s. There is no window between
 "balance verified" and "entries written" where another session could
 observe the pre-lock balance and race in.
 
@@ -64,21 +65,24 @@ Isolation level: the RPC does **not** set a custom isolation level, so it
 inherits the PostgREST default of `READ COMMITTED`. That is sufficient
 here because the correctness guarantee comes from the row lock, not
 from snapshot isolation — `FOR UPDATE` blocks concurrent debiters until
-this transaction ends, and the balance is recomputed *after* the lock is
+this transaction ends, and the balance is recomputed _after_ the lock is
 acquired.
 
 ### `post_fx_conversion` — ✅ locks (via `post_transaction`)
+
 Sets `spe.internal='yes'` and calls `public.post_transaction(...)`. The GUC
-only bypasses the *client* PIN re-check (PIN was already enforced by
+only bypasses the _client_ PIN re-check (PIN was already enforced by
 `post_fx_conversion` itself); it does **not** bypass the lock, balance
 check, or ledger insert. Both `debit` legs (`checking(from)` and
 `fx_suspense(to)`) go through the `FOR UPDATE` in `post_transaction`.
 
 ### `pay_invoice_by_token` — ⚠️ **Finding F1** — no `FOR UPDATE` on debited account
+
 Source: `supabase/migrations/20260701022941_23c562bd-….sql` lines 247-320
 (also visible in `<db-functions>`).
 
 This RPC:
+
 1. Locks the invoice row: `SELECT * FROM invoices WHERE share_token=… FOR UPDATE`.
 2. Short-circuits on idempotency key.
 3. Inserts a `transactions` row and three `ledger_entries` rows directly.
@@ -105,6 +109,7 @@ would give it the same balance-check assertion and put all money
 movement behind a single guarded RPC.
 
 ### F2 — seed-only direct inserts (accepted risk)
+
 - `handle_new_user()` (signup trigger) inserts the initial sandbox balance
   directly. This runs once per user, inside a single trigger transaction,
   before the user has any concurrent activity — no race possible.

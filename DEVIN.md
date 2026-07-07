@@ -20,7 +20,7 @@ There are three ways to get Devin working on something:
 
 2. **Via a PR comment** — comment on any open Pull Request and mention
    `@Devin` (for example, `@Devin please add tests for the partial-reversal
-   path`). The [`devin-trigger`](./.github/workflows/devin-trigger.yml) workflow
+path`). The [`devin-trigger`](./.github/workflows/devin-trigger.yml) workflow
    forwards the comment to Devin.
 
 3. **Via an issue comment** — the same `@Devin ...` mention works on issues.
@@ -69,12 +69,12 @@ Never commit directly to `main`. Open a Pull Request from the `devin/` branch.
 The .NET backend uses Clean Architecture with strict dependency direction
 (`Api` -> `Infrastructure` -> `Core`; `Core` depends on nothing):
 
-| Project | Responsibility |
-| --- | --- |
-| `SmartPayEngine.Core` | Domain models, value objects, enums, catalogs, and business logic — including the **IntelligentReversalEngine** and **SmartRoutingService**. Framework-agnostic; no EF/ASP.NET references. |
-| `SmartPayEngine.Infrastructure` | Persistence (EF Core / SQLite), repositories, `SystemClock`, and the `AddSmartPayEngine()` DI wiring. |
-| `SmartPayEngine.Api` | ASP.NET Core Web API — controllers, request/response contracts, Swagger. |
-| `SmartPayEngine.Tests` | xUnit tests for the engine, routing, and persistence. |
+| Project                         | Responsibility                                                                                                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SmartPayEngine.Core`           | Domain models, value objects, enums, catalogs, and business logic — including the **IntelligentReversalEngine** and **SmartRoutingService**. Framework-agnostic; no EF/ASP.NET references. |
+| `SmartPayEngine.Infrastructure` | Persistence (EF Core / SQLite), repositories, `SystemClock`, and the `AddSmartPayEngine()` DI wiring.                                                                                      |
+| `SmartPayEngine.Api`            | ASP.NET Core Web API — controllers, request/response contracts, Swagger.                                                                                                                   |
+| `SmartPayEngine.Tests`          | xUnit tests for the engine, routing, and persistence.                                                                                                                                      |
 
 ---
 
@@ -125,11 +125,11 @@ below.
    (or grant access to all repositories if you prefer).
 4. Grant the following **repository permissions**:
 
-   | Permission | Access |
-   | --- | --- |
-   | **Contents** | Read & Write |
+   | Permission        | Access       |
+   | ----------------- | ------------ |
+   | **Contents**      | Read & Write |
    | **Pull requests** | Read & Write |
-   | **Checks** | Read & Write |
+   | **Checks**        | Read & Write |
 
 5. Click **Install** (or **Save** if updating an existing installation), then
    approve the permission change.
@@ -140,10 +140,10 @@ The [`devin-trigger`](./.github/workflows/devin-trigger.yml) workflow needs two
 secrets. Add them under **Settings -> Secrets and variables -> Actions -> New
 repository secret**:
 
-| Secret | Value |
-| --- | --- |
-| `DEVIN_API_TOKEN` | API token from Devin (**Settings -> API Keys**). Sent as a Bearer token. |
-| `DEVIN_API_ENDPOINT` | Devin sessions endpoint, e.g. `https://api.devin.ai/v1/sessions`. |
+| Secret               | Value                                                                    |
+| -------------------- | ------------------------------------------------------------------------ |
+| `DEVIN_API_TOKEN`    | API token from Devin (**Settings -> API Keys**). Sent as a Bearer token. |
+| `DEVIN_API_ENDPOINT` | Devin sessions endpoint, e.g. `https://api.devin.ai/v1/sessions`.        |
 
 If these secrets are absent (e.g. on forks), the workflow skips the notification
 step gracefully instead of failing.

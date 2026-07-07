@@ -1,5 +1,20 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Send, ArrowRightLeft, List, Sparkles, Settings, LogOut, Moon, Sun, Shield, BarChart3, FileText, Users, ShieldCheck } from "lucide-react";
+import {
+  LayoutDashboard,
+  Send,
+  ArrowRightLeft,
+  List,
+  Sparkles,
+  Settings,
+  LogOut,
+  Moon,
+  Sun,
+  Shield,
+  BarChart3,
+  FileText,
+  Users,
+  ShieldCheck,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useProfile } from "@/hooks/useProfile";
@@ -50,7 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <nav className="flex flex-1 flex-col gap-1">
           {navItems.map((it) => {
-            const active = location.pathname === it.to || (it.to !== "/" && location.pathname.startsWith(it.to));
+            const active =
+              location.pathname === it.to || (it.to !== "/" && location.pathname.startsWith(it.to));
             return (
               <Link
                 key={it.to}
@@ -74,14 +90,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="flex flex-col gap-1 border-t border-border pt-4">
           <div className="px-3 pb-2 text-xs text-muted-foreground truncate">{user?.email}</div>
-          <Link to="/settings" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground">
+          <Link
+            to="/settings"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+          >
             <Settings className="h-4 w-4" /> Settings
           </Link>
-          <button onClick={toggle} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground">
+          <button
+            onClick={toggle}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+          >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {theme === "dark" ? "Light mode" : "Dark mode"}
           </button>
-          <button onClick={handleSignOut} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
             <LogOut className="h-4 w-4" /> Sign out
           </button>
         </div>
@@ -91,7 +116,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/70 px-3 py-2.5 backdrop-blur sm:px-4 sm:py-3 md:hidden">
           <Link to="/" className="flex min-w-0 items-center">
-            <img src={logoUrl} alt="Smart Pay Engine" className="h-16 w-auto shrink-0 object-contain" />
+            <img
+              src={logoUrl}
+              alt="Smart Pay Engine"
+              className="h-16 w-auto shrink-0 object-contain"
+            />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5">
             <SandboxBadge />
@@ -114,7 +143,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             { to: "/reversals", label: "Reversals", icon: Shield },
             { to: "/transactions", label: "Activity", icon: List },
           ].map((it) => {
-            const active = location.pathname === it.to || (it.to !== "/" && location.pathname.startsWith(it.to));
+            const active =
+              location.pathname === it.to || (it.to !== "/" && location.pathname.startsWith(it.to));
             return (
               <Link
                 key={it.to}

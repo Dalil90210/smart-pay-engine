@@ -33,13 +33,22 @@ export function useInvoices() {
   return useQuery({
     queryKey: ["invoices"],
     queryFn: async () => {
-      const { data, error } = await (supabase as unknown as {
-        from: (t: string) => {
-          select: (s: string) => { order: (c: string, o: { ascending: boolean }) => Promise<{ data: unknown; error: unknown }> };
-        };
-      })
+      const { data, error } = await (
+        supabase as unknown as {
+          from: (t: string) => {
+            select: (s: string) => {
+              order: (
+                c: string,
+                o: { ascending: boolean },
+              ) => Promise<{ data: unknown; error: unknown }>;
+            };
+          };
+        }
+      )
         .from("invoices")
-        .select("id, number, client_name, client_email, currency, due_date, status, subtotal_minor, tax_setaside_percent, share_token, notes, paid_at, created_at, invoice_items(id, description, quantity, unit_price_minor, position)")
+        .select(
+          "id, number, client_name, client_email, currency, due_date, status, subtotal_minor, tax_setaside_percent, share_token, notes, paid_at, created_at, invoice_items(id, description, quantity, unit_price_minor, position)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error as Error;
       const rows = (data as Invoice[] | null) ?? [];

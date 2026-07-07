@@ -66,17 +66,17 @@ gates eligibility (terminal state / blown reversal window), ranks reason codes b
 evidence-adjusted win rate, then blends nine normalized `[0,1]` factors into the
 final probability:
 
-| Factor              | Weight | What it captures                                        |
-|---------------------|:------:|---------------------------------------------------------|
-| Rail reversibility  | 0.18   | Base unwind success for the rail (chargeback vs recall) |
-| Scheme rule fit     | 0.16   | Does this reason code have standing on this rail?       |
-| Reason code strength| 0.18   | Evidence-adjusted win rate of the chosen code           |
-| Timing              | 0.12   | Freshness against the rail's reversal window            |
-| Settlement state    | 0.06   | Pre-settlement cancellations are far easier             |
-| Customer trust      | 0.10   | Tenure / KYC / track record vs. reversal-abuse rate     |
-| Fraud / risk signal | 0.08   | Upstream risk, with a penalized "friendly-fraud" band   |
-| Amount scrutiny     | 0.06   | Larger claims attract more scrutiny                     |
-| Counterparty & FX   | 0.06   | Channel, cross-currency friction, dispute history       |
+| Factor               | Weight | What it captures                                        |
+| -------------------- | :----: | ------------------------------------------------------- |
+| Rail reversibility   |  0.18  | Base unwind success for the rail (chargeback vs recall) |
+| Scheme rule fit      |  0.16  | Does this reason code have standing on this rail?       |
+| Reason code strength |  0.18  | Evidence-adjusted win rate of the chosen code           |
+| Timing               |  0.12  | Freshness against the rail's reversal window            |
+| Settlement state     |  0.06  | Pre-settlement cancellations are far easier             |
+| Customer trust       |  0.10  | Tenure / KYC / track record vs. reversal-abuse rate     |
+| Fraud / risk signal  |  0.08  | Upstream risk, with a penalized "friendly-fraud" band   |
+| Amount scrutiny      |  0.06  | Larger claims attract more scrutiny                     |
+| Counterparty & FX    |  0.06  | Channel, cross-currency friction, dispute history       |
 
 Action selection: low odds + small exposure → **NoReversal**; high-risk mid-odds
 or very large exposure → **ManualReview**; a contested sub-amount on a
@@ -116,34 +116,38 @@ dotnet dotnet-ef migrations add <Name> \
 ## API
 
 ### Reversal engine
-| Method & path                         | Purpose                                  |
-|---------------------------------------|------------------------------------------|
-| `POST /api/reversals/analyze`         | Analyze a transaction (read-only)        |
-| `POST /api/reversals/request`         | Analyze and persist a reversal request   |
-| `GET  /api/reversals/{id}`            | Fetch a persisted request                |
-| `GET  /api/reversals`                 | List requests, highest priority first    |
-| `POST /api/reversals/{id}/approve`    | Approve a request                        |
-| `POST /api/reversals/{id}/reject`     | Reject a request                         |
+
+| Method & path                      | Purpose                                |
+| ---------------------------------- | -------------------------------------- |
+| `POST /api/reversals/analyze`      | Analyze a transaction (read-only)      |
+| `POST /api/reversals/request`      | Analyze and persist a reversal request |
+| `GET  /api/reversals/{id}`         | Fetch a persisted request              |
+| `GET  /api/reversals`              | List requests, highest priority first  |
+| `POST /api/reversals/{id}/approve` | Approve a request                      |
+| `POST /api/reversals/{id}/reject`  | Reject a request                       |
 
 ### Smart routing
-| Method & path                | Purpose                                            |
-|------------------------------|----------------------------------------------------|
-| `POST /api/routing/analyze`  | Rank rails for a corridor (balanced/cheapest/fastest) |
+
+| Method & path               | Purpose                                               |
+| --------------------------- | ----------------------------------------------------- |
+| `POST /api/routing/analyze` | Rank rails for a corridor (balanced/cheapest/fastest) |
 
 ### Transactions
-| Method & path                                  | Purpose                       |
-|------------------------------------------------|-------------------------------|
-| `POST /api/transactions`                       | Create/store a transaction    |
-| `GET  /api/transactions/{id}`                  | Fetch a transaction           |
-| `GET  /api/transactions`                       | List transactions             |
-| `GET  /api/transactions/{id}/routing`          | Route a stored transaction    |
-| `POST /api/transactions/{id}/reversal-analysis`| Analyze a stored transaction  |
+
+| Method & path                                   | Purpose                      |
+| ----------------------------------------------- | ---------------------------- |
+| `POST /api/transactions`                        | Create/store a transaction   |
+| `GET  /api/transactions/{id}`                   | Fetch a transaction          |
+| `GET  /api/transactions`                        | List transactions            |
+| `GET  /api/transactions/{id}/routing`           | Route a stored transaction   |
+| `POST /api/transactions/{id}/reversal-analysis` | Analyze a stored transaction |
 
 ### Reference data
-| Method & path                  | Purpose                          |
-|--------------------------------|----------------------------------|
-| `GET /api/catalog/providers`   | Rail economics & reversibility   |
-| `GET /api/catalog/reason-codes`| Reason-code win rates & evidence |
+
+| Method & path                   | Purpose                          |
+| ------------------------------- | -------------------------------- |
+| `GET /api/catalog/providers`    | Rail economics & reversibility   |
+| `GET /api/catalog/reason-codes` | Reason-code win rates & evidence |
 
 ### Example — analyze a duplicate charge
 
