@@ -11,7 +11,7 @@ Lovable can't produce an APK in-browser — Android builds need the Android SDK 
 3. From the project root:
    ```bash
    bun install
-   bun run build
+   MOBILE_BUILD=1 bun run build
    npx cap add android
    npx cap sync android
    ```
@@ -46,7 +46,7 @@ APK output: `android/app/build/outputs/apk/release/app-release.apk`
 `capacitor.config.ts` currently points `server.url` at the Lovable preview URL — the APK loads the live web app, so every code change appears after you re-open the app. For a fully offline/production APK:
 
 1. Remove the `server` block in `capacitor.config.ts`.
-2. `bun run build && npx cap sync android`
+2. `MOBILE_BUILD=1 bun run build && npx cap sync android`
 3. Rebuild the APK.
 
 ## After pulling new changes
@@ -54,7 +54,7 @@ APK output: `android/app/build/outputs/apk/release/app-release.apk`
 ```bash
 git pull
 bun install
-bun run build
+MOBILE_BUILD=1 bun run build
 npx cap sync android
 cd android && ./gradlew assembleDebug
 ```

@@ -79,7 +79,7 @@ echo "==> Installing dependencies"
 $PM install
 
 echo "==> Building web bundle (dist/)"
-$PM_RUN build
+MOBILE_BUILD=1 $PM_RUN build
 
 # --- Offline mode: temporarily strip server.url ------------------------------
 CONFIG=capacitor.config.ts
