@@ -16,11 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      # FIX #1: Downgrade to JDK 17 (Capacitor stable target)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
@@ -34,6 +35,10 @@ jobs:
       - name: Build static SPA for Capacitor
         run: MOBILE_BUILD=1 npm run build
 
+      # FIX #2: Add npx cap copy before sync
+      - name: Copy web assets to Capacitor
+        run: npx cap copy android
+
       - name: Sync Capacitor
         run: npx cap sync android
 
@@ -44,13 +49,14 @@ jobs:
             SDKMANAGER="$(command -v sdkmanager)"
           fi
           yes | "$SDKMANAGER" --licenses >/dev/null
-          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
+      # FIX #3: Add --stacktrace for better debugging if it still fails
       - name: Build debug APK
-        run: cd android && ./gradlew assembleDebug
+        run: cd android && ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
