@@ -37,12 +37,37 @@ esac
 
 # --- Preflight ---------------------------------------------------------------
 command -v node >/dev/null || { echo "node not found — install Node.js 20+"; exit 1; }
+
+# Require Node.js 20+
+NODE_MAJOR=$(node -e "process.stdout.write(String(process.versions.node.split('.')[0]))")
+if [ "$NODE_MAJOR" -lt 20 ]; then
+  echo "ERROR: Node.js 20+ required (found $(node --version)). Update via nvm or nodejs.org." >&2
+  exit 1
+fi
+
 if command -v bun >/dev/null; then PM=bun; PM_RUN="bun run"; PM_X="bunx";
 elif command -v npm >/dev/null; then PM=npm; PM_RUN="npm run"; PM_X="npx";
 else echo "Need bun or npm"; exit 1; fi
 
+# Verify Java is available (required by Gradle)
+command -v java >/dev/null || {
+  echo "ERROR: Java not found. Install JDK 17 via Android Studio (Preferences → SDK Tools → Android SDK Command-line Tools) or from https://adoptium.net" >&2
+  exit 1
+}
+
 if [ -z "${ANDROID_HOME:-}${ANDROID_SDK_ROOT:-}" ]; then
-  echo "WARN: ANDROID_HOME / ANDROID_SDK_ROOT is not set. Gradle may fail to locate the SDK." >&2
+  # Try common macOS / Linux default locations before warning
+  if [ -d "$HOME/Library/Android/sdk" ]; then
+    export ANDROID_HOME="$HOME/Library/Android/sdk"
+  elif [ -d "$HOME/Android/Sdk" ]; then
+    export ANDROID_HOME="$HOME/Android/Sdk"
+  else
+    echo "WARN: ANDROID_HOME / ANDROID_SDK_ROOT is not set. Gradle may fail to locate the SDK." >&2
+    echo "      Set it to the Android SDK location, e.g.:" >&2
+    echo "        macOS:  export ANDROID_HOME=\$HOME/Library/Android/sdk" >&2
+    echo "        Linux:  export ANDROID_HOME=\$HOME/Android/Sdk" >&2
+    echo "      You can find the path in Android Studio → Preferences → Appearance & Behaviour → Android SDK." >&2
+  fi
 fi
 
 # --- Collect signing config (release only) -----------------------------------

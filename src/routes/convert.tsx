@@ -73,14 +73,17 @@ function ConvertPage() {
   const quote = getFxQuote(from, to, amountMinor);
   const inverseRate = quote.rate > 0 ? 1 / quote.rate : 0;
 
-  // Timestamp refreshes whenever inputs affecting the quote change, and
-  // ticks every 15s while the form is open so users see a live "as of" time.
+  // Timestamp ticks every 15s while the form is open so users see a live "as of" time.
+  // It also resets immediately whenever any quote input changes.
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15_000);
     return () => clearInterval(id);
   }, []);
-  const quotedAt = useMemo(() => new Date(now), [from, to, amountMinor, now]);
+  useEffect(() => {
+    setNow(Date.now());
+  }, [from, to, amountMinor]);
+  const quotedAt = useMemo(() => new Date(now), [now]);
   const quotedAtTime = quotedAt.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",

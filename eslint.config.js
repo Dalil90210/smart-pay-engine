@@ -36,5 +36,14 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // shadcn/ui generated files and custom hooks intentionally export both components
+  // and non-component values (variants, hooks) from the same module — disable
+  // the react-refresh fast-reload warning for these directories.
+  {
+    files: ["src/components/ui/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
   eslintPluginPrettier,
 );
