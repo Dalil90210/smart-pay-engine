@@ -12,8 +12,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import logoBigUrl from "../../resources/spe_icon_final.png";
-import logoSmallUrl from "../../resources/spe_icon_transparent.png";
+const logoBigUrl = "/assets/logo-large.png";
+const logoSmallUrl = "/assets/logo-small.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
