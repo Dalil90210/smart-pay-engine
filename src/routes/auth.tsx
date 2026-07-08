@@ -37,8 +37,9 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [phase, setPhase] = useState<"auth" | "pin">("auth");
+  const [phase, setPhase] = useState<"auth" | "pin" | "forgot">("auth");
   const [pin, setPinValue] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
@@ -89,6 +90,23 @@ function AuthPage() {
       await setPin(pin);
       toast.success("PIN saved");
       navigate({ to: "/" });
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("If that email exists, a reset link is on its way.");
+      setPhase("auth");
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
