@@ -91,7 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-border bg-background/70 px-3 py-2.5 backdrop-blur sm:px-4 sm:py-3 md:hidden">
           <Link to="/" className="flex min-w-0 items-center">
-            <img src={logoUrl} alt="Smart Pay Engine" className="h-16 w-auto shrink-0 object-contain" />
+            <img src={logoUrl} alt="SmartPayEngine" className="h-8 w-auto shrink-0 object-contain" />
           </Link>
           <div className="flex shrink-0 items-center gap-1.5">
             <SandboxBadge />
