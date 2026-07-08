@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LedgerIntegrityRouteImport } from './routes/ledger-integrity'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -61,6 +62,11 @@ const SendRoute = SendRouteImport.update({
 const ReversalsRoute = ReversalsRouteImport.update({
   id: '/reversals',
   path: '/reversals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -315,6 +327,7 @@ export interface RootRouteChildren {
   InvoicesRoute: typeof InvoicesRoute
   LedgerIntegrityRoute: typeof LedgerIntegrityRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
@@ -368,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/reversals'
       fullPath: '/reversals'
       preLoaderRoute: typeof ReversalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -519,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesRoute: InvoicesRoute,
   LedgerIntegrityRoute: LedgerIntegrityRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,

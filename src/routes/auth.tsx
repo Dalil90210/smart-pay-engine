@@ -37,8 +37,9 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [phase, setPhase] = useState<"auth" | "pin">("auth");
+  const [phase, setPhase] = useState<"auth" | "pin" | "forgot">("auth");
   const [pin, setPinValue] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
@@ -96,6 +97,23 @@ function AuthPage() {
     }
   };
 
+  const submitForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("If that email exists, a reset link is on its way.");
+      setPhase("auth");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24">
       <img
@@ -139,7 +157,21 @@ function AuthPage() {
                     <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <div className="flex items-baseline justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      {mode === "signin" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetEmail(email);
+                            setPhase("forgot");
+                          }}
+                          className="text-xs font-medium text-primary hover:underline focus:underline focus:outline-none"
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
                     <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                   </div>
                   <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
@@ -151,6 +183,36 @@ function AuthPage() {
                 </form>
               </TabsContent>
             </Tabs>
+          ) : phase === "forgot" ? (
+            <form onSubmit={submitForgot} className="space-y-4">
+              <div className="text-center">
+                <h2 className="font-display text-lg font-semibold">Reset your password</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Enter your account email and we'll send you a link to set a new password.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send reset link"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => setPhase("auth")}
+                className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
+              >
+                Back to sign in
+              </button>
+            </form>
           ) : (
             <div className="space-y-5 text-center">
               <div>
