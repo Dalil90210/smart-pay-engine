@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 // Use the transparent-background variant so the logo blends into the auth page.
 const logoBigUrl = "/assets/logo-small.png";
 const logoSmallUrl = "/assets/logo-small.png";
