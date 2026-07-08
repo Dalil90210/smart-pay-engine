@@ -22,6 +22,7 @@ import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ConvertRouteImport } from './routes/convert'
+import { Route as BrandPreviewRouteImport } from './routes/brand-preview'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AddFundsRouteImport } from './routes/add-funds'
@@ -97,6 +98,11 @@ const ConvertRoute = ConvertRouteImport.update({
   path: '/convert',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrandPreviewRoute = BrandPreviewRouteImport.update({
+  id: '/brand-preview',
+  path: '/brand-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/add-funds': typeof AddFundsRoute
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/add-funds': typeof AddFundsRoute
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/assistant'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/add-funds'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/assistant'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   AddFundsRoute: typeof AddFundsRoute
   AssistantRoute: typeof AssistantRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BrandPreviewRoute: typeof BrandPreviewRoute
   ConvertRoute: typeof ConvertRoute
   CookiesRoute: typeof CookiesRoute
   HiveRoute: typeof HiveRoute
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConvertRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/brand-preview': {
+      id: '/brand-preview'
+      path: '/brand-preview'
+      fullPath: '/brand-preview'
+      preLoaderRoute: typeof BrandPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -491,6 +511,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddFundsRoute: AddFundsRoute,
   AssistantRoute: AssistantRouteWithChildren,
   AuthRoute: AuthRoute,
+  BrandPreviewRoute: BrandPreviewRoute,
   ConvertRoute: ConvertRoute,
   CookiesRoute: CookiesRoute,
   HiveRoute: HiveRoute,
