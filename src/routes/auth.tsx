@@ -97,7 +97,7 @@ function AuthPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-10 sm:py-12">
+    <div className="relative flex min-h-screen items-center justify-center px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24">
       <img
         src={logoSmallUrl}
         alt="Smart Pay Engine icon"
@@ -105,7 +105,11 @@ function AuthPage() {
       />
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src={logoBigUrl} alt="Smart Pay Engine" className="mx-auto mb-4 h-56 w-auto object-contain sm:h-64" />
+          <img
+            src={logoBigUrl}
+            alt="Smart Pay Engine"
+            className="mx-auto mb-4 h-28 w-auto max-w-[70vw] object-contain xs:h-32 sm:h-48 md:h-64"
+          />
           <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Login to Smart Pay Engine</h1>
           <a
             href="https://smartpayengine.com"
