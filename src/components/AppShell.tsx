@@ -8,8 +8,7 @@ import { OnboardingModal } from "./OnboardingModal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import logoAsset from "@/assets/spe-icon.png.asset.json";
-const logoUrl = logoAsset.url;
+import logoUrl from "@/assets/icon.png";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
