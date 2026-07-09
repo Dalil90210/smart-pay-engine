@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SandboxBadge } from "@/components/SandboxBadge";
+import { PasswordStrength, getPasswordScore, getPasswordChecks } from "@/components/PasswordStrength";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 // Use the transparent-background variant so the logo blends into the auth page.
@@ -52,8 +53,22 @@ function AuthPage() {
     }
   }, [user, loading, navigate, phase]);
 
+  const signupChecks = getPasswordChecks(password);
+  const signupScore = getPasswordScore(password);
+  const signupPasswordOk = signupChecks.length && signupScore >= 3;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup") {
+      if (!signupChecks.length) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (signupScore < 3) {
+        toast.error("Choose a stronger password (mix upper/lower case, numbers, or symbols).");
+        return;
+      }
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -195,8 +210,13 @@ function AuthPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                    {mode === "signup" && <PasswordStrength password={password} />}
                   </div>
-                  <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
+                  <Button
+                    type="submit"
+                    className="w-full gradient-brand text-white border-0"
+                    disabled={busy || (mode === "signup" && password.length > 0 && !signupPasswordOk)}
+                  >
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account" : "Sign in"}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
