@@ -210,8 +210,13 @@ function AuthPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                    {mode === "signup" && <PasswordStrength password={password} />}
                   </div>
-                  <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
+                  <Button
+                    type="submit"
+                    className="w-full gradient-brand text-white border-0"
+                    disabled={busy || (mode === "signup" && password.length > 0 && !signupPasswordOk)}
+                  >
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account" : "Sign in"}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
