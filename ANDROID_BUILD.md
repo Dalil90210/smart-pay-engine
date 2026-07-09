@@ -58,3 +58,24 @@ bun run build
 npx cap sync android
 cd android && ./gradlew assembleDebug
 ```
+
+## App icon / launcher icon
+
+The Android launcher icons in `android/app/src/main/res/mipmap-*/` are generated from
+`src/assets/icon.png` (1024 × 1024 RGBA PNG), which is the source file for the
+`spe-icon.png` branding asset used by the web UI.
+
+If you update `src/assets/icon.png`, regenerate all mipmap PNGs by running:
+
+```bash
+pip install Pillow
+python3 scripts/generate_android_icons.py
+```
+
+> The script (`scripts/generate_android_icons.py`) produces:
+> - `ic_launcher.png` — legacy launcher icon (square, white background)
+> - `ic_launcher_round.png` — legacy round launcher icon (circular crop)
+> - `ic_launcher_foreground.png` — adaptive icon foreground layer (transparent background, icon centred in 108 dp safe zone)
+> - `ic_launcher_background.png` — adaptive icon background layer (solid white)
+>
+> Adaptive icon XML files (`mipmap-anydpi-v26/`) and inset wrappers (`drawable/`) do **not** need regeneration unless the resource names change.
