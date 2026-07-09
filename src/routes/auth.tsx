@@ -53,8 +53,22 @@ function AuthPage() {
     }
   }, [user, loading, navigate, phase]);
 
+  const signupChecks = getPasswordChecks(password);
+  const signupScore = getPasswordScore(password);
+  const signupPasswordOk = signupChecks.length && signupScore >= 3;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup") {
+      if (!signupChecks.length) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (signupScore < 3) {
+        toast.error("Choose a stronger password (mix upper/lower case, numbers, or symbols).");
+        return;
+      }
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
