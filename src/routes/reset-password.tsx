@@ -59,10 +59,43 @@ function ResetPasswordPage() {
     };
   }, []);
 
+  // Strength scoring: length, case mix, digits, symbols.
+  const checks = {
+    length: password.length >= 8,
+    lower: /[a-z]/.test(password),
+    upper: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password),
+  };
+  const score = Object.values(checks).filter(Boolean).length;
+  const strengthLabel =
+    password.length === 0
+      ? ""
+      : score <= 2
+      ? "Weak"
+      : score === 3
+      ? "Fair"
+      : score === 4
+      ? "Good"
+      : "Strong";
+  const strengthColor =
+    score <= 2 ? "bg-destructive" : score === 3 ? "bg-amber-500" : score === 4 ? "bg-lime-500" : "bg-emerald-500";
+  const strengthTextColor =
+    score <= 2 ? "text-destructive" : score === 3 ? "text-amber-500" : score === 4 ? "text-lime-600" : "text-emerald-600";
+
+  const tooShort = password.length > 0 && password.length < 8;
+  const mismatch = confirm.length > 0 && password !== confirm;
+  const matches = confirm.length > 0 && password === confirm;
+  const canSubmit = checks.length && score >= 3 && password === confirm && !busy;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
+    if (!checks.length) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (score < 3) {
+      toast.error("Choose a stronger password (mix upper/lower case, numbers, or symbols).");
       return;
     }
     if (password !== confirm) {
@@ -123,7 +156,7 @@ function ResetPasswordPage() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={submit} className="space-y-4" noValidate>
               <div>
                 <Label htmlFor="new-password">New password</Label>
                 <Input
@@ -131,10 +164,42 @@ function ResetPasswordPage() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={tooShort || undefined}
+                  aria-describedby="password-strength password-rules"
                 />
+                {password.length > 0 && (
+                  <div id="password-strength" className="mt-2 space-y-2">
+                    <div className="flex h-1.5 gap-1" aria-hidden="true">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-full flex-1 rounded-full transition-colors ${
+                            i < score ? strengthColor : "bg-muted"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className={`text-xs font-medium ${strengthTextColor}`}>
+                      Strength: {strengthLabel}
+                    </p>
+                  </div>
+                )}
+                <ul id="password-rules" className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+                  <li className={checks.length ? "text-emerald-600" : tooShort ? "text-destructive" : ""}>
+                    • At least 8 characters
+                  </li>
+                  <li className={checks.upper && checks.lower ? "text-emerald-600" : ""}>
+                    • Upper &amp; lowercase letters
+                  </li>
+                  <li className={checks.number ? "text-emerald-600" : ""}>
+                    • At least one number
+                  </li>
+                  <li className={checks.symbol ? "text-emerald-600" : ""}>
+                    • A symbol (recommended)
+                  </li>
+                </ul>
               </div>
               <div>
                 <Label htmlFor="confirm-password">Confirm password</Label>
@@ -143,15 +208,26 @@ function ResetPasswordPage() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  minLength={6}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
+                  aria-invalid={mismatch || undefined}
+                  aria-describedby="confirm-status"
                 />
+                {confirm.length > 0 && (
+                  <p
+                    id="confirm-status"
+                    className={`mt-1.5 text-xs font-medium ${
+                      matches ? "text-emerald-600" : "text-destructive"
+                    }`}
+                  >
+                    {matches ? "✓ Passwords match" : "Passwords don't match"}
+                  </p>
+                )}
               </div>
               <Button
                 type="submit"
                 className="w-full gradient-brand text-white border-0"
-                disabled={busy}
+                disabled={!canSubmit}
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update password"}
               </Button>
