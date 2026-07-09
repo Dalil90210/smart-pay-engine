@@ -40,6 +40,7 @@ function AuthPage() {
   const [phase, setPhase] = useState<"auth" | "pin" | "forgot">("auth");
   const [pin, setPinValue] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
