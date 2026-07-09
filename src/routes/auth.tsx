@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 // Use the transparent-background variant so the logo blends into the auth page.
 const logoBigUrl = "/assets/logo-small.png";
 const logoSmallUrl = "/assets/logo-small.png";
@@ -40,6 +40,7 @@ function AuthPage() {
   const [phase, setPhase] = useState<"auth" | "pin" | "forgot">("auth");
   const [pin, setPinValue] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
@@ -172,7 +173,28 @@ function AuthPage() {
                         </button>
                       )}
                     </div>
-                    <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-pressed={showPassword}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account" : "Sign in"}
