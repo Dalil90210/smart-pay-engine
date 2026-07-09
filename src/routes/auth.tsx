@@ -10,10 +10,12 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SandboxBadge } from "@/components/SandboxBadge";
+import { PasswordStrength, getPasswordScore, getPasswordChecks } from "@/components/PasswordStrength";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import logoAsset from "@/assets/spe-icon.png.asset.json";
-const logoUrl = logoAsset.url;
+import { Loader2, Eye, EyeOff } from "lucide-react";
+// Use the transparent-background variant so the logo blends into the auth page.
+const logoBigUrl = "/assets/logo-small.png";
+const logoSmallUrl = "/assets/logo-small.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -36,8 +38,10 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [phase, setPhase] = useState<"auth" | "pin">("auth");
+  const [phase, setPhase] = useState<"auth" | "pin" | "forgot">("auth");
   const [pin, setPinValue] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
@@ -49,8 +53,22 @@ function AuthPage() {
     }
   }, [user, loading, navigate, phase]);
 
+  const signupChecks = getPasswordChecks(password);
+  const signupScore = getPasswordScore(password);
+  const signupPasswordOk = signupChecks.length && signupScore >= 3;
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup") {
+      if (!signupChecks.length) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (signupScore < 3) {
+        toast.error("Choose a stronger password (mix upper/lower case, numbers, or symbols).");
+        return;
+      }
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -95,11 +113,37 @@ function AuthPage() {
     }
   };
 
+  const submitForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("If that email exists, a reset link is on its way.");
+      setPhase("auth");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8">
+    <div className="relative flex min-h-screen items-center justify-center px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24">
+      <img
+        src={logoSmallUrl}
+        alt="Smart Pay Engine icon"
+        className="absolute left-4 top-4 h-9 w-9 object-contain sm:left-6 sm:top-6 sm:h-11 sm:w-11"
+      />
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <img src={logoUrl} alt="Smart Pay Engine" className="mx-auto mb-3 h-48 w-auto object-contain sm:h-56" />
+          <img
+            src={logoBigUrl}
+            alt="Smart Pay Engine"
+            className="mx-auto mb-4 h-28 w-auto max-w-[70vw] object-contain xs:h-32 sm:h-48 md:h-64"
+          />
           <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Login to Smart Pay Engine</h1>
           <a
             href="https://smartpayengine.com"
@@ -129,10 +173,50 @@ function AuthPage() {
                     <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                   </div>
                   <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <div className="flex items-baseline justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      {mode === "signin" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResetEmail(email);
+                            setPhase("forgot");
+                          }}
+                          className="text-xs font-medium text-primary hover:underline focus:underline focus:outline-none"
+                        >
+                          Forgot password?
+                        </button>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                        required
+                        minLength={6}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-pressed={showPassword}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:text-foreground"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {mode === "signup" && <PasswordStrength password={password} />}
                   </div>
-                  <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
+                  <Button
+                    type="submit"
+                    className="w-full gradient-brand text-white border-0"
+                    disabled={busy || (mode === "signup" && password.length > 0 && !signupPasswordOk)}
+                  >
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create account" : "Sign in"}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
@@ -141,6 +225,36 @@ function AuthPage() {
                 </form>
               </TabsContent>
             </Tabs>
+          ) : phase === "forgot" ? (
+            <form onSubmit={submitForgot} className="space-y-4">
+              <div className="text-center">
+                <h2 className="font-display text-lg font-semibold">Reset your password</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Enter your account email and we'll send you a link to set a new password.
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full gradient-brand text-white border-0" disabled={busy}>
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send reset link"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => setPhase("auth")}
+                className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
+              >
+                Back to sign in
+              </button>
+            </form>
           ) : (
             <div className="space-y-5 text-center">
               <div>

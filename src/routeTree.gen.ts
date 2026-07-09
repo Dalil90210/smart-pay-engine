@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as ReversalsRouteImport } from './routes/reversals'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LedgerIntegrityRouteImport } from './routes/ledger-integrity'
 import { Route as InvoicesRouteImport } from './routes/invoices'
@@ -22,6 +23,7 @@ import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as HiveRouteImport } from './routes/hive'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ConvertRouteImport } from './routes/convert'
+import { Route as BrandPreviewRouteImport } from './routes/brand-preview'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as AddFundsRouteImport } from './routes/add-funds'
@@ -62,6 +64,11 @@ const ReversalsRoute = ReversalsRouteImport.update({
   path: '/reversals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -95,6 +102,11 @@ const CookiesRoute = CookiesRouteImport.update({
 const ConvertRoute = ConvertRouteImport.update({
   id: '/convert',
   path: '/convert',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandPreviewRoute = BrandPreviewRouteImport.update({
+  id: '/brand-preview',
+  path: '/brand-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -149,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/add-funds': typeof AddFundsRoute
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -156,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -172,6 +186,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add-funds': typeof AddFundsRoute
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -179,6 +194,7 @@ export interface FileRoutesByTo {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -197,6 +213,7 @@ export interface FileRoutesById {
   '/add-funds': typeof AddFundsRoute
   '/assistant': typeof AssistantRouteWithChildren
   '/auth': typeof AuthRoute
+  '/brand-preview': typeof BrandPreviewRoute
   '/convert': typeof ConvertRoute
   '/cookies': typeof CookiesRoute
   '/hive': typeof HiveRoute
@@ -204,6 +221,7 @@ export interface FileRoutesById {
   '/invoices': typeof InvoicesRoute
   '/ledger-integrity': typeof LedgerIntegrityRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/reversals': typeof ReversalsRoute
   '/send': typeof SendRoute
   '/settings': typeof SettingsRoute
@@ -223,6 +241,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/assistant'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -230,6 +249,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -246,6 +266,7 @@ export interface FileRouteTypes {
     | '/'
     | '/add-funds'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -253,6 +274,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -270,6 +292,7 @@ export interface FileRouteTypes {
     | '/add-funds'
     | '/assistant'
     | '/auth'
+    | '/brand-preview'
     | '/convert'
     | '/cookies'
     | '/hive'
@@ -277,6 +300,7 @@ export interface FileRouteTypes {
     | '/invoices'
     | '/ledger-integrity'
     | '/privacy'
+    | '/reset-password'
     | '/reversals'
     | '/send'
     | '/settings'
@@ -295,6 +319,7 @@ export interface RootRouteChildren {
   AddFundsRoute: typeof AddFundsRoute
   AssistantRoute: typeof AssistantRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BrandPreviewRoute: typeof BrandPreviewRoute
   ConvertRoute: typeof ConvertRoute
   CookiesRoute: typeof CookiesRoute
   HiveRoute: typeof HiveRoute
@@ -302,6 +327,7 @@ export interface RootRouteChildren {
   InvoicesRoute: typeof InvoicesRoute
   LedgerIntegrityRoute: typeof LedgerIntegrityRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ReversalsRoute: typeof ReversalsRoute
   SendRoute: typeof SendRoute
   SettingsRoute: typeof SettingsRoute
@@ -357,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReversalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -404,6 +437,13 @@ declare module '@tanstack/react-router' {
       path: '/convert'
       fullPath: '/convert'
       preLoaderRoute: typeof ConvertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand-preview': {
+      id: '/brand-preview'
+      path: '/brand-preview'
+      fullPath: '/brand-preview'
+      preLoaderRoute: typeof BrandPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -491,6 +531,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddFundsRoute: AddFundsRoute,
   AssistantRoute: AssistantRouteWithChildren,
   AuthRoute: AuthRoute,
+  BrandPreviewRoute: BrandPreviewRoute,
   ConvertRoute: ConvertRoute,
   CookiesRoute: CookiesRoute,
   HiveRoute: HiveRoute,
@@ -498,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoicesRoute: InvoicesRoute,
   LedgerIntegrityRoute: LedgerIntegrityRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ReversalsRoute: ReversalsRoute,
   SendRoute: SendRoute,
   SettingsRoute: SettingsRoute,
@@ -512,13 +554,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

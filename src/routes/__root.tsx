@@ -17,6 +17,9 @@ import faviconIco from "@/assets/favicon.ico.asset.json";
 import faviconPng from "@/assets/favicon-512.png.asset.json";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { CONSENT_STORAGE_KEY } from "@/lib/consent";
+import { ThemeProvider } from "@/hooks/useTheme";
+
+const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem('spe-theme');var t=(s==='light'||s==='dark')?s:'dark';var r=document.documentElement;r.classList.toggle('dark',t==='dark');r.style.colorScheme=t;}catch(e){}})();`;
 
 function NotFoundComponent() {
   return (
@@ -100,6 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:url", content: "https://app.smartpayengine.com/" },
     ],
     scripts: [
+      { children: THEME_INIT_SCRIPT },
       {
         type: "text/javascript",
         src: "https://cdn.consentmanager.net/delivery/autoblocking/380325aca2337.js",
@@ -219,11 +223,11 @@ gtag('config', 'G-PLBN4ZXTK6');
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>
@@ -236,13 +240,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <main>
-          <Outlet />
-        </main>
-        <Toaster richColors position="top-right" />
-        <ConsentBanner />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <main>
+            <Outlet />
+          </main>
+          <Toaster richColors position="top-right" />
+          <ConsentBanner />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
