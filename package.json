@@ -18,7 +18,7 @@
     "@ai-sdk/openai-compatible": "^2.0.50",
     "@ai-sdk/react": "^3.0.208",
     "@capacitor/android": "^8.4.1",
-    "@capacitor/cli": "^8.4.1",
+    "@capacitor/cli": "^8.4.2",
     "@capacitor/core": "^8.4.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -102,5 +102,11 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "tar": "^7.5.3"
+  },
+  "resolutions": {
+    "tar": "^7.5.3"
   }
 }
