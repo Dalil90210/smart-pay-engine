@@ -113,15 +113,45 @@ function HivePage() {
     return null;
   };
 
-  type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
-  const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
+  type HiveMsgFields = {
+    text: string;
+    intent?: HiveIntent;
+    resolvedPayee?: Payee | null;
+    pending?: PendingAction;
+    payeeMatches?: Payee[];
+    pendingSendIntent?: Extract<HiveIntent, { kind: "send" }>;
+  };
+  const buildPending = (intent: HiveIntent, forcePayee?: Payee): { msg: HiveMsgFields; payee?: Payee | null } => {
     if (intent.kind === "send") {
-      const matches = (payees ?? []).filter((p) => p.name.toLowerCase().includes(intent.payeeQuery.toLowerCase()));
-      const exactCurrency = matches.find((m) => m.currency === intent.currency);
-      const payee = exactCurrency ?? matches[0];
-      if (!payee) {
-        return { msg: { text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first.`, intent } };
+      const query = intent.payeeQuery.trim().toLowerCase();
+      const all = payees ?? [];
+      const matches = forcePayee
+        ? [forcePayee]
+        : all.filter((p) => p.name.toLowerCase().includes(query));
+
+      // 0 matches — nothing to send to.
+      if (matches.length === 0) {
+        return {
+          msg: {
+            text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first, or try a different name.`,
+            intent,
+          },
+        };
       }
+
+      // Multiple candidates — ask before doing anything else. No pending action, no PIN path yet.
+      if (matches.length > 1) {
+        return {
+          msg: {
+            text: `I found ${matches.length} payees matching "${intent.payeeQuery}". Which one did you mean?`,
+            intent,
+            payeeMatches: matches,
+            pendingSendIntent: intent,
+          },
+        };
+      }
+
+      const payee = matches[0];
       if (payee.currency !== intent.currency) {
         return { msg: { text: `${payee.name} receives ${payee.currency}, but you asked for ${intent.currency}. Use Convert first or pick a matching payee.`, intent, resolvedPayee: payee } };
       }
