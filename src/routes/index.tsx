@@ -132,6 +132,19 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Quick actions — always rendered, never blocked by data loading */}
+      <section aria-label="Quick actions">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Quick actions
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ActionCard to="/send" icon={Send} title="Send money" description="Transfer to a payee in USD, EUR or GBP." />
+          <ActionCard to="/convert" icon={ArrowRightLeft} title="Convert" description="FX between your currency accounts." />
+          <ActionCard to="/add-funds" icon={PlusCircle} title="Add funds" description="Top up any checking account." />
+          <ActionCard to="/invoices" icon={FileText} title="Invoices" description="Bill customers and track payments." />
+        </div>
+      </section>
+
       {/* KPI strip */}
       <div className="grid gap-3 sm:grid-cols-4">
         <Kpi icon={TrendingUp} label="Total moved" value={formatMoney(totalMovedUsd, "USD")} />
