@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { SandboxBadge } from "@/components/SandboxBadge";
 import { PasswordStrength, getPasswordScore, getPasswordChecks } from "@/components/PasswordStrength";
@@ -180,12 +179,28 @@ function AuthPage() {
 
         <Card className="card-glass p-6">
           {phase === "auth" ? (
-            <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin" onClick={() => setMode("signin")}>Sign in</TabsTrigger>
-                <TabsTrigger value="signup" onClick={() => setMode("signup")}>Sign up</TabsTrigger>
-              </TabsList>
-              <TabsContent value={mode} className="mt-4">
+            <div>
+              <div role="tablist" aria-label="Authentication mode" className="grid w-full grid-cols-2 rounded-lg bg-muted p-1 text-muted-foreground">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "signin"}
+                  onClick={() => setMode("signin")}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "signup"}
+                  onClick={() => setMode("signup")}
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-all aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Sign up
+                </button>
+              </div>
+              <div className="mt-4">
                 <form onSubmit={submit} className="space-y-4">
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -242,8 +257,8 @@ function AuthPage() {
                     No real money moves. Sandbox only.
                   </p>
                 </form>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
           ) : phase === "forgot" ? (
             <form onSubmit={submitForgot} className="space-y-4">
               <div className="text-center">
