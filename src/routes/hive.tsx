@@ -41,7 +41,20 @@ export const Route = createFileRoute("/hive")({
 
 type Message =
   | { id: string; role: "user"; text: string }
-  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus; audit?: IdempotencyAuditResult | null };
+  | {
+      id: string;
+      role: "hive";
+      text: string;
+      intent?: HiveIntent;
+      resolvedPayee?: Payee | null;
+      pending?: PendingAction;
+      idemStatus?: IdempotencyStatus;
+      audit?: IdempotencyAuditResult | null;
+      /** Ambiguous send — candidate payees the user must pick from before a pending action is built. */
+      payeeMatches?: Payee[];
+      /** Original send intent kept alongside payeeMatches so selection can rebuild the pending action. */
+      pendingSendIntent?: Extract<HiveIntent, { kind: "send" }>;
+    };
 
 type PendingAction = {
   kind: "send" | "convert" | "deposit";
