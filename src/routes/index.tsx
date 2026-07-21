@@ -17,7 +17,10 @@ import {
   TrendingUp,
   Wallet,
   Radio,
+  PlusCircle,
+  FileText,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { CURRENCIES, formatMoney } from "@/lib/money";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,6 +132,19 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Quick actions — always rendered, never blocked by data loading */}
+      <section aria-label="Quick actions">
+        <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Quick actions
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ActionCard to="/send" icon={Send} title="Send money" description="Transfer to a payee in USD, EUR or GBP." />
+          <ActionCard to="/convert" icon={ArrowRightLeft} title="Convert" description="FX between your currency accounts." />
+          <ActionCard to="/add-funds" icon={PlusCircle} title="Add funds" description="Top up any checking account." />
+          <ActionCard to="/invoices" icon={FileText} title="Invoices" description="Bill customers and track payments." />
+        </div>
+      </section>
+
       {/* KPI strip */}
       <div className="grid gap-3 sm:grid-cols-4">
         <Kpi icon={TrendingUp} label="Total moved" value={formatMoney(totalMovedUsd, "USD")} />
@@ -236,5 +252,25 @@ function Kpi({
       <div className={`mt-1 font-display text-2xl font-bold ${accent ? "text-cyan" : ""}`}>{value}</div>
       {sub && <div className="text-[11px] text-muted-foreground">{sub}</div>}
     </Card>
+  );
+}
+
+function ActionCard({
+  to, icon: Icon, title, description,
+}: { to: string; icon: LucideIcon; title: string; description: string }) {
+  return (
+    <Link to={to} className="group">
+      <Card className="h-full p-4 transition-colors hover:border-primary/50 hover:bg-primary/5">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary group-hover:bg-primary/20">
+            <Icon className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-semibold">{title}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{description}</div>
+          </div>
+        </div>
+      </Card>
+    </Link>
   );
 }
