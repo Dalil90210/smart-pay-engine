@@ -131,6 +131,15 @@ export async function setPin(pin: string) {
   if (error) throw error;
 }
 
+export async function ensureUserProvisioned(args: { userId: string; email?: string | null; displayName?: string | null }) {
+  const { error } = await supabase.rpc("provision_user_wallets", {
+    p_user_id: args.userId,
+    p_email: args.email ?? null,
+    p_display_name: args.displayName ?? null,
+  } as never);
+  if (error) throw error;
+}
+
 export async function hasPin(): Promise<boolean> {
   const { data, error } = await supabase.rpc("has_pin");
   if (error) throw error;

@@ -121,6 +121,10 @@
   * {
     border-color: var(--color-border);
   }
+  body #cmpwrapper.cmpwrapper:empty {
+    display: contents !important;
+    pointer-events: none !important;
+  }
   html, body {
     font-family: var(--font-sans);
   }

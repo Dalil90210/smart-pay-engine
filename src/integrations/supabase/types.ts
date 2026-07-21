@@ -954,6 +954,10 @@ export type Database = {
         }
         Returns: string
       }
+      provision_user_wallets: {
+        Args: { p_display_name?: string; p_email?: string; p_user_id: string }
+        Returns: undefined
+      }
       send_invoice: { Args: { p_invoice_id: string }; Returns: undefined }
       send_invoice_reminder: { Args: { p_invoice_id: string }; Returns: Json }
       set_pin: { Args: { p_pin: string }; Returns: undefined }
