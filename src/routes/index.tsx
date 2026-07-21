@@ -17,7 +17,10 @@ import {
   TrendingUp,
   Wallet,
   Radio,
+  PlusCircle,
+  FileText,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { CURRENCIES, formatMoney } from "@/lib/money";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
