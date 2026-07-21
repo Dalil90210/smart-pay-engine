@@ -182,8 +182,8 @@ function AuthPage() {
           {phase === "auth" ? (
             <Tabs value={mode} onValueChange={(v) => setMode(v as "signin" | "signup")}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
-                <TabsTrigger value="signup">Sign up</TabsTrigger>
+                <TabsTrigger value="signin" onClick={() => setMode("signin")}>Sign in</TabsTrigger>
+                <TabsTrigger value="signup" onClick={() => setMode("signup")}>Sign up</TabsTrigger>
               </TabsList>
               <TabsContent value={mode} className="mt-4">
                 <form onSubmit={submit} className="space-y-4">
