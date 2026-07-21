@@ -41,7 +41,20 @@ export const Route = createFileRoute("/hive")({
 
 type Message =
   | { id: string; role: "user"; text: string }
-  | { id: string; role: "hive"; text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction; idemStatus?: IdempotencyStatus; audit?: IdempotencyAuditResult | null };
+  | {
+      id: string;
+      role: "hive";
+      text: string;
+      intent?: HiveIntent;
+      resolvedPayee?: Payee | null;
+      pending?: PendingAction;
+      idemStatus?: IdempotencyStatus;
+      audit?: IdempotencyAuditResult | null;
+      /** Ambiguous send — candidate payees the user must pick from before a pending action is built. */
+      payeeMatches?: Payee[];
+      /** Original send intent kept alongside payeeMatches so selection can rebuild the pending action. */
+      pendingSendIntent?: Extract<HiveIntent, { kind: "send" }>;
+    };
 
 type PendingAction = {
   kind: "send" | "convert" | "deposit";
@@ -100,15 +113,45 @@ function HivePage() {
     return null;
   };
 
-  type HiveMsgFields = { text: string; intent?: HiveIntent; resolvedPayee?: Payee | null; pending?: PendingAction };
-  const buildPending = (intent: HiveIntent): { msg: HiveMsgFields; payee?: Payee | null } => {
+  type HiveMsgFields = {
+    text: string;
+    intent?: HiveIntent;
+    resolvedPayee?: Payee | null;
+    pending?: PendingAction;
+    payeeMatches?: Payee[];
+    pendingSendIntent?: Extract<HiveIntent, { kind: "send" }>;
+  };
+  const buildPending = (intent: HiveIntent, forcePayee?: Payee): { msg: HiveMsgFields; payee?: Payee | null } => {
     if (intent.kind === "send") {
-      const matches = (payees ?? []).filter((p) => p.name.toLowerCase().includes(intent.payeeQuery.toLowerCase()));
-      const exactCurrency = matches.find((m) => m.currency === intent.currency);
-      const payee = exactCurrency ?? matches[0];
-      if (!payee) {
-        return { msg: { text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first.`, intent } };
+      const query = intent.payeeQuery.trim().toLowerCase();
+      const all = payees ?? [];
+      const matches = forcePayee
+        ? [forcePayee]
+        : all.filter((p) => p.name.toLowerCase().includes(query));
+
+      // 0 matches — nothing to send to.
+      if (matches.length === 0) {
+        return {
+          msg: {
+            text: `I couldn't find a payee matching "${intent.payeeQuery}". Add them under Send first, or try a different name.`,
+            intent,
+          },
+        };
       }
+
+      // Multiple candidates — ask before doing anything else. No pending action, no PIN path yet.
+      if (matches.length > 1) {
+        return {
+          msg: {
+            text: `I found ${matches.length} payees matching "${intent.payeeQuery}". Which one did you mean?`,
+            intent,
+            payeeMatches: matches,
+            pendingSendIntent: intent,
+          },
+        };
+      }
+
+      const payee = matches[0];
       if (payee.currency !== intent.currency) {
         return { msg: { text: `${payee.name} receives ${payee.currency}, but you asked for ${intent.currency}. Use Convert first or pick a matching payee.`, intent, resolvedPayee: payee } };
       }
@@ -206,6 +249,36 @@ function HivePage() {
     setMessages((m) => [...m, hiveMsg]);
     setThinking(false);
   };
+
+  /**
+   * User picked one of the ambiguous payee matches. Replace the clarification
+   * message with a fully-resolved pending action so the normal Confirm → PIN
+   * flow can run. No PIN prompt is ever triggered until the user resolves
+   * the ambiguity here AND clicks Confirm on the resulting card.
+   */
+  const selectPayee = (msgId: string, payee: Payee) => {
+    setMessages((all) => {
+      const target = all.find((m) => m.id === msgId);
+      if (!target || target.role !== "hive" || !target.pendingSendIntent) return all;
+      const { msg, payee: resolvedPayee } = buildPending(target.pendingSendIntent, payee);
+      return all.map((m) =>
+        m.id === msgId && m.role === "hive"
+          ? {
+              ...m,
+              text: msg.text,
+              intent: msg.intent,
+              resolvedPayee: msg.resolvedPayee ?? resolvedPayee ?? payee,
+              pending: msg.pending,
+              // Clear clarification-only fields now that a specific payee is chosen.
+              payeeMatches: undefined,
+              pendingSendIntent: undefined,
+            }
+          : m,
+      );
+    });
+  };
+
+
 
   const setIdemStatus = (msgId: string, status: IdempotencyStatus) => {
     setMessages((all) =>
@@ -308,6 +381,23 @@ function HivePage() {
               </div>
               <div className="max-w-[85%] space-y-3">
                 <div className="whitespace-pre-line rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm">{m.text}</div>
+                {m.payeeMatches && m.payeeMatches.length > 0 && !m.pending && (
+                  <PayeeClarificationCard
+                    matches={m.payeeMatches}
+                    requestedCurrency={m.pendingSendIntent?.currency}
+                    amountMinor={m.pendingSendIntent?.amountMinor}
+                    onSelect={(p) => selectPayee(m.id, p)}
+                    onCancel={() =>
+                      setMessages((all) =>
+                        all.map((x) =>
+                          x.id === m.id && x.role === "hive"
+                            ? { ...x, payeeMatches: undefined, pendingSendIntent: undefined, text: "Cancelled — tell me who to send to." }
+                            : x,
+                        ),
+                      )
+                    }
+                  />
+                )}
                 {m.pending && (
                   <>
                     <IntentPreview msg={m} />
@@ -430,3 +520,70 @@ function IntentPreview({ msg }: { msg: Message & { role: "hive" } }) {
   }
   return null;
 }
+
+/**
+ * Parsed clarification card shown when a send prompt maps to multiple saved
+ * payees. Users MUST pick one before the flow moves to Confirm/PIN — no PIN
+ * dialog can be triggered from this state.
+ */
+function PayeeClarificationCard({
+  matches,
+  requestedCurrency,
+  amountMinor,
+  onSelect,
+  onCancel,
+}: {
+  matches: Payee[];
+  requestedCurrency?: Currency;
+  amountMinor?: number;
+  onSelect: (payee: Payee) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Card className="border-primary/30 bg-card/80 p-4">
+      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Sparkles className="h-3.5 w-3.5" />
+        Pick a payee
+        {requestedCurrency && amountMinor ? (
+          <span className="ml-auto text-foreground/70 normal-case tracking-normal">
+            {formatMoney(amountMinor, requestedCurrency)}
+          </span>
+        ) : null}
+      </div>
+      <div className="space-y-2">
+        {matches.map((p) => {
+          const currencyMismatch = requestedCurrency && p.currency !== requestedCurrency;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onSelect(p)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex flex-col">
+                <span className="font-medium">{p.name}</span>
+                <span className="text-xs text-muted-foreground">{p.account_ref}</span>
+              </span>
+              <span
+                className={
+                  currencyMismatch
+                    ? "rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+                    : "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                }
+              >
+                {p.currency}
+                {currencyMismatch ? " · convert" : ""}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex justify-end">
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
