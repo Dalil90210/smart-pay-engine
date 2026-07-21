@@ -254,3 +254,23 @@ function Kpi({
     </Card>
   );
 }
+
+function ActionCard({
+  to, icon: Icon, title, description,
+}: { to: string; icon: LucideIcon; title: string; description: string }) {
+  return (
+    <Link to={to} className="group">
+      <Card className="h-full p-4 transition-colors hover:border-primary/50 hover:bg-primary/5">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-primary/10 p-2 text-primary group-hover:bg-primary/20">
+            <Icon className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-semibold">{title}</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{description}</div>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+}
