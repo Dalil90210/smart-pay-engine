@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { setPin, hasPin } from "@/lib/ledger";
+import { setPin, hasPin, ensureUserProvisioned } from "@/lib/ledger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,11 +45,18 @@ function AuthPage() {
 
   useEffect(() => {
     if (!loading && user && phase === "auth") {
-      // If already signed in but no PIN yet, route to PIN setup
-      hasPin().then((has) => {
-        if (has) navigate({ to: "/" });
-        else setPhase("pin");
-      });
+      // Repair/provision newly signed-up users before checking PIN setup.
+      ensureUserProvisioned({
+        userId: user.id,
+        email: user.email,
+        displayName: user.user_metadata?.display_name,
+      })
+        .then(() => hasPin())
+        .then((has) => {
+          if (has) navigate({ to: "/" });
+          else setPhase("pin");
+        })
+        .catch((err) => toast.error((err as Error).message));
     }
   }, [user, loading, navigate, phase]);
 
@@ -79,6 +86,11 @@ function AuthPage() {
         });
         if (error) throw error;
         if (data.session) {
+          await ensureUserProvisioned({
+            userId: data.session.user.id,
+            email: data.session.user.email,
+            displayName: data.session.user.user_metadata?.display_name,
+          });
           toast.success("Account created");
           setPhase("pin");
         } else {
@@ -86,8 +98,15 @@ function AuthPage() {
           setMode("signin");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (data.user) {
+          await ensureUserProvisioned({
+            userId: data.user.id,
+            email: data.user.email,
+            displayName: data.user.user_metadata?.display_name,
+          });
+        }
         const has = await hasPin();
         if (has) navigate({ to: "/" });
         else setPhase("pin");
