@@ -520,3 +520,70 @@ function IntentPreview({ msg }: { msg: Message & { role: "hive" } }) {
   }
   return null;
 }
+
+/**
+ * Parsed clarification card shown when a send prompt maps to multiple saved
+ * payees. Users MUST pick one before the flow moves to Confirm/PIN — no PIN
+ * dialog can be triggered from this state.
+ */
+function PayeeClarificationCard({
+  matches,
+  requestedCurrency,
+  amountMinor,
+  onSelect,
+  onCancel,
+}: {
+  matches: Payee[];
+  requestedCurrency?: Currency;
+  amountMinor?: number;
+  onSelect: (payee: Payee) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Card className="border-primary/30 bg-card/80 p-4">
+      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <Sparkles className="h-3.5 w-3.5" />
+        Pick a payee
+        {requestedCurrency && amountMinor ? (
+          <span className="ml-auto text-foreground/70 normal-case tracking-normal">
+            {formatMoney(amountMinor, requestedCurrency)}
+          </span>
+        ) : null}
+      </div>
+      <div className="space-y-2">
+        {matches.map((p) => {
+          const currencyMismatch = requestedCurrency && p.currency !== requestedCurrency;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onSelect(p)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/50 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex flex-col">
+                <span className="font-medium">{p.name}</span>
+                <span className="text-xs text-muted-foreground">{p.account_ref}</span>
+              </span>
+              <span
+                className={
+                  currencyMismatch
+                    ? "rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+                    : "rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                }
+              >
+                {p.currency}
+                {currencyMismatch ? " · convert" : ""}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex justify-end">
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
