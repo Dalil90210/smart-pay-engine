@@ -381,6 +381,23 @@ function HivePage() {
               </div>
               <div className="max-w-[85%] space-y-3">
                 <div className="whitespace-pre-line rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm">{m.text}</div>
+                {m.payeeMatches && m.payeeMatches.length > 0 && !m.pending && (
+                  <PayeeClarificationCard
+                    matches={m.payeeMatches}
+                    requestedCurrency={m.pendingSendIntent?.currency}
+                    amountMinor={m.pendingSendIntent?.amountMinor}
+                    onSelect={(p) => selectPayee(m.id, p)}
+                    onCancel={() =>
+                      setMessages((all) =>
+                        all.map((x) =>
+                          x.id === m.id && x.role === "hive"
+                            ? { ...x, payeeMatches: undefined, pendingSendIntent: undefined, text: "Cancelled — tell me who to send to." }
+                            : x,
+                        ),
+                      )
+                    }
+                  />
+                )}
                 {m.pending && (
                   <>
                     <IntentPreview msg={m} />
