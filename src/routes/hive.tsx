@@ -250,6 +250,36 @@ function HivePage() {
     setThinking(false);
   };
 
+  /**
+   * User picked one of the ambiguous payee matches. Replace the clarification
+   * message with a fully-resolved pending action so the normal Confirm → PIN
+   * flow can run. No PIN prompt is ever triggered until the user resolves
+   * the ambiguity here AND clicks Confirm on the resulting card.
+   */
+  const selectPayee = (msgId: string, payee: Payee) => {
+    setMessages((all) => {
+      const target = all.find((m) => m.id === msgId);
+      if (!target || target.role !== "hive" || !target.pendingSendIntent) return all;
+      const { msg, payee: resolvedPayee } = buildPending(target.pendingSendIntent, payee);
+      return all.map((m) =>
+        m.id === msgId && m.role === "hive"
+          ? {
+              ...m,
+              text: msg.text,
+              intent: msg.intent,
+              resolvedPayee: msg.resolvedPayee ?? resolvedPayee ?? payee,
+              pending: msg.pending,
+              // Clear clarification-only fields now that a specific payee is chosen.
+              payeeMatches: undefined,
+              pendingSendIntent: undefined,
+            }
+          : m,
+      );
+    });
+  };
+
+
+
   const setIdemStatus = (msgId: string, status: IdempotencyStatus) => {
     setMessages((all) =>
       all.map((m) => (m.id === msgId && m.role === "hive" ? { ...m, idemStatus: status } : m)),
